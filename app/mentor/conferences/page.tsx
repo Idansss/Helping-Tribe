@@ -23,6 +23,7 @@ import {
   XCircle,
   AlertCircle,
 } from 'lucide-react'
+import { MentorLayout } from '@/components/lms/MentorLayout'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
@@ -1160,6 +1161,7 @@ export default function MentorConferencesPage() {
           </DialogContent>
         </Dialog>
       </div>
+    </MentorLayout>
   )
 }
 
