@@ -24,6 +24,7 @@ export default function StudentLoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [redirectTo, setRedirectTo] = useState('/learner/dashboard')
+  const [inlineError, setInlineError] = useState<string | null>(null)
 
   useEffect(() => {
     const sp = new URLSearchParams(window.location.search)
@@ -33,6 +34,7 @@ export default function StudentLoginPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
+    setInlineError(null)
     try {
       const res = await fetch('/api/student/login', {
         method: 'POST',
@@ -40,7 +42,27 @@ export default function StudentLoginPage() {
         body: JSON.stringify({ matricNumber, password }),
       })
       const json = await res.json()
-      if (!res.ok) throw new Error(json?.error || 'Login failed')
+
+      if (!res.ok) {
+        const code = String(json?.code ?? '')
+        if (code === 'PAYMENT_REQUIRED') {
+          const msg = 'Payment required. Please pay with the Paystack link from admin, then set your password using the one-time link.'
+          setInlineError(msg)
+          throw new Error('Payment required')
+        }
+        if (code === 'PASSWORD_SETUP_REQUIRED') {
+          const msg = 'Password setup required. Ask admin for your one-time set-password link.'
+          setInlineError(msg)
+          throw new Error('Password setup required')
+        }
+        if (code === 'PAYMENTS_NOT_CONFIGURED') {
+          const msg = 'Payments are not configured yet. Admin must run the payments database migration.'
+          setInlineError(msg)
+          throw new Error('Payments not configured')
+        }
+        throw new Error(json?.error || 'Login failed')
+      }
+
       router.push(redirectTo)
       router.refresh()
     } catch (err: any) {
@@ -103,6 +125,11 @@ export default function StudentLoginPage() {
             </CardHeader>
             <CardContent>
               <form onSubmit={onSubmit} className="space-y-5">
+                {inlineError && (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                    {inlineError}
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="matric" className="text-sm font-medium text-slate-800">Matric Number</Label>
                   <div className="relative">
@@ -143,7 +170,7 @@ export default function StudentLoginPage() {
                 </Button>
 
                 <div className="rounded-lg border border-cyan-100 bg-cyan-50/60 px-3 py-2 text-xs text-cyan-900">
-                  If this is your first login, ask admin for your set-password link.
+                  Payment is required before set-password and login. Ask admin for your Paystack payment link, then your one-time set-password link.
                 </div>
 
                 <div className="flex items-center justify-between pt-2 text-xs text-slate-600 focus-within:outline-none focus-within:ring-0">

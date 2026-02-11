@@ -48,12 +48,21 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .maybeSingle()
 
+    // If the payments migration hasn't been applied yet, Supabase may return null here (or an error).
+    // Avoid a misleading "payment required" and return a clear configuration message instead.
+    if (!student) {
+      return NextResponse.json(
+        { error: 'Student payment state is not configured yet. Run DB migration 032_payments_paystack.sql.', code: 'PAYMENTS_NOT_CONFIGURED' },
+        { status: 500 }
+      )
+    }
+
     if (student?.must_set_password) {
-      return NextResponse.json({ error: 'Password setup required' }, { status: 403 })
+      return NextResponse.json({ error: 'Password setup required', code: 'PASSWORD_SETUP_REQUIRED' }, { status: 403 })
     }
 
     if (!student?.is_paid) {
-      return NextResponse.json({ error: 'Payment required' }, { status: 403 })
+      return NextResponse.json({ error: 'Payment required', code: 'PAYMENT_REQUIRED' }, { status: 403 })
     }
 
     const response = NextResponse.json({ ok: true })
