@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
@@ -220,7 +220,7 @@ export default function LearnerTakeQuizPage() {
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="flex items-center gap-2 text-slate-500 py-12">
           <Loader2 className="h-5 w-5 animate-spin" />
-          {loading ? 'Loading…' : error || 'Quiz not found.'}
+          {loading ? 'Loadingâ€¦' : error || 'Quiz not found.'}
         </div>
         {!loading && (
           <Button variant="outline" asChild>
@@ -266,15 +266,15 @@ export default function LearnerTakeQuizPage() {
         <CardContent className="space-y-6">
           {currentQuestion && (
             <>
-              <p className="font-medium text-slate-900">{currentQuestion.question_text}</p>
-              <div className="space-y-2">
+              <p className="text-lg leading-relaxed text-slate-900">{currentQuestion.question_text}</p>
+              <div className="space-y-3">
                 {(currentQuestion.options || []).map((opt, idx) => {
                   const resp = currentResponse
                   const isSelected = selectedIndex === idx
                   const isLocked = !!resp
-                  const showCorrect = resp && resp.selected_answer_index === idx
                   const correct = resp && resp.is_correct && resp.selected_answer_index === idx
                   const wrong = resp && !resp.is_correct && resp.selected_answer_index === idx
+                  const wasPicked = resp && resp.selected_answer_index === idx
 
                   return (
                     <button
@@ -284,38 +284,23 @@ export default function LearnerTakeQuizPage() {
                       onClick={() => {
                         if (!isLocked) setSelectedIndex(idx)
                       }}
-                      className={`w-full text-left rounded-lg border-2 px-4 py-3 transition-colors ${
-                        isLocked
-                          ? 'cursor-default border-slate-200 bg-slate-50'
-                          : 'cursor-pointer border-slate-200 hover:border-teal-400 hover:bg-teal-50/50'
-                      } ${isSelected && !isLocked ? 'border-teal-500 bg-teal-50' : ''} ${
-                        correct ? 'border-green-500 bg-green-50' : ''
-                      } ${wrong ? 'border-red-400 bg-red-50' : ''}`}
+                      className={`w-full text-left rounded-lg px-3 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 ${
+                        isLocked ? 'cursor-default text-slate-700' : 'cursor-pointer hover:bg-teal-50/60'
+                      } ${isSelected && !isLocked ? 'bg-teal-50' : ''} ${correct ? 'bg-green-50' : ''} ${
+                        wrong ? 'bg-red-50' : ''
+                      }`}
                     >
                       <span className="flex items-start gap-3">
-                        <span
-                          className={`mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-xs font-semibold ${
-                            correct
-                              ? 'border-green-500 bg-green-100 text-green-700'
-                              : wrong
-                              ? 'border-red-400 bg-red-100 text-red-700'
-                              : isSelected && !isLocked
-                              ? 'border-teal-500 bg-teal-100 text-teal-800'
-                              : 'border-slate-300 bg-white text-slate-600'
-                          }`}
-                          aria-hidden="true"
-                        >
-                          {optionLabel(idx)}
+                        <span className="w-6 shrink-0 font-semibold text-slate-900" aria-hidden="true">
+                          {optionLabel(idx)}.
                         </span>
-                        <span className="mt-0.5">
-                          {correct && <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />}
-                          {wrong && <XCircle className="h-5 w-5 text-red-600 shrink-0" />}
-                        </span>
-                        <span className="leading-snug">{opt}</span>
+                        <span className="flex-1 leading-relaxed text-slate-900">{opt}</span>
+                        {correct && <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />}
+                        {wrong && <XCircle className="h-5 w-5 text-red-600 shrink-0" />}
                       </span>
-                      {isLocked && (
+                      {isLocked && wasPicked && (
                         <span className="block text-xs mt-1 text-slate-500">
-                          {resp.is_correct ? 'Correct — answer locked.' : 'Incorrect — answer locked.'}
+                          {resp.is_correct ? 'Correct - answer locked.' : 'Incorrect - answer locked.'}
                         </span>
                       )}
                     </button>
