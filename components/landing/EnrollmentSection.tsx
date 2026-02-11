@@ -61,7 +61,7 @@ export function EnrollmentSection() {
                 className="w-full bg-[#4c1d95] hover:bg-[#5b21b6] text-white text-lg py-6"
                 asChild
               >
-                <Link href="/login">
+                <Link href="/apply">
                   Apply Now
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>

@@ -28,13 +28,33 @@ body {
     Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   color: var(--talent-gray-800);
   line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Reduce tap delay on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  button,
+  a,
+  [role="button"] {
+    touch-action: manipulation;
+  }
 }
 
 /* Container wrapper for learner dashboard */
 .talentlms-styled-dashboard {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 32px;
+  padding: 16px;
+}
+@media (min-width: 640px) {
+  .talentlms-styled-dashboard {
+    padding: 24px;
+  }
+}
+@media (min-width: 1024px) {
+  .talentlms-styled-dashboard {
+    padding: 32px;
+  }
 }
 
 /* Welcome Section - TalentLMS exact */
@@ -160,7 +180,7 @@ textarea {
 }
 
 /* Give labels a little breathing room above inputs */
-label {
+label:not(.flex):not(.inline-flex):not(.grid) {
   display: inline-block;
   margin-bottom: 4px;
 }

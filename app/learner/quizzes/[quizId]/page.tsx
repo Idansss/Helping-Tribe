@@ -52,7 +52,7 @@ export default function LearnerTakeQuizPage() {
       try {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) {
-          router.replace('/login')
+          router.replace('/student/login')
           return
         }
 

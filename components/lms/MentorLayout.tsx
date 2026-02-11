@@ -23,9 +23,11 @@ import {
   LayoutGrid,
   UserCircle,
   ListChecks,
+  X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { createClient } from '@/lib/supabase/client'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import { AdminHeader } from '@/components/admin/AdminHeader'
 
 interface MentorLayoutProps {
@@ -38,6 +40,8 @@ export function MentorLayout({ children }: MentorLayoutProps) {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const isDesktop = useMediaQuery(768)
 
   useEffect(() => {
     const supabase = createClient()
@@ -46,8 +50,7 @@ export function MentorLayout({ children }: MentorLayoutProps) {
       setUser(user)
 
       if (!user) {
-        // Not authenticated – send to login
-        router.replace('/login')
+        router.replace('/staff/login')
         return
       }
 
@@ -59,12 +62,23 @@ export function MentorLayout({ children }: MentorLayoutProps) {
 
       setProfile(data)
 
-      // Only admins and faculty should access mentor views
       if (data && data.role === 'student') {
-        router.replace('/dashboard')
+        router.replace('/learner/dashboard')
       }
     })
   }, [router])
+
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [pathname])
+
+  const handleMenuClick = () => {
+    if (isDesktop) {
+      setSidebarOpen((open) => !open)
+    } else {
+      setMobileMenuOpen((open) => !open)
+    }
+  }
 
   const navItems = [
     { href: '/mentor', label: 'Home', icon: Home },
@@ -87,12 +101,14 @@ export function MentorLayout({ children }: MentorLayoutProps) {
     { href: '/mentor/settings', label: 'Settings', icon: Settings },
   ]
 
+  const showSidebar = isDesktop ? sidebarOpen : mobileMenuOpen
   const mentorHeaderLeftSlot = (
     <button
-      onClick={() => setSidebarOpen(open => !open)}
-      className="p-2.5 hover:bg-slate-100 rounded-lg transition-colors"
-      aria-label="Toggle sidebar"
-      title="Toggle sidebar"
+      type="button"
+      onClick={handleMenuClick}
+      className="rounded-lg p-2.5 hover:bg-slate-100 transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
+      aria-label="Toggle menu"
+      title="Toggle menu"
     >
       <Menu className="h-5 w-5 text-slate-600" />
     </button>
@@ -100,39 +116,51 @@ export function MentorLayout({ children }: MentorLayoutProps) {
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
-      {/* Sidebar - same structure as admin: top bar then nav below */}
+      {!isDesktop && mobileMenuOpen && (
+        <button
+          type="button"
+          aria-label="Close menu"
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
       <aside
         className={cn(
-          'fixed left-0 top-0 h-full bg-gradient-to-b from-[var(--talent-primary-dark)] to-[var(--talent-primary)] text-white shadow-xl transition-all duration-300 z-30 flex flex-col',
-          sidebarOpen ? 'w-56' : 'w-0 overflow-hidden'
+          'fixed left-0 top-0 h-full bg-gradient-to-b from-[var(--talent-primary-dark)] to-[var(--talent-primary)] text-white shadow-xl flex flex-col z-50',
+          isDesktop
+            ? 'transition-[width] duration-300'
+            : 'w-72 max-w-[85vw] transition-[transform] duration-300 ease-out',
+          isDesktop && (sidebarOpen ? 'w-56' : 'w-0 overflow-hidden'),
+          !isDesktop && (mobileMenuOpen ? 'translate-x-0' : '-translate-x-full')
         )}
       >
-        {/* Top bar: compact */}
-        <div className="h-12 flex-shrink-0 flex items-center px-3">
+        <div className={cn('h-14 flex-shrink-0 flex items-center px-3', !isDesktop && 'justify-between')}>
           <div className="flex items-center gap-2 min-w-0">
             <div className="h-8 w-8 rounded-xl bg-white/10 flex items-center justify-center overflow-hidden ring-1 ring-white/20 flex-shrink-0">
-              <img
-                src="/logo.png"
-                alt="Helping Tribe"
-                className="h-full w-full object-contain"
-              />
+              <img src="/logo.png" alt="Helping Tribe" className="h-full w-full object-contain" />
             </div>
-            {sidebarOpen && (
+            {showSidebar && (
               <div className="leading-tight min-w-0">
-                <div className="text-[13px] font-semibold text-white truncate">
-                  Helping Tribe
-                </div>
-                <div className="text-[11px] text-white/80 truncate">
-                  Mentor • Counseling LMS
-                </div>
+                <div className="text-[13px] font-semibold text-white truncate">Helping Tribe</div>
+                <div className="text-[11px] text-white/80 truncate">Mentor • Counseling LMS</div>
               </div>
             )}
           </div>
+          {!isDesktop && (
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(false)}
+              className="rounded-lg p-2.5 text-white hover:bg-white/10 transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
+              aria-label="Close menu"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
         </div>
 
-        {/* Navigation - compact (same as Admin/Learner): text-[13px], py-2, gap-2.5, h-4 w-4, tighter padding */}
-        <nav className="flex-1 min-h-0 overflow-y-auto py-1.5 px-2">
-          <ul className="space-y-0.5 px-0">
+        <nav className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden py-2 px-2 overscroll-contain">
+          <ul className="space-y-0.5">
             {navItems.map((item) => {
               const Icon = item.icon
               const isActive =
@@ -144,15 +172,16 @@ export function MentorLayout({ children }: MentorLayoutProps) {
                 <li key={item.href}>
                   <Link
                     href={item.href}
+                    onClick={!isDesktop ? () => setMobileMenuOpen(false) : undefined}
                     className={cn(
-                      'flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] font-medium transition-colors',
+                      'flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors min-h-[44px] touch-manipulation active:scale-[0.98]',
                       isActive
                         ? 'bg-white text-[var(--talent-primary-dark)]'
                         : 'text-teal-50 hover:bg-[color-mix(in_srgb,var(--talent-primary)_25%,transparent)]'
                     )}
                   >
                     <Icon className="h-4 w-4 shrink-0" />
-                    {sidebarOpen && <span className="truncate">{item.label}</span>}
+                    {showSidebar && <span className="truncate">{item.label}</span>}
                   </Link>
                 </li>
               )
@@ -160,20 +189,19 @@ export function MentorLayout({ children }: MentorLayoutProps) {
           </ul>
         </nav>
 
-        <div className="px-3 py-2 text-[11px] text-white/80 flex-shrink-0">
-          {sidebarOpen && (
+        {showSidebar && (
+          <div className="px-3 py-2 text-[11px] text-white/80 flex-shrink-0">
             <span>
               Powered by <span className="font-semibold text-white">Blakmoh Wellbeing</span> · Nigerian counseling training.
             </span>
-          )}
-        </div>
+          </div>
+        )}
       </aside>
 
-      {/* Main content - fill remaining width */}
       <main
         className={cn(
           'min-h-screen w-full min-w-0 flex-1 transition-all duration-300',
-          sidebarOpen ? 'ml-56' : 'ml-0'
+          isDesktop && sidebarOpen ? 'ml-56' : 'ml-0'
         )}
       >
         <AdminHeader
@@ -182,7 +210,7 @@ export function MentorLayout({ children }: MentorLayoutProps) {
           description="Monitor your learners, track course engagement, and quickly see where support is needed."
         />
 
-        <div className="px-8 py-6">
+        <div className="px-4 sm:px-6 md:px-8 py-4 sm:py-6">
           {children}
         </div>
       </main>

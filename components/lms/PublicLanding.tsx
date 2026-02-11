@@ -66,7 +66,7 @@ export function PublicLanding() {
             </p>
             <div className="flex gap-4 justify-center pt-4">
               <Button size="lg" asChild>
-                <Link href="/login">
+                <Link href="/apply">
                   Get Started
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
@@ -201,7 +201,7 @@ export function PublicLanding() {
             Start your journey in foundational helping skills today
           </p>
           <Button size="lg" variant="secondary" asChild>
-            <Link href="/login">
+            <Link href="/apply">
               Enroll Now
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>

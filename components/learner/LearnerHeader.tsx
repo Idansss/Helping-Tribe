@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { ChevronDown, LayoutDashboard, GraduationCap, Users, Search } from 'lucide-react'
+import { ChevronDown, LayoutDashboard, GraduationCap, Users, Search, Menu } from 'lucide-react'
 import { NotificationBell } from '@/components/lms/NotificationBell'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/hooks/use-toast'
 
 type UserRole = 'admin' | 'mentor' | 'learner'
 
@@ -23,9 +25,14 @@ const ROLE_OPTIONS: RoleOption[] = [
   { id: 'learner', label: 'Learner', href: '/', icon: Users, description: 'My training' },
 ]
 
-export function LearnerHeader() {
+interface LearnerHeaderProps {
+  onMenuClick?: () => void
+}
+
+export function LearnerHeader({ onMenuClick }: LearnerHeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const { toast } = useToast()
   const [profileOpen, setProfileOpen] = useState(false)
   const [roleSwitcherOpen, setRoleSwitcherOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -33,6 +40,9 @@ export function LearnerHeader() {
   const [profileName, setProfileName] = useState<string | null>(null)
   const [profileAvatar, setProfileAvatar] = useState<string | null>(null)
   const [currentRole, setCurrentRole] = useState<UserRole>('learner')
+  const [visibleRoleOptions, setVisibleRoleOptions] = useState<RoleOption[]>(() =>
+    ROLE_OPTIONS.filter((r) => r.id === 'learner')
+  )
 
   const learnerQuickTargets = [
     { id: 'dashboard', label: 'Dashboard', description: 'Your training home', href: '/learner/dashboard' },
@@ -65,6 +75,32 @@ export function LearnerHeader() {
   }, [pathname])
 
   useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      const role = String(profile?.role ?? '').toLowerCase()
+      const canAdmin = role === 'admin'
+      const canMentor = canAdmin || role === 'mentor' || role === 'faculty'
+
+      setVisibleRoleOptions(
+        ROLE_OPTIONS.filter((r) => {
+          if (r.id === 'learner') return true
+          if (r.id === 'mentor') return canMentor
+          if (r.id === 'admin') return canAdmin
+          return false
+        })
+      )
+    })
+  }, [])
+
+  useEffect(() => {
     if (typeof window === 'undefined') return
     try {
       const raw = window.localStorage.getItem('ht-learner-profile')
@@ -79,7 +115,7 @@ export function LearnerHeader() {
   }, [])
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleOutside = (e: MouseEvent | TouchEvent) => {
       const target = e.target as HTMLElement
       if (!target.closest('[data-dropdown]')) {
         setProfileOpen(false)
@@ -87,11 +123,28 @@ export function LearnerHeader() {
         setShowSearchResults(false)
       }
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    document.addEventListener('mousedown', handleOutside)
+    document.addEventListener('touchstart', handleOutside, { passive: true })
+    return () => {
+      document.removeEventListener('mousedown', handleOutside)
+      document.removeEventListener('touchstart', handleOutside)
+    }
   }, [])
 
   const handleRoleSwitch = (role: UserRole, href: string) => {
+    if (!visibleRoleOptions.some((r) => r.id === role)) {
+      toast({
+        variant: 'destructive',
+        title: 'Access denied',
+        description: 'Your account does not have access to that portal.',
+      })
+      setRoleSwitcherOpen(false)
+      return
+    }
+    if (role === currentRole) {
+      setRoleSwitcherOpen(false)
+      return
+    }
     setCurrentRole(role)
     try {
       localStorage.setItem('ht-current-role', role)
@@ -104,10 +157,22 @@ export function LearnerHeader() {
     router.push(href)
   }
 
-  const currentRoleOption = ROLE_OPTIONS.find((r) => r.id === currentRole) || ROLE_OPTIONS[2]
+  const currentRoleOption =
+    visibleRoleOptions.find((r) => r.id === currentRole) || ROLE_OPTIONS[2]
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 flex-shrink-0 items-center gap-4 border-b border-slate-200 bg-white px-4 md:px-6">
+    <header className="sticky top-0 z-30 flex h-14 sm:h-16 flex-shrink-0 items-center gap-2 sm:gap-4 border-b border-slate-200 bg-white px-3 sm:px-4 md:px-6">
+      {/* Mobile menu button */}
+      {onMenuClick && (
+        <button
+          type="button"
+          onClick={onMenuClick}
+          className="rounded-lg p-2.5 text-slate-600 hover:bg-slate-100 transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center md:hidden"
+          aria-label="Open menu"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+      )}
       {/* Left: title */}
       <div className="min-w-0 hidden sm:block">
         <h1 className="text-lg font-bold text-slate-900 truncate">
@@ -168,15 +233,16 @@ export function LearnerHeader() {
       {/* Right: Notifications + Role + Profile */}
       <div className="flex items-center gap-2 flex-shrink-0">
         <div className="relative" data-dropdown>
-          <NotificationBell className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 transition-colors" iconSize="md" />
+          <NotificationBell className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 transition-colors touch-manipulation" iconSize="md" />
         </div>
 
-        {/* Role Switcher – same as admin: switch to Admin / Mentor / Learner */}
+        {/* Role Switcher – avoid accidental switch on tap */}
         <div className="relative flex-shrink-0" data-dropdown>
           <button
             type="button"
-            className="flex items-center gap-2 rounded-full border border-slate-200 bg-white min-h-[40px] py-2.5 px-3 md:px-4 hover:bg-slate-50 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1"
-            onClick={() => {
+            className="flex items-center gap-2 rounded-full border border-slate-200 bg-white min-h-[44px] py-2.5 px-3 md:px-4 hover:bg-slate-50 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1 touch-manipulation"
+            onClick={(e) => {
+              e.stopPropagation()
               setRoleSwitcherOpen((o) => !o)
               setProfileOpen(false)
             }}
@@ -194,34 +260,41 @@ export function LearnerHeader() {
           </button>
 
           {roleSwitcherOpen && (
-            <div className="absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 bg-white shadow-lg text-[11px] z-30">
+            <div className="absolute right-0 mt-3 sm:mt-2 w-56 rounded-xl border border-slate-200 bg-white shadow-lg text-[11px] z-30">
               <div className="px-3 py-2 border-b border-slate-100">
                 <p className="font-semibold text-slate-900">Switch Role</p>
                 <p className="text-[10px] text-slate-500">
                   View portal from different perspectives
                 </p>
               </div>
-              {ROLE_OPTIONS.map((role) => {
+              {visibleRoleOptions.map((role) => {
                 const Icon = role.icon
                 const isActive = role.id === currentRole
                 return (
                   <button
                     key={role.id}
                     type="button"
-                    className={`w-full text-left px-3 py-2.5 hover:bg-slate-50 flex items-center gap-3 ${
-                      isActive ? 'bg-teal-500/5' : ''
+                    className={`w-full text-left px-3 py-2.5 min-h-[44px] flex items-center gap-3 touch-manipulation ${
+                      isActive ? 'bg-teal-500/5 cursor-default' : 'hover:bg-slate-50'
                     }`}
-                    onClick={() => handleRoleSwitch(role.id, role.href)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (isActive) {
+                        setRoleSwitcherOpen(false)
+                        return
+                      }
+                      handleRoleSwitch(role.id, role.href)
+                    }}
                   >
-                    <Icon className={`h-4 w-4 ${isActive ? 'text-teal-600' : 'text-slate-600'}`} />
-                    <div className="flex-1">
+                    <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-teal-600' : 'text-slate-600'}`} />
+                    <div className="flex-1 min-w-0 text-left">
                       <div className={`font-medium ${isActive ? 'text-teal-600' : 'text-slate-900'}`}>
                         {role.label}
                       </div>
                       <div className="text-[10px] text-slate-500">{role.description}</div>
                     </div>
                     {isActive && (
-                      <span className="h-2 w-2 rounded-full bg-teal-500" />
+                      <span className="h-2 w-2 rounded-full bg-teal-500 shrink-0" />
                     )}
                   </button>
                 )
@@ -235,7 +308,7 @@ export function LearnerHeader() {
           <Button
             variant="outline"
             size="sm"
-            className="flex items-center gap-2 rounded-full border-slate-200 pl-1 pr-2 md:pr-3"
+            className="flex items-center gap-2 rounded-full border-slate-200 pl-1 pr-2 md:pr-3 min-h-[44px] touch-manipulation"
             onClick={() => {
               setProfileOpen((o) => !o)
               setRoleSwitcherOpen(false)
@@ -303,7 +376,7 @@ export function LearnerHeader() {
                 type="button"
                 className="w-full text-left px-3 py-2 hover:bg-slate-50 text-red-600"
                 onClick={() => {
-                  router.push('/login')
+                  router.push('/logout')
                   setProfileOpen(false)
                 }}
               >

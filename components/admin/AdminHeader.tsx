@@ -6,6 +6,8 @@ import { Search, UserCircle2, ChevronDown, LayoutDashboard, GraduationCap, Users
 import { NotificationBell } from '@/components/lms/NotificationBell'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/hooks/use-toast'
 
 interface AdminHeaderProps {
   title?: string
@@ -42,7 +44,7 @@ const ROLE_OPTIONS: RoleOption[] = [
   {
     id: 'learner',
     label: 'Learner',
-    href: '/dashboard',
+    href: '/',
     icon: Users,
     description: 'My training',
   },
@@ -55,6 +57,7 @@ export function AdminHeader({
 }: AdminHeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const { toast } = useToast()
 
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isRoleSwitcherOpen, setIsRoleSwitcherOpen] = useState(false)
@@ -63,6 +66,7 @@ export function AdminHeader({
   const [profileName, setProfileName] = useState<string | null>(null)
   const [profileAvatar, setProfileAvatar] = useState<string | null>(null)
   const [currentRole, setCurrentRole] = useState<UserRole>('admin')
+  const [visibleRoleOptions, setVisibleRoleOptions] = useState<RoleOption[]>(ROLE_OPTIONS)
 
   // Determine current role from pathname so the header always matches the portal you're on
   useEffect(() => {
@@ -100,17 +104,56 @@ export function AdminHeader({
     }
   }, [pathname])
 
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      const role = String(profile?.role ?? '').toLowerCase()
+      const canAdmin = role === 'admin'
+      const canMentor = canAdmin || role === 'mentor' || role === 'faculty'
+
+      setVisibleRoleOptions(
+        ROLE_OPTIONS.filter((r) => {
+          if (r.id === 'learner') return true
+          if (r.id === 'mentor') return canMentor
+          if (r.id === 'admin') return canAdmin
+          return false
+        })
+      )
+    })
+  }, [])
+
   const handleRoleSwitch = (role: UserRole, href: string) => {
+    if (!visibleRoleOptions.some((r) => r.id === role)) {
+      toast({
+        variant: 'destructive',
+        title: 'Access denied',
+        description: 'Your account does not have access to that portal.',
+      })
+      setIsRoleSwitcherOpen(false)
+      return
+    }
+    if (role === currentRole) {
+      setIsRoleSwitcherOpen(false)
+      return
+    }
     setCurrentRole(role)
     localStorage.setItem('ht-current-role', role)
-    // Keep ht-active-view in sync so learner view doesn't redirect back to admin/mentor
     const activeView = role === 'admin' ? 'administrator' : role === 'mentor' ? 'instructor' : 'learner'
     localStorage.setItem('ht-active-view', activeView)
     setIsRoleSwitcherOpen(false)
     router.push(href)
   }
 
-  const currentRoleOption = ROLE_OPTIONS.find(r => r.id === currentRole) || ROLE_OPTIONS[0]
+  const currentRoleOption =
+    visibleRoleOptions.find((r) => r.id === currentRole) || ROLE_OPTIONS[0]
 
   // Get role-specific title and description if not provided
   const getRoleTitle = () => {
@@ -228,9 +271,9 @@ export function AdminHeader({
     }
   }, [currentRole])
 
-  // Close dropdowns when clicking outside
+  // Close dropdowns when clicking/touching outside
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleOutside = (event: MouseEvent | TouchEvent) => {
       const target = event.target as HTMLElement
       if (!target.closest('[data-dropdown]')) {
         setIsProfileOpen(false)
@@ -239,8 +282,12 @@ export function AdminHeader({
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    document.addEventListener('mousedown', handleOutside)
+    document.addEventListener('touchstart', handleOutside, { passive: true })
+    return () => {
+      document.removeEventListener('mousedown', handleOutside)
+      document.removeEventListener('touchstart', handleOutside)
+    }
   }, [])
 
   const searchPlaceholder =
@@ -330,12 +377,13 @@ export function AdminHeader({
 
         <NotificationBell className="relative rounded-full hover:bg-slate-100 p-2 text-slate-600" iconSize="sm" />
 
-        {/* Role Switcher - large hit area so click anywhere opens dropdown */}
+        {/* Role Switcher - avoid accidental switch on tap (e.g. same tap hitting Learner) */}
         <div className="relative" data-dropdown>
           <button
             type="button"
-            className="flex items-center gap-2 rounded-full border border-slate-200 bg-white min-h-[40px] py-2.5 px-4 hover:bg-slate-50 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--talent-primary)] focus-visible:ring-offset-1"
-            onClick={() => {
+            className="flex items-center gap-2 rounded-full border border-slate-200 bg-white min-h-[44px] py-2.5 px-4 hover:bg-slate-50 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--talent-primary)] focus-visible:ring-offset-1 touch-manipulation"
+            onClick={(e) => {
+              e.stopPropagation()
               setIsRoleSwitcherOpen(open => !open)
               setIsProfileOpen(false)
             }}
@@ -353,34 +401,41 @@ export function AdminHeader({
           </button>
 
           {isRoleSwitcherOpen && (
-            <div className="absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 bg-white shadow-lg text-[11px] z-30">
+            <div className="absolute right-0 mt-3 sm:mt-2 w-56 rounded-xl border border-slate-200 bg-white shadow-lg text-[11px] z-30">
               <div className="px-3 py-2 border-b border-slate-100">
                 <p className="font-semibold text-slate-900">Switch Role</p>
                 <p className="text-[10px] text-slate-500">
                   View portal from different perspectives
                 </p>
               </div>
-              {ROLE_OPTIONS.map((role) => {
+              {visibleRoleOptions.map((role) => {
                 const Icon = role.icon
                 const isActive = role.id === currentRole
                 return (
                   <button
                     key={role.id}
                     type="button"
-                    className={`w-full text-left px-3 py-2.5 hover:bg-slate-50 flex items-center gap-3 ${
-                      isActive ? 'bg-[var(--talent-primary)]/5' : ''
+                    className={`w-full text-left px-3 py-2.5 min-h-[44px] flex items-center gap-3 touch-manipulation ${
+                      isActive ? 'bg-[var(--talent-primary)]/5 cursor-default' : 'hover:bg-slate-50'
                     }`}
-                    onClick={() => handleRoleSwitch(role.id, role.href)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (isActive) {
+                        setIsRoleSwitcherOpen(false)
+                        return
+                      }
+                      handleRoleSwitch(role.id, role.href)
+                    }}
                   >
-                    <Icon className={`h-4 w-4 ${isActive ? 'text-[var(--talent-primary)]' : 'text-slate-600'}`} />
-                    <div className="flex-1">
+                    <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-[var(--talent-primary)]' : 'text-slate-600'}`} />
+                    <div className="flex-1 min-w-0 text-left">
                       <div className={`font-medium ${isActive ? 'text-[var(--talent-primary)]' : 'text-slate-900'}`}>
                         {role.label}
                       </div>
                       <div className="text-[10px] text-slate-500">{role.description}</div>
                     </div>
                     {isActive && (
-                      <span className="h-2 w-2 rounded-full bg-[var(--talent-primary)]" />
+                      <span className="h-2 w-2 rounded-full bg-[var(--talent-primary)] shrink-0" />
                     )}
                   </button>
                 )
@@ -450,7 +505,7 @@ export function AdminHeader({
                 type="button"
                 className="w-full text-left px-3 py-2 hover:bg-slate-50 text-red-600"
                 onClick={() => {
-                  router.push('/login')
+                  router.push('/logout')
                   setIsProfileOpen(false)
                 }}
               >

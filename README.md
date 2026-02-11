@@ -8,7 +8,7 @@ To equip and certify individuals in foundational helping skills through a struct
 
 ## 🛠️ Tech Stack
 
-- **Framework:** Next.js 14 (App Router)
+- **Framework:** Next.js (App Router)
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS + Shadcn UI
 - **Icons:** Lucide React
@@ -58,6 +58,7 @@ To equip and certify individuals in foundational helping skills through a struct
    Fill in your Supabase credentials:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY` (required for approvals + password setup tokens)
 
 3. **Set up the database:**
    - Run the migration file in `supabase/migrations/001_initial_schema.sql` in your Supabase SQL editor
@@ -70,9 +71,22 @@ To equip and certify individuals in foundational helping skills through a struct
 
 5. **Open [http://localhost:3000](http://localhost:3000)**
 
+## 🔒 Access Control
+
+- Public routes: `/apply` (application form), `/student/login`, `/staff/login`, `/set-password`.
+- All other routes (including deep links like `/learner/...`) are protected server-side via `proxy.ts` + `lib/supabase/middleware.ts`.
+- Unauthenticated visitors are redirected to `/apply`.
+
+## 🧑‍🎓 Student onboarding (Matric + self-set password)
+
+1. Visitor submits the public application on `/apply` → stored as `applicants (PENDING)`.
+2. Admin reviews `Admin → Applicants` (`/admin/applicants`) and clicks **Approve**.
+3. System generates a unique matric number (`HF-CT-YYYY-####`) + a one-time set-password link.
+4. Student sets their password via `/set-password?token=...` and then logs in at `/student/login` using **Matric Number + Password**.
+
 ## 📚 Key Features
 
-### 1. Public Landing Page
+### 1. Landing Page
 - Hero section: "Equipping the Hands That Help"
 - Faculty grid: Dynamic display of mentors
 - Curriculum preview: Timeline showing 9 modules

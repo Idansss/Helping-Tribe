@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
 // OpenAI import - will be handled at runtime
 // If package is not installed, the route will return an error
 
 export async function POST(request: NextRequest) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     // Dynamic import to avoid build-time errors
     let OpenAI: any

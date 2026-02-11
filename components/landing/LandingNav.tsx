@@ -83,12 +83,12 @@ export function LandingNav() {
               <>
                 {isLoggedIn ? (
                   <Button className="bg-[#4c1d95] hover:bg-[#5b21b6] text-white" asChild>
-                    <Link href="/dashboard">Go to Dashboard</Link>
+                    <Link href="/">Go to Dashboard</Link>
                   </Button>
                 ) : (
                   <>
                     <Button variant="ghost" asChild>
-                      <Link href="/login">Student Login</Link>
+                      <Link href="/student/login">Student Login</Link>
                     </Button>
                     <Button className="bg-[#4c1d95] hover:bg-[#5b21b6] text-white" asChild>
                       <Link href="#enrollment">Join Next Cohort</Link>
@@ -150,14 +150,14 @@ export function LandingNav() {
                   <>
                     {isLoggedIn ? (
                       <Button className="bg-[#4c1d95] hover:bg-[#5b21b6] text-white w-full" asChild>
-                        <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+                        <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
                           Go to Dashboard
                         </Link>
                       </Button>
                     ) : (
                       <>
                         <Button variant="ghost" asChild className="w-full justify-start">
-                          <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                          <Link href="/student/login" onClick={() => setIsMobileMenuOpen(false)}>
                             Student Login
                           </Link>
                         </Button>

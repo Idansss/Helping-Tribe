@@ -6,7 +6,9 @@
     "build": "cross-env BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA=true next build",
     "dev": "next dev",
     "lint": "eslint .",
+    "test": "vitest run",
     "update:baseline": "npm i baseline-browser-mapping@latest -D",
+    "seed:admin": "node scripts/create-admin.mjs",
     "start": "next start"
   },
   "dependencies": {
@@ -72,15 +74,17 @@
     "zustand": "^5.0.10"
   },
   "devDependencies": {
+    "vitest": "^4.0.18",
     "@tailwindcss/postcss": "^4.1.9",
-    "cross-env": "^7.0.3",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "baseline-browser-mapping": "^2.9.19",
+    "cross-env": "^7.0.3",
     "postcss": "^8.5",
     "tailwindcss": "^4.1.9",
     "tw-animate-css": "1.3.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.0.18"
   }
 }
