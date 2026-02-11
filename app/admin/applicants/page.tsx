@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -97,25 +97,51 @@ export default function ApplicantsPage() {
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null)
   const [loadingSubmissionId, setLoadingSubmissionId] = useState<string | null>(null)
   const [selectedSubmission, setSelectedSubmission] = useState<ApplicantSubmission | null>(null)
+  const isMountedRef = useRef(true)
+
+  function isAbortLikeError(error: unknown) {
+    const message = String((error as any)?.message ?? error ?? '').toLowerCase()
+    const name = String((error as any)?.name ?? '').toLowerCase()
+    return name === 'aborterror' || message.includes('signal is aborted') || message.includes('aborted')
+  }
 
   async function load() {
+    if (!isMountedRef.current) return
     setLoading(true)
-    const { data, error } = await supabase
-      .from('applicants')
-      .select('id, full_name_certificate, phone_whatsapp, email, status, created_at')
-      .order('created_at', { ascending: false })
+    try {
+      const { data, error } = await supabase
+        .from('applicants')
+        .select('id, full_name_certificate, phone_whatsapp, email, status, created_at')
+        .order('created_at', { ascending: false })
 
-    if (error) {
-      toast({ variant: 'destructive', title: 'Failed to load applicants', description: error.message })
-      setApplicants([])
-    } else {
-      setApplicants((data ?? []) as Applicant[])
+      if (!isMountedRef.current) return
+
+      if (error) {
+        toast({ variant: 'destructive', title: 'Failed to load applicants', description: error.message })
+        setApplicants([])
+      } else {
+        setApplicants((data ?? []) as Applicant[])
+      }
+    } catch (e: any) {
+      if (!isAbortLikeError(e)) {
+        toast({
+          variant: 'destructive',
+          title: 'Failed to load applicants',
+          description: e?.message || 'Unexpected error while loading applicants',
+        })
+        if (isMountedRef.current) setApplicants([])
+      }
+    } finally {
+      if (isMountedRef.current) setLoading(false)
     }
-    setLoading(false)
   }
 
   useEffect(() => {
+    isMountedRef.current = true
     load()
+    return () => {
+      isMountedRef.current = false
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
