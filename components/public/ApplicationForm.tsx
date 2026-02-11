@@ -458,7 +458,7 @@ export function ApplicationForm() {
             </div>
           </SectionCard>
 
-          <SectionCard title="SECTION C: COUNSELLING EXPERIENCE">
+          <SectionCard title="SECTION C: COUNCELLING/THERAPY SERVICE EXPERIENCE">
             <div className="space-y-2">
               <Label>12. Your counselling experience level *</Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -760,4 +760,3 @@ export function ApplicationForm() {
     </Card>
   )
 }
-
