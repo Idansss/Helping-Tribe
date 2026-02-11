@@ -286,21 +286,22 @@ export default function AdminQuizzesPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-left text-slate-600">
-                  <th className="pb-2 pr-4 font-medium">Title</th>
-                  <th className="pb-2 pr-4 font-medium">Status</th>
-                  <th className="pb-2 pr-4 font-medium">Actions</th>
+                  <th className="py-3 pl-4 pr-4 align-middle font-medium">Title</th>
+                  <th className="py-3 pr-4 align-middle font-medium">Status</th>
+                  <th className="py-3 pr-4 align-middle font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {quizzes.map((row) => (
                   <tr key={row.id} className="border-b border-slate-100">
-                    <td className="py-3 pr-4 font-medium text-slate-900">{row.title}</td>
-                    <td className="py-3 pr-4">
+                    <td className="py-4 pl-4 pr-4 align-middle font-medium text-slate-900">{row.title}</td>
+                    <td className="py-4 pr-4 align-middle">
                       <Badge variant={row.published ? 'default' : 'secondary'}>
                         {row.published ? 'Published' : 'Draft'}
                       </Badge>
                     </td>
-                    <td className="py-3 pr-4 flex items-center gap-2">
+                    <td className="py-4 pr-4 align-middle">
+                      <div className="flex items-center gap-2">
                       <Button variant="ghost" size="sm" className="h-8" onClick={() => openQuestions(row.id)}>
                         <ListChecks className="h-4 w-4 mr-1" />
                         Questions
@@ -311,6 +312,7 @@ export default function AdminQuizzesPage() {
                       <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700" onClick={() => deleteQuiz(row.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
