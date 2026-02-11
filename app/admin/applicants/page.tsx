@@ -18,7 +18,7 @@ type Applicant = {
 type ProcessedDetails = {
   applicantId: string
   studentId: string | null
-  matricNumber: string
+  matricNumber: string | null
   isPaid: boolean
   paidAt: string | null
   latestPaymentStatus: string | null
@@ -29,6 +29,8 @@ type ProcessedDetails = {
   discountPercent: number | null
   setPasswordUrl: string | null
   expiresAt: string | null
+  needsRepair: boolean
+  detailsError: string | null
 }
 
 export default function ApplicantsPage() {
@@ -93,7 +95,7 @@ export default function ApplicantsPage() {
         await navigator.clipboard.writeText(fullPaymentUrl)
         toast({
           title: 'Approved',
-          description: `Matric: ${json.matricNumber}. Paystack payment link copied. Amount: ₦${Number(payJson.amountNgn).toLocaleString()}`,
+          description: `Matric: ${json.matricNumber}. Paystack payment link copied. Amount: NGN ${Number(payJson.amountNgn).toLocaleString()}`,
         })
       } catch {
         toast({
@@ -159,16 +161,12 @@ export default function ApplicantsPage() {
         throw new Error(json?.error || 'Failed to load applicant details')
       }
 
-      if (!json?.student) {
-        throw new Error('Student record not found for this applicant')
-      }
-
       setProcessedDetails({
         applicantId: applicant.id,
-        studentId: json.student.id ?? null,
-        matricNumber: json.student.matricNumber,
-        isPaid: Boolean(json.student.isPaid),
-        paidAt: json.student.paidAt ?? null,
+        studentId: json.student?.id ?? null,
+        matricNumber: json.student?.matricNumber ?? null,
+        isPaid: Boolean(json.student?.isPaid),
+        paidAt: json.student?.paidAt ?? null,
         latestPaymentStatus: json.latestPayment?.status ?? null,
         paymentAuthorizationUrl: null,
         paymentReference: json.latestPayment?.reference ?? null,
@@ -179,8 +177,27 @@ export default function ApplicantsPage() {
         discountPercent: Number.isFinite(Number(json.latestPayment?.discountPercent)) ? Number(json.latestPayment.discountPercent) : null,
         setPasswordUrl: null,
         expiresAt: null,
+        needsRepair: Boolean(json?.needsRepair),
+        detailsError: json?.student ? null : 'Student record not linked for this applicant. Use Repair if available.',
       })
     } catch (e: any) {
+      setProcessedDetails({
+        applicantId: applicant.id,
+        studentId: null,
+        matricNumber: null,
+        isPaid: false,
+        paidAt: null,
+        latestPaymentStatus: null,
+        paymentAuthorizationUrl: null,
+        paymentReference: null,
+        paymentAmountNgn: null,
+        discountApplied: null,
+        discountPercent: null,
+        setPasswordUrl: null,
+        expiresAt: null,
+        needsRepair: true,
+        detailsError: e?.message || 'Failed to load details',
+      })
       toast({
         variant: 'destructive',
         title: 'Failed to load details',
@@ -199,16 +216,15 @@ export default function ApplicantsPage() {
     })
     const json = await res.json()
     if (!res.ok) throw new Error(json?.error || 'Failed to refresh details')
-    if (!json?.student) throw new Error('Student record not found for this applicant')
 
     setProcessedDetails((prev) => {
       if (!prev || prev.applicantId !== applicantId) return prev
       return {
         ...prev,
-        studentId: json.student.id ?? null,
-        matricNumber: json.student.matricNumber,
-        isPaid: Boolean(json.student.isPaid),
-        paidAt: json.student.paidAt ?? null,
+        studentId: json.student?.id ?? null,
+        matricNumber: json.student?.matricNumber ?? null,
+        isPaid: Boolean(json.student?.isPaid),
+        paidAt: json.student?.paidAt ?? null,
         latestPaymentStatus: json.latestPayment?.status ?? null,
         paymentReference: json.latestPayment?.reference ?? prev.paymentReference,
         paymentAmountNgn: Number.isFinite(Number(json.latestPayment?.amountKobo))
@@ -216,8 +232,29 @@ export default function ApplicantsPage() {
           : prev.paymentAmountNgn,
         discountApplied: typeof json.latestPayment?.discountApplied === 'boolean' ? json.latestPayment.discountApplied : prev.discountApplied,
         discountPercent: Number.isFinite(Number(json.latestPayment?.discountPercent)) ? Number(json.latestPayment.discountPercent) : prev.discountPercent,
+        needsRepair: Boolean(json?.needsRepair),
+        detailsError: json?.student ? null : 'Student record not linked for this applicant. Use Repair if available.',
       }
     })
+  }
+
+  async function repairLink(applicantId: string) {
+    setBusyId(applicantId)
+    try {
+      const res = await fetch('/api/admin/applicants/repair-link', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ applicantId }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json?.error || 'Failed to repair student link')
+      toast({ title: 'Repaired', description: 'Student link repaired. Reloading details...' })
+      await refreshProcessedDetails(applicantId)
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: 'Repair failed', description: e?.message || 'Error' })
+    } finally {
+      setBusyId(null)
+    }
   }
 
   async function generatePaymentLink(applicantId: string) {
@@ -250,7 +287,7 @@ export default function ApplicantsPage() {
         await navigator.clipboard.writeText(fullPaymentUrl)
         toast({
           title: 'Payment link ready',
-          description: `Paystack payment link copied. Amount: ₦${Number(json.amountNgn).toLocaleString()}`,
+          description: `Paystack payment link copied. Amount: NGN ${Number(json.amountNgn).toLocaleString()}`,
         })
       } catch {
         toast({ title: 'Payment link ready', description: fullPaymentUrl })
@@ -346,7 +383,7 @@ export default function ApplicantsPage() {
         </div>
 
         {loading ? (
-          <div className="mt-4 text-sm text-slate-500">Loading…</div>
+          <div className="mt-4 text-sm text-slate-500">Loading...</div>
         ) : pending.length === 0 ? (
           <div className="mt-4 text-sm text-slate-500">No pending applicants.</div>
         ) : (
@@ -371,7 +408,7 @@ export default function ApplicantsPage() {
                       onClick={() => approve(a.id)}
                       disabled={busyId === a.id}
                     >
-                      {busyId === a.id ? 'Approving…' : 'Approve'}
+                      {busyId === a.id ? 'Approving...' : 'Approve'}
                     </Button>
                     <Button
                       size="sm"
@@ -392,7 +429,7 @@ export default function ApplicantsPage() {
       <Card className="p-4 border-slate-200 bg-white">
         <div className="text-sm font-medium text-slate-900">Processed</div>
         {loading ? (
-          <div className="mt-4 text-sm text-slate-500">Loading…</div>
+          <div className="mt-4 text-sm text-slate-500">Loading...</div>
         ) : processed.length === 0 ? (
           <div className="mt-4 text-sm text-slate-500">No processed applicants yet.</div>
         ) : (
@@ -419,105 +456,138 @@ export default function ApplicantsPage() {
                     {a.status !== 'APPROVED' ? (
                       <p>Set-password details are only available for approved applicants.</p>
                     ) : loadingProcessedDetailsId === a.id ? (
-                      <p>Loading matric number and setup link…</p>
+                      <p>Loading matric number and setup link...</p>
                     ) : processedDetails?.applicantId === a.id ? (
                       <>
-                        <p>
-                          Matric Number: <span className="font-semibold text-slate-900">{processedDetails.matricNumber}</span>
-                        </p>
-                        <p>
-                          Payment status:{' '}
-                          <span className={processedDetails.isPaid ? 'font-semibold text-green-700' : 'font-semibold text-amber-700'}>
-                            {processedDetails.isPaid ? 'PAID' : 'UNPAID'}
-                          </span>
-                          {processedDetails.paidAt ? ` (paid at ${new Date(processedDetails.paidAt).toLocaleString()})` : ''}
-                        </p>
-
-                        {!processedDetails.isPaid ? (
+                        {!processedDetails.studentId ? (
                           <>
                             <p className="text-slate-600">
-                              Set-password link can be issued only after payment is verified.
+                              {processedDetails.detailsError ?? 'Student record not linked for this applicant yet.'}
                             </p>
-                            {processedDetails.paymentReference && (
-                              <p className="break-all">
-                                Latest payment: <span className="font-mono">{processedDetails.paymentReference}</span>
-                                {processedDetails.latestPaymentStatus ? ` (${processedDetails.latestPaymentStatus})` : ''}
-                                {processedDetails.paymentAmountNgn ? ` - ₦${processedDetails.paymentAmountNgn.toLocaleString()}` : ''}
-                              </p>
-                            )}
-                            {processedDetails.paymentAuthorizationUrl && (
-                              <p className="break-all">
-                                Payment link:{' '}
-                                <a
-                                  href={processedDetails.paymentAuthorizationUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="text-teal-700 hover:underline"
-                                >
-                                  {processedDetails.paymentAuthorizationUrl}
-                                </a>
-                              </p>
-                            )}
                             <div className="flex items-center gap-2">
                               <Button
                                 size="sm"
                                 variant="outline"
                                 disabled={busyId === a.id}
-                                onClick={() => generatePaymentLink(a.id)}
+                                onClick={() => refreshProcessedDetails(a.id)}
                               >
-                                {busyId === a.id ? 'Working…' : 'Generate Paystack payment link'}
+                                {busyId === a.id ? 'Working...' : 'Retry'}
                               </Button>
-                              {processedDetails.paymentReference && (
+                              {processedDetails.needsRepair && (
                                 <Button
                                   size="sm"
                                   variant="outline"
                                   disabled={busyId === a.id}
-                                  onClick={() => verifyLatestPayment(a.id, processedDetails.paymentReference!)}
+                                  onClick={() => repairLink(a.id)}
                                 >
-                                  {busyId === a.id ? 'Working…' : 'Verify payment'}
+                                  {busyId === a.id ? 'Working...' : 'Repair link'}
                                 </Button>
                               )}
                             </div>
                           </>
                         ) : (
                           <>
-                            {processedDetails.setPasswordUrl && (
+                            <p>
+                              Matric Number:{' '}
+                              <span className="font-semibold text-slate-900">{processedDetails.matricNumber ?? '(missing)'}</span>
+                            </p>
+                            <p>
+                              Payment status:{' '}
+                              <span
+                                className={processedDetails.isPaid ? 'font-semibold text-green-700' : 'font-semibold text-amber-700'}
+                              >
+                                {processedDetails.isPaid ? 'PAID' : 'UNPAID'}
+                              </span>
+                              {processedDetails.paidAt ? ` (paid at ${new Date(processedDetails.paidAt).toLocaleString()})` : ''}
+                            </p>
+
+                            {!processedDetails.isPaid ? (
                               <>
-                                <p className="break-all">
-                                  Set-password link:{' '}
-                                  <a
-                                    href={processedDetails.setPasswordUrl}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="text-teal-700 hover:underline"
-                                  >
-                                    {processedDetails.setPasswordUrl}
-                                  </a>
+                                <p className="text-slate-600">
+                                  Set-password link can be issued only after payment is verified.
                                 </p>
-                                {processedDetails.expiresAt && (
-                                  <p>Expires: {new Date(processedDetails.expiresAt).toLocaleString()}</p>
+                                {processedDetails.paymentReference && (
+                                  <p className="break-all">
+                                    Latest payment: <span className="font-mono">{processedDetails.paymentReference}</span>
+                                    {processedDetails.latestPaymentStatus ? ` (${processedDetails.latestPaymentStatus})` : ''}
+                                    {processedDetails.paymentAmountNgn ? ` - NGN ${processedDetails.paymentAmountNgn.toLocaleString()}` : ''}
+                                  </p>
                                 )}
+                                {processedDetails.paymentAuthorizationUrl && (
+                                  <p className="break-all">
+                                    Payment link:{' '}
+                                    <a
+                                      href={processedDetails.paymentAuthorizationUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-teal-700 hover:underline"
+                                    >
+                                      {processedDetails.paymentAuthorizationUrl}
+                                    </a>
+                                  </p>
+                                )}
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={busyId === a.id}
+                                    onClick={() => generatePaymentLink(a.id)}
+                                  >
+                                    {busyId === a.id ? 'Working...' : 'Generate Paystack payment link'}
+                                  </Button>
+                                  {processedDetails.paymentReference && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={busyId === a.id}
+                                      onClick={() => verifyLatestPayment(a.id, processedDetails.paymentReference!)}
+                                    >
+                                      {busyId === a.id ? 'Working...' : 'Verify payment'}
+                                    </Button>
+                                  )}
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                {processedDetails.setPasswordUrl && (
+                                  <>
+                                    <p className="break-all">
+                                      Set-password link:{' '}
+                                      <a
+                                        href={processedDetails.setPasswordUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-teal-700 hover:underline"
+                                      >
+                                        {processedDetails.setPasswordUrl}
+                                      </a>
+                                    </p>
+                                    {processedDetails.expiresAt && (
+                                      <p>Expires: {new Date(processedDetails.expiresAt).toLocaleString()}</p>
+                                    )}
+                                  </>
+                                )}
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={busyId === a.id}
+                                    onClick={() => generateSetupLink(a.id)}
+                                  >
+                                    {busyId === a.id ? 'Generating...' : 'Generate set-password link'}
+                                  </Button>
+                                  {processedDetails.setPasswordUrl && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => copySetupLink(processedDetails.setPasswordUrl!)}
+                                    >
+                                      Copy link
+                                    </Button>
+                                  )}
+                                </div>
                               </>
                             )}
-                            <div className="flex items-center gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                disabled={busyId === a.id}
-                                onClick={() => generateSetupLink(a.id)}
-                              >
-                                {busyId === a.id ? 'Generating…' : 'Generate set-password link'}
-                              </Button>
-                              {processedDetails.setPasswordUrl && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => copySetupLink(processedDetails.setPasswordUrl!)}
-                                >
-                                  Copy link
-                                </Button>
-                              )}
-                            </div>
                           </>
                         )}
                       </>
