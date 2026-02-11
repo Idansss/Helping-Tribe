@@ -147,13 +147,13 @@ export default function StaffLoginPage() {
                 <div className="flex items-center justify-between pt-2 text-xs text-slate-600 focus-within:outline-none focus-within:ring-0">
                   <Link
                     href="/apply"
-                    className="font-medium hover:text-slate-900 hover:underline focus-visible:outline-none focus-visible:underline focus-visible:underline-offset-4 focus-visible:decoration-2"
+                    className="font-medium hover:text-slate-900 hover:underline focus:outline-none focus:underline focus:underline-offset-4 focus:decoration-2 focus-visible:outline-none"
                   >
                     Back to application
                   </Link>
                   <Link
                     href="/student/login"
-                    className="font-medium hover:text-slate-900 hover:underline focus-visible:outline-none focus-visible:underline focus-visible:underline-offset-4 focus-visible:decoration-2"
+                    className="font-medium hover:text-slate-900 hover:underline focus:outline-none focus:underline focus:underline-offset-4 focus:decoration-2 focus-visible:outline-none"
                   >
                     Student login
                   </Link>
