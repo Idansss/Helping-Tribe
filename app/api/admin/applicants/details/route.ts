@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
       admin = createAdminClient()
     } catch {
       return NextResponse.json(
-        { error: 'Server auth is not configured. Set SUPABASE_SERVICE_ROLE_KEY in Vercel env.' },
+        { error: 'Server auth is not configured. Set SUPABASE_SERVICE_ROLE_KEY (Vercel env or local .env.local).' },
         { status: 500 }
       )
     }

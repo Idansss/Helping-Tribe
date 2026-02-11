@@ -238,6 +238,21 @@ export default function ApplicantsPage() {
     })
   }
 
+  async function safeRefreshProcessedDetails(applicantId: string) {
+    setBusyId(applicantId)
+    try {
+      await refreshProcessedDetails(applicantId)
+    } catch (e: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Refresh failed',
+        description: e?.message || 'Error',
+      })
+    } finally {
+      setBusyId(null)
+    }
+  }
+
   async function repairLink(applicantId: string) {
     setBusyId(applicantId)
     try {
@@ -469,7 +484,7 @@ export default function ApplicantsPage() {
                                 size="sm"
                                 variant="outline"
                                 disabled={busyId === a.id}
-                                onClick={() => refreshProcessedDetails(a.id)}
+                                onClick={() => safeRefreshProcessedDetails(a.id)}
                               >
                                 {busyId === a.id ? 'Working...' : 'Retry'}
                               </Button>
