@@ -33,6 +33,58 @@ type ProcessedDetails = {
   detailsError: string | null
 }
 
+type ApplicantSubmission = Record<string, unknown>
+
+const SUBMISSION_FIELDS: Array<{ key: string; label: string }> = [
+  { key: 'fullNameCertificate', label: 'Full name (certificate)' },
+  { key: 'gender', label: 'Gender' },
+  { key: 'dob', label: 'Date of birth' },
+  { key: 'phoneWhatsApp', label: 'Phone number (WhatsApp)' },
+  { key: 'email', label: 'Email (contact only)' },
+  { key: 'cityState', label: 'Residential city & state' },
+  { key: 'nationality', label: 'Nationality' },
+  { key: 'highestQualification', label: 'Highest educational qualification' },
+  { key: 'highestQualificationOther', label: 'Qualification (other)' },
+  { key: 'fieldOfStudy', label: 'Field / course of study' },
+  { key: 'currentOccupation', label: 'Current occupation / role' },
+  { key: 'professionalBackground', label: 'Professional background' },
+  { key: 'professionalBackgroundOther', label: 'Professional background (other)' },
+  { key: 'experienceLevel', label: 'Counselling experience level' },
+  { key: 'formalTraining', label: 'Formal counselling training before' },
+  { key: 'formalTrainingInstitution', label: 'Formal training institution/program' },
+  { key: 'formalTrainingDuration', label: 'Formal training duration' },
+  { key: 'areas', label: 'Areas worked in / interested in' },
+  { key: 'areasOther', label: 'Areas (other)' },
+  { key: 'whyEnroll', label: 'Why enroll' },
+  { key: 'hopeToGain', label: 'Hope to gain' },
+  { key: 'hopeToGainOther', label: 'Hope to gain (other)' },
+  { key: 'intendToServe', label: 'Who they intend to serve' },
+  { key: 'unresolvedIssues', label: 'Unresolved personal issues' },
+  { key: 'openToSupervision', label: 'Open to supervision/feedback' },
+  { key: 'agreeEthics', label: 'Agrees to confidentiality/ethics' },
+  { key: 'trainingMode', label: 'Preferred training mode' },
+  { key: 'availability', label: 'Availability' },
+  { key: 'hearAbout', label: 'How they heard about the course' },
+  { key: 'hearAboutOther', label: 'How they heard (other)' },
+  { key: 'declarationAgree', label: 'Declaration agreed' },
+  { key: 'typedSignature', label: 'Typed signature' },
+  { key: 'signatureDate', label: 'Signature date' },
+  { key: 'submittedAt', label: 'Submitted at' },
+]
+
+function formatSubmissionValue(value: unknown) {
+  if (value === null || value === undefined) return '-'
+  if (Array.isArray(value)) {
+    const items = value
+      .map((item) => String(item ?? '').trim())
+      .filter(Boolean)
+    return items.length > 0 ? items.join(', ') : '-'
+  }
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No'
+  const text = String(value).trim()
+  return text.length > 0 ? text : '-'
+}
+
 export default function ApplicantsPage() {
   const { toast } = useToast()
   const supabase = useMemo(() => createClient(), [])
@@ -42,6 +94,9 @@ export default function ApplicantsPage() {
   const [selectedProcessedId, setSelectedProcessedId] = useState<string | null>(null)
   const [loadingProcessedDetailsId, setLoadingProcessedDetailsId] = useState<string | null>(null)
   const [processedDetails, setProcessedDetails] = useState<ProcessedDetails | null>(null)
+  const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null)
+  const [loadingSubmissionId, setLoadingSubmissionId] = useState<string | null>(null)
+  const [selectedSubmission, setSelectedSubmission] = useState<ApplicantSubmission | null>(null)
 
   async function load() {
     setLoading(true)
@@ -135,6 +190,37 @@ export default function ApplicantsPage() {
     if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) return pathOrUrl
     if (typeof window === 'undefined') return pathOrUrl
     return `${window.location.origin}${pathOrUrl}`
+  }
+
+  async function toggleSubmissionView(applicant: Applicant) {
+    if (selectedSubmissionId === applicant.id) {
+      setSelectedSubmissionId(null)
+      setSelectedSubmission(null)
+      return
+    }
+
+    setSelectedSubmissionId(applicant.id)
+    setSelectedSubmission(null)
+    setLoadingSubmissionId(applicant.id)
+
+    try {
+      const res = await fetch('/api/admin/applicants/details', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ applicantId: applicant.id }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json?.error || 'Failed to load form submission')
+      setSelectedSubmission((json?.submission as ApplicantSubmission) ?? {})
+    } catch (e: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Failed to load form',
+        description: e?.message || 'Error',
+      })
+    } finally {
+      setLoadingSubmissionId(null)
+    }
   }
 
   async function openProcessedDetails(applicant: Applicant) {
@@ -377,6 +463,29 @@ export default function ApplicantsPage() {
     }
   }
 
+  function renderSubmissionPanel(applicantId: string) {
+    if (loadingSubmissionId === applicantId) {
+      return <p className="text-xs text-slate-600">Loading submitted form...</p>
+    }
+
+    if (selectedSubmissionId !== applicantId || !selectedSubmission) {
+      return <p className="text-xs text-slate-600">Could not load form details. Tap "View form" again.</p>
+    }
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        {SUBMISSION_FIELDS.map((field) => (
+          <div key={field.key} className="rounded-md border border-slate-200 bg-white p-2">
+            <div className="text-[11px] uppercase tracking-wide text-slate-500">{field.label}</div>
+            <div className="text-sm text-slate-900 whitespace-pre-wrap break-words">
+              {formatSubmissionValue(selectedSubmission[field.key])}
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   const pending = applicants.filter((a) => a.status === 'PENDING')
   const processed = applicants.filter((a) => a.status !== 'PENDING')
 
@@ -420,6 +529,14 @@ export default function ApplicantsPage() {
                   <div className="flex items-center gap-2">
                     <Button
                       size="sm"
+                      variant="outline"
+                      onClick={() => toggleSubmissionView(a)}
+                      disabled={loadingSubmissionId === a.id}
+                    >
+                      {selectedSubmissionId === a.id ? 'Hide form' : 'View form'}
+                    </Button>
+                    <Button
+                      size="sm"
                       onClick={() => approve(a.id)}
                       disabled={busyId === a.id}
                     >
@@ -435,6 +552,13 @@ export default function ApplicantsPage() {
                     </Button>
                   </div>
                 </div>
+
+                {selectedSubmissionId === a.id && (
+                  <div className="mt-3 rounded-md bg-slate-50 p-3 space-y-2">
+                    <p className="text-xs font-medium text-slate-700">Submitted application form</p>
+                    {renderSubmissionPanel(a.id)}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -463,8 +587,25 @@ export default function ApplicantsPage() {
                   ) : (
                     <span className="text-slate-700 truncate">{a.full_name_certificate}</span>
                   )}
-                  <span className="text-xs text-slate-500">{a.status}</span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => toggleSubmissionView(a)}
+                      disabled={loadingSubmissionId === a.id}
+                    >
+                      {selectedSubmissionId === a.id ? 'Hide form' : 'View form'}
+                    </Button>
+                    <span className="text-xs text-slate-500">{a.status}</span>
+                  </div>
                 </div>
+
+                {selectedSubmissionId === a.id && (
+                  <div className="mt-3 rounded-md bg-slate-50 p-3 space-y-2">
+                    <p className="text-xs font-medium text-slate-700">Submitted application form</p>
+                    {renderSubmissionPanel(a.id)}
+                  </div>
+                )}
 
                 {selectedProcessedId === a.id && (
                   <div className="mt-3 rounded-md bg-slate-50 p-3 text-xs text-slate-700 space-y-2">

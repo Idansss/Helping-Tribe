@@ -14,7 +14,13 @@ type ApplicantRow = {
   status: string
   email: string | null
   full_name_certificate: string | null
+  gender: string | null
+  dob: string | null
   phone_whatsapp: string | null
+  city_state: string | null
+  nationality: string | null
+  form_data: Record<string, unknown> | null
+  created_at: string | null
 }
 
 async function loadStudentByApplicantId(admin: ReturnType<typeof createAdminClient>, applicantId: string) {
@@ -160,7 +166,7 @@ export async function POST(request: NextRequest) {
 
     const { data: applicant, error: aErr } = await admin
       .from('applicants')
-      .select('id, status, email, full_name_certificate, phone_whatsapp')
+      .select('id, status, email, full_name_certificate, gender, dob, phone_whatsapp, city_state, nationality, form_data, created_at')
       .eq('id', body.applicantId)
       .maybeSingle()
 
@@ -188,11 +194,30 @@ export async function POST(request: NextRequest) {
       latestPayment = pay ?? null
     }
 
+    const submissionPayload = (() => {
+      const base = {
+        fullNameCertificate: applicant.full_name_certificate ?? null,
+        gender: applicant.gender ?? null,
+        dob: applicant.dob ?? null,
+        phoneWhatsApp: applicant.phone_whatsapp ?? null,
+        email: applicant.email ?? null,
+        cityState: applicant.city_state ?? null,
+        nationality: applicant.nationality ?? null,
+        submittedAt: applicant.created_at ?? null,
+      }
+
+      if (applicant.form_data && typeof applicant.form_data === 'object') {
+        return { ...base, ...(applicant.form_data as Record<string, unknown>) }
+      }
+      return base
+    })()
+
     return NextResponse.json({
       ok: true,
       applicantId: applicant.id,
       applicantStatus: applicant.status,
       applicantEmail: applicant.email,
+      submission: submissionPayload,
       student: student
         ? {
             id: student.id,
