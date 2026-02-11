@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { ApplicationForm } from '@/components/public/ApplicationForm'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -10,15 +11,27 @@ export function PublicHome() {
     <div className="min-h-screen bg-gradient-to-b from-teal-50 via-slate-50 to-white text-slate-900">
       <div className="mx-auto max-w-6xl px-4 py-10 space-y-8">
         <Card className="overflow-hidden">
-          <div className="bg-gradient-to-r from-teal-800 via-teal-700 to-teal-600 px-6 py-6 md:px-8 md:py-8 text-white">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              <div>
-                <div className="text-xs font-semibold tracking-wide text-white/90">Helping Tribe</div>
-                <h1 className="mt-1 text-2xl md:text-3xl font-bold tracking-tight">The Helping Tribe School of Counselling &amp; Positive Psychology</h1>
-                <p className="mt-2 text-sm md:text-base text-white/90 max-w-2xl">
-                  Start with the application form. Approved students will log in with Matric Number + Password. Mentors/Admin use Email + Password.
-                </p>
-              </div>
+	          <div className="bg-gradient-to-r from-teal-800 via-teal-700 to-teal-600 px-6 py-6 md:px-8 md:py-8 text-white">
+	            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+	              <div>
+	                <div className="flex items-center gap-3">
+	                  <span className="relative h-9 w-9 overflow-hidden rounded-full bg-white/95 ring-1 ring-white/25">
+	                    <Image
+	                      src="/logo.png"
+	                      alt="The Helping Tribe"
+	                      fill
+	                      sizes="36px"
+	                      className="object-contain p-1"
+	                      priority
+	                    />
+	                  </span>
+	                  <span className="text-xs font-semibold tracking-wide text-white/90">The Helping Tribe</span>
+	                </div>
+	                <h1 className="mt-1 text-2xl md:text-3xl font-bold tracking-tight">The Helping Tribe School of Counselling &amp; Positive Psychology</h1>
+	                <p className="mt-2 text-sm md:text-base text-white/90 max-w-2xl">
+	                  Start with the application form. Approved students will log in with Matric Number + Password. Mentors/Admin use Email + Password.
+	                </p>
+	              </div>
 
               <div className="flex flex-col sm:flex-row gap-2">
                 <Button asChild className="bg-white text-teal-800 hover:bg-white/90">
