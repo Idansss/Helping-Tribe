@@ -14,7 +14,7 @@ export function PublicHome() {
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div>
                 <div className="text-xs font-semibold tracking-wide text-white/90">Helping Tribe</div>
-                <h1 className="mt-1 text-2xl md:text-3xl font-bold tracking-tight">HELP Foundations Training</h1>
+                <h1 className="mt-1 text-2xl md:text-3xl font-bold tracking-tight">The Helping Tribe School of Counselling &amp; Positive Psychology</h1>
                 <p className="mt-2 text-sm md:text-base text-white/90 max-w-2xl">
                   Start with the application form. Approved students will log in with Matric Number + Password. Mentors/Admin use Email + Password.
                 </p>
