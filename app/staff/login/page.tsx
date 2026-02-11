@@ -144,11 +144,17 @@ export default function StaffLoginPage() {
                   {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
                 </Button>
 
-                <div className="flex items-center justify-between border-t border-slate-200 pt-3 text-xs text-slate-600">
-                  <Link href="/apply" className="font-medium hover:text-slate-900 hover:underline">
+                <div className="flex items-center justify-between pt-2 text-xs text-slate-600 focus-within:outline-none focus-within:ring-0">
+                  <Link
+                    href="/apply"
+                    className="font-medium hover:text-slate-900 hover:underline focus-visible:outline-none focus-visible:underline focus-visible:underline-offset-4 focus-visible:decoration-2"
+                  >
                     Back to application
                   </Link>
-                  <Link href="/student/login" className="font-medium hover:text-slate-900 hover:underline">
+                  <Link
+                    href="/student/login"
+                    className="font-medium hover:text-slate-900 hover:underline focus-visible:outline-none focus-visible:underline focus-visible:underline-offset-4 focus-visible:decoration-2"
+                  >
                     Student login
                   </Link>
                 </div>
