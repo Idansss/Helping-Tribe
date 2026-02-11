@@ -178,6 +178,7 @@ export function QuizWithFeedback({ moduleId, moduleTitle, questions, onComplete 
               const isCorrectAnswer = index === currentQuestion.correctAnswer
               const showAsCorrect = showFeedback && isCorrectAnswer
               const showAsWrong = showFeedback && isSelected && !isCorrect
+              const label = index >= 0 && index < 26 ? String.fromCharCode(65 + index) : String(index + 1)
 
               return (
                 <button
@@ -193,8 +194,13 @@ export function QuizWithFeedback({ moduleId, moduleTitle, questions, onComplete 
                     showFeedback && !showAsCorrect && !showAsWrong && "border-gray-200 opacity-50"
                   )}
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">{option}</span>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <span className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-gray-300 bg-white text-xs font-semibold text-gray-600">
+                        {label}
+                      </span>
+                      <span className="font-medium leading-snug">{option}</span>
+                    </div>
                     {showAsCorrect && <CheckCircle2 className="h-5 w-5 text-green-600" />}
                     {showAsWrong && <XCircle className="h-5 w-5 text-red-600" />}
                   </div>

@@ -44,6 +44,11 @@ export default function LearnerTakeQuizPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const optionLabel = (idx: number) => {
+    if (idx >= 0 && idx < 26) return String.fromCharCode(65 + idx) // A-Z
+    return String(idx + 1)
+  }
+
   useEffect(() => {
     if (!quizId) return
     async function init() {
@@ -287,10 +292,26 @@ export default function LearnerTakeQuizPage() {
                         correct ? 'border-green-500 bg-green-50' : ''
                       } ${wrong ? 'border-red-400 bg-red-50' : ''}`}
                     >
-                      <span className="flex items-center gap-2">
-                        {correct && <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />}
-                        {wrong && <XCircle className="h-5 w-5 text-red-600 shrink-0" />}
-                        {opt}
+                      <span className="flex items-start gap-3">
+                        <span
+                          className={`mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-xs font-semibold ${
+                            correct
+                              ? 'border-green-500 bg-green-100 text-green-700'
+                              : wrong
+                              ? 'border-red-400 bg-red-100 text-red-700'
+                              : isSelected && !isLocked
+                              ? 'border-teal-500 bg-teal-100 text-teal-800'
+                              : 'border-slate-300 bg-white text-slate-600'
+                          }`}
+                          aria-hidden="true"
+                        >
+                          {optionLabel(idx)}
+                        </span>
+                        <span className="mt-0.5">
+                          {correct && <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />}
+                          {wrong && <XCircle className="h-5 w-5 text-red-600 shrink-0" />}
+                        </span>
+                        <span className="leading-snug">{opt}</span>
                       </span>
                       {isLocked && (
                         <span className="block text-xs mt-1 text-slate-500">

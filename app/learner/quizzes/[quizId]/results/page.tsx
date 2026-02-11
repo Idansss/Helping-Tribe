@@ -29,6 +29,10 @@ export default function LearnerQuizResultsPage() {
   const [quiz, setQuiz] = useState<Quiz | null>(null)
   const [responses, setResponses] = useState<Response[]>([])
   const [loading, setLoading] = useState(true)
+  const optionLabel = (idx: number) => {
+    if (idx >= 0 && idx < 26) return String.fromCharCode(65 + idx) // A-Z
+    return String(idx + 1)
+  }
 
   useEffect(() => {
     if (!quizId) return
@@ -155,7 +159,10 @@ export default function LearnerQuizResultsPage() {
             <CardContent className="pt-4">
               <p className="font-medium text-slate-900">{i + 1}. {r.question_text ?? 'Question'}</p>
               <p className="mt-2 text-sm text-slate-600">
-                You chose: {Array.isArray(r.options) ? r.options[r.selected_answer_index] : '—'}
+                You chose:{' '}
+                {Array.isArray(r.options)
+                  ? `${optionLabel(r.selected_answer_index)}. ${r.options[r.selected_answer_index]}`
+                  : '—'}
               </p>
               <p className="mt-1 flex items-center gap-2 text-sm">
                 {r.is_correct ? (

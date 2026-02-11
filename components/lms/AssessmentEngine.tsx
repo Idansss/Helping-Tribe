@@ -210,9 +210,13 @@ export function AssessmentEngine({ moduleId }: AssessmentEngineProps) {
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-2">
-                        {question.options.map((option: any) => {
+                        {question.options.map((option: any, optionIndex: number) => {
                           const isSelected = option.id === selectedOptionId
                           const isCorrectOption = option.is_correct
+                          const label =
+                            optionIndex >= 0 && optionIndex < 26
+                              ? String.fromCharCode(65 + optionIndex)
+                              : String(optionIndex + 1)
 
                           return (
                             <div
@@ -226,6 +230,9 @@ export function AssessmentEngine({ moduleId }: AssessmentEngineProps) {
                               }`}
                             >
                               <div className="flex items-center gap-2">
+                                <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-slate-300 bg-white text-[11px] font-semibold text-slate-600">
+                                  {label}
+                                </span>
                                 <span className="font-medium">{option.text}</span>
                                 {isCorrectOption && (
                                   <Badge variant="default" className="bg-green-500">
@@ -276,8 +283,12 @@ export function AssessmentEngine({ moduleId }: AssessmentEngineProps) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {currentQuestion.options.map((option: any) => {
+                  {currentQuestion.options.map((option: any, optionIndex: number) => {
                     const isSelected = answers[currentQuestion.id] === option.id
+                    const label =
+                      optionIndex >= 0 && optionIndex < 26
+                        ? String.fromCharCode(65 + optionIndex)
+                        : String(optionIndex + 1)
 
                     return (
                       <button
@@ -289,7 +300,12 @@ export function AssessmentEngine({ moduleId }: AssessmentEngineProps) {
                             : 'border-border hover:border-primary/50'
                         }`}
                       >
-                        {option.text}
+                        <span className="flex items-start gap-3">
+                          <span className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-300 bg-white text-xs font-semibold text-slate-600">
+                            {label}
+                          </span>
+                          <span className="leading-snug">{option.text}</span>
+                        </span>
                       </button>
                     )
                   })}
