@@ -28,7 +28,15 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = RejectSchema.parse(await request.json())
-    const admin = createAdminClient()
+    let admin: ReturnType<typeof createAdminClient>
+    try {
+      admin = createAdminClient()
+    } catch {
+      return NextResponse.json(
+        { error: 'Server auth is not configured. Set SUPABASE_SERVICE_ROLE_KEY in Vercel env.' },
+        { status: 500 }
+      )
+    }
 
     const { data: applicant, error: appErr } = await admin
       .from('applicants')
@@ -55,7 +63,7 @@ export async function POST(request: NextRequest) {
       .eq('id', body.applicantId)
 
     if (error) {
-      return NextResponse.json({ error: 'Failed to reject applicant' }, { status: 500 })
+      return NextResponse.json({ error: error.message || 'Failed to reject applicant' }, { status: 500 })
     }
 
     return NextResponse.json({ ok: true })
@@ -63,6 +71,6 @@ export async function POST(request: NextRequest) {
     if (e?.name === 'ZodError') {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
     }
-    return NextResponse.json({ error: 'Failed to reject applicant' }, { status: 500 })
+    return NextResponse.json({ error: e?.message || 'Failed to reject applicant' }, { status: 500 })
   }
 }

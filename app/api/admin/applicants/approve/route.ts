@@ -23,6 +23,12 @@ function randomPassword() {
   return crypto.randomBytes(32).toString('base64url')
 }
 
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) return error.message
+  if (typeof error === 'string' && error) return error
+  return fallback
+}
+
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
   const {
@@ -45,7 +51,15 @@ export async function POST(request: NextRequest) {
     const body = ApproveSchema.parse(await request.json())
     const ttlHours = body.tokenTtlHours ?? 72
 
-    const admin = createAdminClient()
+    let admin: ReturnType<typeof createAdminClient>
+    try {
+      admin = createAdminClient()
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Server auth is not configured. Set SUPABASE_SERVICE_ROLE_KEY in Vercel env.' },
+        { status: 500 }
+      )
+    }
 
     const { data: applicant, error: appErr } = await admin
       .from('applicants')
@@ -81,29 +95,40 @@ export async function POST(request: NextRequest) {
     })
 
     if (createRes.error || !createRes.data.user) {
-      return NextResponse.json({ error: 'Failed to create student account' }, { status: 500 })
+      const createMessage = createRes.error?.message ?? 'Failed to create student account'
+      return NextResponse.json({ error: createMessage }, { status: 500 })
     }
 
     const studentId = createRes.data.user.id
 
     try {
-      await admin.from('profiles').insert({
+      const { error: baseProfileErr } = await admin.from('profiles').upsert({
         id: studentId,
         role: 'student',
         full_name: applicant.full_name_certificate,
-        email: applicant.email,
-        whatsapp_number: applicant.phone_whatsapp,
-        matric_number: String(matric),
       })
 
-      await admin.from('students').insert({
+      if (baseProfileErr) {
+        throw new Error(`Failed to create profile: ${baseProfileErr.message}`)
+      }
+
+      // Optional profile columns may not exist on every deployed schema.
+      // Keep approval robust by ignoring non-critical column update failures.
+      await admin.from('profiles').update({ email: applicant.email }).eq('id', studentId)
+      await admin.from('profiles').update({ whatsapp_number: applicant.phone_whatsapp }).eq('id', studentId)
+      await admin.from('profiles').update({ matric_number: String(matric) }).eq('id', studentId)
+
+      const { error: studentErr } = await admin.from('students').insert({
         id: studentId,
         applicant_id: applicant.id,
         matric_number: String(matric),
         must_set_password: true,
       })
+      if (studentErr) {
+        throw new Error(`Failed to create student mapping: ${studentErr.message}`)
+      }
 
-      await admin
+      const { error: applicantUpdateErr } = await admin
         .from('applicants')
         .update({
           status: 'APPROVED',
@@ -112,16 +137,22 @@ export async function POST(request: NextRequest) {
           updated_at: new Date().toISOString(),
         })
         .eq('id', applicant.id)
+      if (applicantUpdateErr) {
+        throw new Error(`Failed to update applicant status: ${applicantUpdateErr.message}`)
+      }
 
       const token = randomToken()
       const tokenHash = sha256(token)
       const expiresAt = new Date(Date.now() + ttlHours * 60 * 60 * 1000).toISOString()
 
-      await admin.from('password_setup_tokens').insert({
+      const { error: tokenErr } = await admin.from('password_setup_tokens').insert({
         token_hash: tokenHash,
         student_id: studentId,
         expires_at: expiresAt,
       })
+      if (tokenErr) {
+        throw new Error(`Failed to create setup token: ${tokenErr.message}`)
+      }
 
       const setPasswordUrl = `/set-password?token=${encodeURIComponent(token)}`
 
@@ -131,14 +162,22 @@ export async function POST(request: NextRequest) {
         setPasswordUrl,
         expiresAt,
       })
-    } catch (e) {
+    } catch (error) {
       await admin.auth.admin.deleteUser(studentId)
-      return NextResponse.json({ error: 'Failed to approve applicant' }, { status: 500 })
+      console.error('Approve applicant failed:', error)
+      return NextResponse.json(
+        { error: getErrorMessage(error, 'Failed to approve applicant') },
+        { status: 500 }
+      )
     }
   } catch (e: any) {
     if (e?.name === 'ZodError') {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
     }
-    return NextResponse.json({ error: 'Failed to approve applicant' }, { status: 500 })
+    console.error('Approve applicant request failed:', e)
+    return NextResponse.json(
+      { error: getErrorMessage(e, 'Failed to approve applicant') },
+      { status: 500 }
+    )
   }
 }
