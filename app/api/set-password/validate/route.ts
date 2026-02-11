@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { isMissingColumnError, missingPaymentsSchemaMessage } from '@/lib/supabase/migrations'
 
 function hashToken(token: string) {
   return crypto.createHash('sha256').update(token).digest('hex')
@@ -20,6 +21,10 @@ export async function GET(request: NextRequest) {
     .select('student_id, expires_at, used_at, students(matric_number, is_paid)')
     .eq('token_hash', tokenHash)
     .maybeSingle()
+
+  if (error && isMissingColumnError(error, 'is_paid')) {
+    return NextResponse.json({ valid: false, reason: 'PAYMENTS_NOT_CONFIGURED', error: missingPaymentsSchemaMessage() }, { status: 200 })
+  }
 
   if (error || !data) {
     return NextResponse.json({ valid: false }, { status: 200 })

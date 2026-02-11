@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { resolvePortalRole } from '@/lib/auth/admin'
 import { paystackVerifyTransaction } from '@/lib/paystack/server'
 import { applyPaystackVerification } from '@/lib/paystack/apply'
+import { isMissingColumnError, isMissingRelationError, missingPaymentsSchemaMessage } from '@/lib/supabase/migrations'
 
 const VerifySchema = z.object({
   reference: z.string().min(6),
@@ -49,6 +50,10 @@ export async function POST(request: NextRequest) {
       .eq('reference', reference)
       .maybeSingle()
 
+    if (pErr && (isMissingRelationError(pErr, 'payments') || isMissingColumnError(pErr, 'amount_kobo'))) {
+      return NextResponse.json({ error: missingPaymentsSchemaMessage() }, { status: 500 })
+    }
+
     if (pErr || !payment) {
       return NextResponse.json({ error: 'Payment not found' }, { status: 404 })
     }
@@ -77,10 +82,13 @@ export async function POST(request: NextRequest) {
           .eq('id', payment.id)
       },
       markStudentPaid: async (paidAt) => {
-        await admin
+        const { error: upErr } = await admin
           .from('students')
           .update({ is_paid: true, paid_at: paidAt, updated_at: new Date().toISOString() })
           .eq('id', payment.student_id)
+        if (upErr && (isMissingColumnError(upErr, 'is_paid') || isMissingColumnError(upErr, 'paid_at'))) {
+          throw new Error(missingPaymentsSchemaMessage())
+        }
       },
     })
 

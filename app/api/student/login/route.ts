@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const { data: student } = await supabase
+    const { data: student, error: studentErr } = await supabase
       .from('students')
       .select('is_paid, must_set_password')
       .eq('id', user.id)
@@ -50,6 +50,16 @@ export async function POST(request: NextRequest) {
 
     // If the payments migration hasn't been applied yet, Supabase may return null here (or an error).
     // Avoid a misleading "payment required" and return a clear configuration message instead.
+    if (studentErr) {
+      const msg = String(studentErr.message || '')
+      if (msg.toLowerCase().includes('is_paid') || msg.toLowerCase().includes('paid_at') || msg.toLowerCase().includes('payment_status')) {
+        return NextResponse.json(
+          { error: 'Student payment state is not configured yet. Run DB migration 032_payments_paystack.sql.', code: 'PAYMENTS_NOT_CONFIGURED' },
+          { status: 500 }
+        )
+      }
+    }
+
     if (!student) {
       return NextResponse.json(
         { error: 'Student payment state is not configured yet. Run DB migration 032_payments_paystack.sql.', code: 'PAYMENTS_NOT_CONFIGURED' },

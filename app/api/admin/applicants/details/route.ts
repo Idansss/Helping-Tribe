@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { resolvePortalRole } from '@/lib/auth/admin'
+import { isMissingColumnError, missingPaymentsSchemaMessage } from '@/lib/supabase/migrations'
 
 const DetailsSchema = z.object({
   applicantId: z.string().uuid(),
@@ -24,6 +25,9 @@ async function loadStudentByApplicantId(admin: ReturnType<typeof createAdminClie
     .maybeSingle()
 
   if (error) {
+    if (isMissingColumnError(error, 'is_paid') || isMissingColumnError(error, 'paid_at')) {
+      throw new Error(missingPaymentsSchemaMessage())
+    }
     throw new Error(error.message || 'Failed to load student record')
   }
 

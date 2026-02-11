@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import crypto from 'crypto'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { isMissingColumnError, missingPaymentsSchemaMessage } from '@/lib/supabase/migrations'
 
 const SetPasswordSchema = z.object({
   token: z.string().min(10),
@@ -25,6 +26,10 @@ export async function POST(request: NextRequest) {
       .select('id, student_id, expires_at, used_at, students(matric_number, is_paid)')
       .eq('token_hash', tokenHash)
       .maybeSingle()
+
+    if (error && isMissingColumnError(error, 'is_paid')) {
+      return NextResponse.json({ error: missingPaymentsSchemaMessage() }, { status: 500 })
+    }
 
     if (error || !data) {
       return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 })

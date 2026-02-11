@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { resolvePortalRole } from '@/lib/auth/admin'
 import { computeHelpFoundationalCoursePricing, HELP_FOUNDATIONAL_COURSE } from '@/lib/payments/helpFoundationalCourse'
 import { createPaystackReference, paystackInitializeTransaction } from '@/lib/paystack/server'
+import { isMissingColumnError, isMissingRelationError, missingPaymentsSchemaMessage } from '@/lib/supabase/migrations'
 
 const InitializeSchema = z.object({
   studentId: z.string().uuid().optional(),
@@ -74,6 +75,10 @@ export async function POST(request: NextRequest) {
         .eq('id', studentId)
         .maybeSingle()
 
+      if (sErr && isMissingColumnError(sErr, 'is_paid')) {
+        return NextResponse.json({ error: missingPaymentsSchemaMessage() }, { status: 500 })
+      }
+
       if (sErr || !s) {
         return NextResponse.json({ error: 'Student not found' }, { status: 404 })
       }
@@ -85,6 +90,10 @@ export async function POST(request: NextRequest) {
         .select('id, applicant_id, matric_number, is_paid')
         .eq('applicant_id', applicantId)
         .maybeSingle()
+
+      if (sErr && isMissingColumnError(sErr, 'is_paid')) {
+        return NextResponse.json({ error: missingPaymentsSchemaMessage() }, { status: 500 })
+      }
 
       if (sErr || !s) {
         return NextResponse.json({ error: 'Applicant is not approved yet' }, { status: 409 })
@@ -137,6 +146,9 @@ export async function POST(request: NextRequest) {
     })
 
     if (insertErr) {
+      if (isMissingRelationError(insertErr, 'payments') || isMissingColumnError(insertErr, 'amount_kobo')) {
+        return NextResponse.json({ error: missingPaymentsSchemaMessage() }, { status: 500 })
+      }
       return NextResponse.json({ error: `Failed to create payment record: ${insertErr.message}` }, { status: 500 })
     }
 

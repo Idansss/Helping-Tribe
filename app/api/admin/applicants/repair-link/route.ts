@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isAllowedAdmin } from '@/lib/auth/admin'
+import { isMissingColumnError, missingPaymentsSchemaMessage } from '@/lib/supabase/migrations'
 
 const RepairSchema = z.object({
   applicantId: z.string().uuid(),
@@ -27,7 +28,12 @@ async function loadStudentByApplicantId(admin: ReturnType<typeof createAdminClie
     .eq('applicant_id', applicantId)
     .maybeSingle()
 
-  if (error) throw new Error(error.message || 'Failed to load student record')
+  if (error) {
+    if (isMissingColumnError(error, 'is_paid') || isMissingColumnError(error, 'paid_at')) {
+      throw new Error(missingPaymentsSchemaMessage())
+    }
+    throw new Error(error.message || 'Failed to load student record')
+  }
   return data
 }
 

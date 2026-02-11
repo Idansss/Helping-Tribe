@@ -4,6 +4,7 @@ import crypto from 'crypto'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isAllowedAdmin } from '@/lib/auth/admin'
+import { isMissingColumnError, missingPaymentsSchemaMessage } from '@/lib/supabase/migrations'
 
 const SetupLinkSchema = z.object({
   applicantId: z.string().uuid(),
@@ -69,6 +70,10 @@ export async function POST(request: NextRequest) {
       .select('id, matric_number, is_paid')
       .eq('applicant_id', body.applicantId)
       .maybeSingle()
+
+    if (studentErr && isMissingColumnError(studentErr, 'is_paid')) {
+      return NextResponse.json({ error: missingPaymentsSchemaMessage() }, { status: 500 })
+    }
 
     if (studentErr || !student) {
       return NextResponse.json({ error: 'Student record not found for this applicant' }, { status: 404 })
