@@ -17,9 +17,18 @@ type Applicant = {
 
 type ProcessedDetails = {
   applicantId: string
+  studentId: string | null
   matricNumber: string
-  setPasswordUrl: string
-  expiresAt: string
+  isPaid: boolean
+  paidAt: string | null
+  latestPaymentStatus: string | null
+  paymentAuthorizationUrl: string | null
+  paymentReference: string | null
+  paymentAmountNgn: number | null
+  discountApplied: boolean | null
+  discountPercent: number | null
+  setPasswordUrl: string | null
+  expiresAt: string | null
 }
 
 export default function ApplicantsPage() {
@@ -67,21 +76,29 @@ export default function ApplicantsPage() {
         throw new Error(json?.error || 'Failed to approve applicant')
       }
 
-      const fullUrl =
-        typeof window !== 'undefined'
-          ? `${window.location.origin}${json.setPasswordUrl}`
-          : json.setPasswordUrl
+      // Default flow: pay after approval. Generate a Paystack payment link for the approved student.
+      const payRes = await fetch('/api/paystack/initialize', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ applicantId }),
+      })
+      const payJson = await payRes.json()
+      if (!payRes.ok) {
+        throw new Error(payJson?.error || 'Approved, but failed to generate payment link')
+      }
+
+      const fullPaymentUrl = toAbsoluteUrl(payJson.authorizationUrl)
 
       try {
-        await navigator.clipboard.writeText(fullUrl)
+        await navigator.clipboard.writeText(fullPaymentUrl)
         toast({
           title: 'Approved',
-          description: `Matric: ${json.matricNumber}. Set-password link copied to clipboard.`,
+          description: `Matric: ${json.matricNumber}. Paystack payment link copied. Amount: ₦${Number(payJson.amountNgn).toLocaleString()}`,
         })
       } catch {
         toast({
           title: 'Approved',
-          description: `Matric: ${json.matricNumber}. Set-password link: ${fullUrl}`,
+          description: `Matric: ${json.matricNumber}. Payment link: ${fullPaymentUrl}`,
         })
       }
 
@@ -132,21 +149,36 @@ export default function ApplicantsPage() {
 
     setLoadingProcessedDetailsId(applicant.id)
     try {
-      const res = await fetch('/api/admin/applicants/setup-link', {
+      const res = await fetch('/api/admin/applicants/details', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ applicantId: applicant.id }),
       })
       const json = await res.json()
       if (!res.ok) {
-        throw new Error(json?.error || 'Failed to load setup link')
+        throw new Error(json?.error || 'Failed to load applicant details')
+      }
+
+      if (!json?.student) {
+        throw new Error('Student record not found for this applicant')
       }
 
       setProcessedDetails({
         applicantId: applicant.id,
-        matricNumber: json.matricNumber,
-        setPasswordUrl: toAbsoluteUrl(json.setPasswordUrl),
-        expiresAt: json.expiresAt,
+        studentId: json.student.id ?? null,
+        matricNumber: json.student.matricNumber,
+        isPaid: Boolean(json.student.isPaid),
+        paidAt: json.student.paidAt ?? null,
+        latestPaymentStatus: json.latestPayment?.status ?? null,
+        paymentAuthorizationUrl: null,
+        paymentReference: json.latestPayment?.reference ?? null,
+        paymentAmountNgn: Number.isFinite(Number(json.latestPayment?.amountKobo))
+          ? Number(json.latestPayment.amountKobo) / 100
+          : null,
+        discountApplied: typeof json.latestPayment?.discountApplied === 'boolean' ? json.latestPayment.discountApplied : null,
+        discountPercent: Number.isFinite(Number(json.latestPayment?.discountPercent)) ? Number(json.latestPayment.discountPercent) : null,
+        setPasswordUrl: null,
+        expiresAt: null,
       })
     } catch (e: any) {
       toast({
@@ -156,6 +188,131 @@ export default function ApplicantsPage() {
       })
     } finally {
       setLoadingProcessedDetailsId(null)
+    }
+  }
+
+  async function refreshProcessedDetails(applicantId: string) {
+    const res = await fetch('/api/admin/applicants/details', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ applicantId }),
+    })
+    const json = await res.json()
+    if (!res.ok) throw new Error(json?.error || 'Failed to refresh details')
+    if (!json?.student) throw new Error('Student record not found for this applicant')
+
+    setProcessedDetails((prev) => {
+      if (!prev || prev.applicantId !== applicantId) return prev
+      return {
+        ...prev,
+        studentId: json.student.id ?? null,
+        matricNumber: json.student.matricNumber,
+        isPaid: Boolean(json.student.isPaid),
+        paidAt: json.student.paidAt ?? null,
+        latestPaymentStatus: json.latestPayment?.status ?? null,
+        paymentReference: json.latestPayment?.reference ?? prev.paymentReference,
+        paymentAmountNgn: Number.isFinite(Number(json.latestPayment?.amountKobo))
+          ? Number(json.latestPayment.amountKobo) / 100
+          : prev.paymentAmountNgn,
+        discountApplied: typeof json.latestPayment?.discountApplied === 'boolean' ? json.latestPayment.discountApplied : prev.discountApplied,
+        discountPercent: Number.isFinite(Number(json.latestPayment?.discountPercent)) ? Number(json.latestPayment.discountPercent) : prev.discountPercent,
+      }
+    })
+  }
+
+  async function generatePaymentLink(applicantId: string) {
+    setBusyId(applicantId)
+    try {
+      const res = await fetch('/api/paystack/initialize', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ applicantId }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json?.error || 'Failed to generate payment link')
+
+      const fullPaymentUrl = toAbsoluteUrl(json.authorizationUrl)
+
+      setProcessedDetails((prev) =>
+        prev && prev.applicantId === applicantId
+          ? {
+              ...prev,
+              paymentAuthorizationUrl: fullPaymentUrl,
+              paymentReference: json.reference ?? null,
+              paymentAmountNgn: Number.isFinite(Number(json.amountNgn)) ? Number(json.amountNgn) : null,
+              discountApplied: typeof json.discountApplied === 'boolean' ? json.discountApplied : null,
+              discountPercent: Number.isFinite(Number(json.discountPercent)) ? Number(json.discountPercent) : null,
+            }
+          : prev
+      )
+
+      try {
+        await navigator.clipboard.writeText(fullPaymentUrl)
+        toast({
+          title: 'Payment link ready',
+          description: `Paystack payment link copied. Amount: ₦${Number(json.amountNgn).toLocaleString()}`,
+        })
+      } catch {
+        toast({ title: 'Payment link ready', description: fullPaymentUrl })
+      }
+
+      await refreshProcessedDetails(applicantId)
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: 'Payment link failed', description: e?.message || 'Error' })
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  async function verifyLatestPayment(applicantId: string, reference: string) {
+    setBusyId(applicantId)
+    try {
+      const res = await fetch('/api/paystack/verify', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ reference }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json?.error || json?.reason || 'Failed to verify payment')
+
+      toast({ title: 'Verified', description: `Payment verified for ${reference}.` })
+      await refreshProcessedDetails(applicantId)
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: 'Verify failed', description: e?.message || 'Error' })
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  async function generateSetupLink(applicantId: string) {
+    setBusyId(applicantId)
+    try {
+      const res = await fetch('/api/admin/applicants/setup-link', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ applicantId }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json?.error || 'Failed to generate setup link')
+
+      const fullUrl = toAbsoluteUrl(json.setPasswordUrl)
+
+      setProcessedDetails((prev) =>
+        prev && prev.applicantId === applicantId
+          ? {
+              ...prev,
+              setPasswordUrl: fullUrl,
+              expiresAt: json.expiresAt ?? null,
+            }
+          : prev
+      )
+
+      await copySetupLink(fullUrl)
+      await refreshProcessedDetails(applicantId)
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: 'Setup link failed', description: e?.message || 'Error' })
+    } finally {
+      setBusyId(null)
     }
   }
 
@@ -268,25 +425,101 @@ export default function ApplicantsPage() {
                         <p>
                           Matric Number: <span className="font-semibold text-slate-900">{processedDetails.matricNumber}</span>
                         </p>
-                        <p className="break-all">
-                          Set-password link:{' '}
-                          <a
-                            href={processedDetails.setPasswordUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-teal-700 hover:underline"
-                          >
-                            {processedDetails.setPasswordUrl}
-                          </a>
+                        <p>
+                          Payment status:{' '}
+                          <span className={processedDetails.isPaid ? 'font-semibold text-green-700' : 'font-semibold text-amber-700'}>
+                            {processedDetails.isPaid ? 'PAID' : 'UNPAID'}
+                          </span>
+                          {processedDetails.paidAt ? ` (paid at ${new Date(processedDetails.paidAt).toLocaleString()})` : ''}
                         </p>
-                        <p>Expires: {new Date(processedDetails.expiresAt).toLocaleString()}</p>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => copySetupLink(processedDetails.setPasswordUrl)}
-                        >
-                          Copy link
-                        </Button>
+
+                        {!processedDetails.isPaid ? (
+                          <>
+                            <p className="text-slate-600">
+                              Set-password link can be issued only after payment is verified.
+                            </p>
+                            {processedDetails.paymentReference && (
+                              <p className="break-all">
+                                Latest payment: <span className="font-mono">{processedDetails.paymentReference}</span>
+                                {processedDetails.latestPaymentStatus ? ` (${processedDetails.latestPaymentStatus})` : ''}
+                                {processedDetails.paymentAmountNgn ? ` - ₦${processedDetails.paymentAmountNgn.toLocaleString()}` : ''}
+                              </p>
+                            )}
+                            {processedDetails.paymentAuthorizationUrl && (
+                              <p className="break-all">
+                                Payment link:{' '}
+                                <a
+                                  href={processedDetails.paymentAuthorizationUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-teal-700 hover:underline"
+                                >
+                                  {processedDetails.paymentAuthorizationUrl}
+                                </a>
+                              </p>
+                            )}
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={busyId === a.id}
+                                onClick={() => generatePaymentLink(a.id)}
+                              >
+                                {busyId === a.id ? 'Working…' : 'Generate Paystack payment link'}
+                              </Button>
+                              {processedDetails.paymentReference && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={busyId === a.id}
+                                  onClick={() => verifyLatestPayment(a.id, processedDetails.paymentReference!)}
+                                >
+                                  {busyId === a.id ? 'Working…' : 'Verify payment'}
+                                </Button>
+                              )}
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            {processedDetails.setPasswordUrl && (
+                              <>
+                                <p className="break-all">
+                                  Set-password link:{' '}
+                                  <a
+                                    href={processedDetails.setPasswordUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-teal-700 hover:underline"
+                                  >
+                                    {processedDetails.setPasswordUrl}
+                                  </a>
+                                </p>
+                                {processedDetails.expiresAt && (
+                                  <p>Expires: {new Date(processedDetails.expiresAt).toLocaleString()}</p>
+                                )}
+                              </>
+                            )}
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={busyId === a.id}
+                                onClick={() => generateSetupLink(a.id)}
+                              >
+                                {busyId === a.id ? 'Generating…' : 'Generate set-password link'}
+                              </Button>
+                              {processedDetails.setPasswordUrl && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => copySetupLink(processedDetails.setPasswordUrl!)}
+                                >
+                                  Copy link
+                                </Button>
+                              )}
+                            </div>
+                          </>
+                        )}
                       </>
                     ) : (
                       <p>Could not load setup details. Tap the name again.</p>

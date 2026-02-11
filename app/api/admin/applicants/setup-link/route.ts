@@ -66,12 +66,19 @@ export async function POST(request: NextRequest) {
 
     const { data: student, error: studentErr } = await admin
       .from('students')
-      .select('id, matric_number')
+      .select('id, matric_number, is_paid')
       .eq('applicant_id', body.applicantId)
       .maybeSingle()
 
     if (studentErr || !student) {
       return NextResponse.json({ error: 'Student record not found for this applicant' }, { status: 404 })
+    }
+
+    if (!student.is_paid) {
+      return NextResponse.json(
+        { error: 'Payment required before set-password link can be issued' },
+        { status: 409 }
+      )
     }
 
     const token = randomToken()
@@ -109,4 +116,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: e?.message || 'Failed to generate setup link' }, { status: 500 })
   }
 }
-

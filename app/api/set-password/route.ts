@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await supabase
       .from('password_setup_tokens')
-      .select('id, student_id, expires_at, used_at, students(matric_number)')
+      .select('id, student_id, expires_at, used_at, students(matric_number, is_paid)')
       .eq('token_hash', tokenHash)
       .maybeSingle()
 
@@ -40,6 +40,11 @@ export async function POST(request: NextRequest) {
 
     const matricNumber =
       (data as any)?.students?.matric_number ?? null
+
+    const isPaid = Boolean((data as any)?.students?.is_paid)
+    if (!isPaid) {
+      return NextResponse.json({ error: 'Payment required before setting password' }, { status: 403 })
+    }
 
     if (body.matricNumber && matricNumber && body.matricNumber.trim().toUpperCase() !== String(matricNumber).toUpperCase()) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 400 })
@@ -71,4 +76,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to set password' }, { status: 500 })
   }
 }
-

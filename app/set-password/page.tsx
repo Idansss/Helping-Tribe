@@ -15,6 +15,7 @@ export default function SetPasswordPage() {
   const [token, setToken] = useState<string | null>(null)
   const [matricNumber, setMatricNumber] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [invalidReason, setInvalidReason] = useState<string | null>(null)
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [saving, setSaving] = useState(false)
@@ -33,6 +34,9 @@ export default function SetPasswordPage() {
       .then((json) => {
         if (json?.valid) {
           setMatricNumber(json?.matricNumber ?? null)
+          setInvalidReason(null)
+        } else {
+          setInvalidReason(json?.reason ?? null)
         }
       })
       .finally(() => setLoading(false))
@@ -75,6 +79,7 @@ export default function SetPasswordPage() {
   }
 
   const invalid = !loading && (!token || !matricNumber)
+  const paymentRequired = invalidReason === 'PAYMENT_REQUIRED'
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex items-center justify-center px-4 py-10">
@@ -85,14 +90,20 @@ export default function SetPasswordPage() {
             {loading
               ? 'Validating link…'
               : invalid
-                ? 'This link is invalid or has expired.'
+                ? paymentRequired
+                  ? 'Payment required before you can set your password.'
+                  : 'This link is invalid or has expired.'
                 : `Matric Number: ${matricNumber}`}
           </p>
         </CardHeader>
         <CardContent>
           {invalid ? (
             <div className="space-y-3 text-sm">
-              <p>Please contact the admin to request a new set-password link.</p>
+              <p>
+                {paymentRequired
+                  ? 'Please complete payment first. If you have already paid, contact the admin to verify your payment and request a new set-password link.'
+                  : 'Please contact the admin to request a new set-password link.'}
+              </p>
               <Link href="/apply" className="text-teal-700 hover:underline">
                 Back to application
               </Link>

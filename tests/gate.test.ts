@@ -25,6 +25,7 @@ describe('hard gate allowlist', () => {
     expect(isPublicApiPath('/api/staff/login')).toBe(true)
     expect(isPublicApiPath('/api/set-password')).toBe(true)
     expect(isPublicApiPath('/api/set-password/validate')).toBe(true)
+    expect(isPublicApiPath('/api/paystack/webhook')).toBe(true)
 
     expect(isPublicApiPath('/api/ai-client')).toBe(false)
     expect(isPublicApiPath('/api/admin/weekly-report')).toBe(false)

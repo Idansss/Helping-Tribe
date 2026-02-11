@@ -8,16 +8,7 @@ import { isAllowedAdmin } from '@/lib/auth/admin'
 
 const ApproveSchema = z.object({
   applicantId: z.string().uuid(),
-  tokenTtlHours: z.number().int().min(1).max(168).optional(),
 })
-
-function sha256(value: string) {
-  return crypto.createHash('sha256').update(value).digest('hex')
-}
-
-function randomToken() {
-  return crypto.randomBytes(32).toString('base64url')
-}
 
 function randomPassword() {
   return crypto.randomBytes(32).toString('base64url')
@@ -49,7 +40,6 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = ApproveSchema.parse(await request.json())
-    const ttlHours = body.tokenTtlHours ?? 72
 
     let admin: ReturnType<typeof createAdminClient>
     try {
@@ -141,26 +131,10 @@ export async function POST(request: NextRequest) {
         throw new Error(`Failed to update applicant status: ${applicantUpdateErr.message}`)
       }
 
-      const token = randomToken()
-      const tokenHash = sha256(token)
-      const expiresAt = new Date(Date.now() + ttlHours * 60 * 60 * 1000).toISOString()
-
-      const { error: tokenErr } = await admin.from('password_setup_tokens').insert({
-        token_hash: tokenHash,
-        student_id: studentId,
-        expires_at: expiresAt,
-      })
-      if (tokenErr) {
-        throw new Error(`Failed to create setup token: ${tokenErr.message}`)
-      }
-
-      const setPasswordUrl = `/set-password?token=${encodeURIComponent(token)}`
-
       return NextResponse.json({
         ok: true,
         matricNumber: String(matric),
-        setPasswordUrl,
-        expiresAt,
+        nextStep: 'PAYMENT_REQUIRED',
       })
     } catch (error) {
       await admin.auth.admin.deleteUser(studentId)

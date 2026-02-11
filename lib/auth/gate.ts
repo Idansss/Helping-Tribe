@@ -11,7 +11,8 @@ export function isPublicApiPath(pathname: string) {
     pathname === '/api/student/login' ||
     pathname === '/api/staff/login' ||
     pathname === '/api/set-password' ||
-    pathname.startsWith('/api/set-password/')
+    pathname.startsWith('/api/set-password/') ||
+    pathname === '/api/paystack/webhook'
   )
 }
 

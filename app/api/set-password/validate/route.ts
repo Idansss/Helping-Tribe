@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await supabase
     .from('password_setup_tokens')
-    .select('student_id, expires_at, used_at, students(matric_number)')
+    .select('student_id, expires_at, used_at, students(matric_number, is_paid)')
     .eq('token_hash', tokenHash)
     .maybeSingle()
 
@@ -35,10 +35,14 @@ export async function GET(request: NextRequest) {
   const matricNumber =
     (data as any)?.students?.matric_number ?? null
 
+  const isPaid = Boolean((data as any)?.students?.is_paid)
+  if (!isPaid) {
+    return NextResponse.json({ valid: false, reason: 'PAYMENT_REQUIRED' }, { status: 200 })
+  }
+
   return NextResponse.json({
     valid: true,
     matricNumber,
     expiresAt: data.expires_at,
   })
 }
-

@@ -42,6 +42,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
+    const { data: student } = await supabase
+      .from('students')
+      .select('is_paid, must_set_password')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    if (student?.must_set_password) {
+      return NextResponse.json({ error: 'Password setup required' }, { status: 403 })
+    }
+
+    if (!student?.is_paid) {
+      return NextResponse.json({ error: 'Payment required' }, { status: 403 })
+    }
+
     const response = NextResponse.json({ ok: true })
     cookiesToSet.forEach((c) => response.cookies.set(c.name, c.value, c.options))
     return response
