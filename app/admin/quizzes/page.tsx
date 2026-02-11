@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -42,6 +42,18 @@ type QuestionRow = {
   sort_order: number
 }
 
+function parseQuestionOptions(raw: string) {
+  return raw
+    .split(/\r?\n|\\n/g)
+    .map((s) => s.trim())
+    .filter(Boolean)
+}
+
+function optionLetter(index: number) {
+  if (index >= 0 && index < 26) return String.fromCharCode(65 + index)
+  return String(index + 1)
+}
+
 export default function AdminQuizzesPage() {
   const supabase = createClient()
   const [quizzes, setQuizzes] = useState<QuizRow[]>([])
@@ -63,6 +75,13 @@ export default function AdminQuizzesPage() {
   const [qOptions, setQOptions] = useState('')
   const [qCorrectIndex, setQCorrectIndex] = useState(0)
   const [savingQuestion, setSavingQuestion] = useState(false)
+
+  const qParsedOptions = useMemo(() => parseQuestionOptions(qOptions), [qOptions])
+  const canPickCorrectAnswer = qParsedOptions.length >= 2
+  const clampedCorrectIndex = Math.min(
+    qCorrectIndex,
+    Math.max(0, qParsedOptions.length - 1)
+  )
 
   const loadQuizzes = async () => {
     setLoading(true)
@@ -183,7 +202,7 @@ export default function AdminQuizzesPage() {
 
   const saveQuestion = async () => {
     if (!selectedQuizId || !qText.trim()) return
-    const opts = qOptions.split('\n').map((s) => s.trim()).filter(Boolean)
+    const opts = qParsedOptions
     if (opts.length < 2) {
       alert('Add at least 2 options (one per line).')
       return
@@ -366,7 +385,7 @@ export default function AdminQuizzesPage() {
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-slate-900">{i + 1}. {q.question_text}</p>
                       <p className="text-xs text-slate-500 mt-1">
-                        Correct: option {q.correct_answer_index + 1} — {Array.isArray(q.options) ? q.options[q.correct_answer_index] : '—'}
+                        Correct: {optionLetter(q.correct_answer_index)}. {Array.isArray(q.options) ? q.options[q.correct_answer_index] : '—'}
                       </p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
@@ -404,18 +423,24 @@ export default function AdminQuizzesPage() {
             </div>
             <div>
               <Label>Correct answer</Label>
-              <Select value={String(qCorrectIndex)} onValueChange={(v) => setQCorrectIndex(Number(v))}>
-                <SelectTrigger className="mt-1 w-full">
+              <Select
+                value={canPickCorrectAnswer ? String(clampedCorrectIndex) : undefined}
+                onValueChange={(v) => setQCorrectIndex(Number(v))}
+              >
+                <SelectTrigger className="mt-1 w-full" disabled={!canPickCorrectAnswer}>
                   <SelectValue placeholder="Select correct option" />
                 </SelectTrigger>
                 <SelectContent>
-                  {qOptions.split('\n').map((s) => s.trim()).filter(Boolean).map((_, i) => (
-                    <SelectItem key={i} value={String(i)}>
-                      Option {i + 1}: {qOptions.split('\n').map((s) => s.trim()).filter(Boolean)[i]}
+                  {canPickCorrectAnswer ? (
+                    qParsedOptions.map((opt, i) => (
+                      <SelectItem key={i} value={String(i)}>
+                        {optionLetter(i)}. {opt}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="__placeholder__" disabled>
+                      Add at least 2 options above
                     </SelectItem>
-                  ))}
-                  {qOptions.split('\n').map((s) => s.trim()).filter(Boolean).length < 2 && (
-                    <SelectItem value="0" disabled>Add at least 2 options above</SelectItem>
                   )}
                 </SelectContent>
               </Select>
