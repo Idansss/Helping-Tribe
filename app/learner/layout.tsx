@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { redirect } from 'next/navigation'
 import { LearnerLayout } from '@/components/learner/LearnerLayout'
 import { createClient } from '@/lib/supabase/server'
+import { resolvePortalRole } from '@/lib/auth/admin'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,9 +28,9 @@ async function LearnerGate({ children }: { children: ReactNode }) {
     .eq('id', user.id)
     .maybeSingle()
 
-  const role = (profile?.role as any) ?? 'student'
-  if (role === 'admin') redirect('/admin')
-  if (role === 'faculty' || role === 'mentor') redirect('/mentor')
+  const portalRole = resolvePortalRole(profile?.role, user.email)
+  if (portalRole === 'admin') redirect('/admin')
+  if (portalRole === 'mentor') redirect('/mentor')
 
   return <LearnerLayout>{children}</LearnerLayout>
 }

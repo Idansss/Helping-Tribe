@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
+import { isAllowedAdmin } from '@/lib/auth/admin'
 
 type UserRole = 'admin' | 'mentor' | 'learner'
 
@@ -22,7 +23,7 @@ interface RoleOption {
 const ROLE_OPTIONS: RoleOption[] = [
   { id: 'admin', label: 'Admin', href: '/admin', icon: LayoutDashboard, description: 'Portal administration' },
   { id: 'mentor', label: 'Mentor', href: '/mentor', icon: GraduationCap, description: 'Mentor dashboard' },
-  { id: 'learner', label: 'Learner', href: '/', icon: Users, description: 'My training' },
+  { id: 'learner', label: 'Learner', href: '/learner/dashboard', icon: Users, description: 'My training' },
 ]
 
 interface LearnerHeaderProps {
@@ -40,6 +41,7 @@ export function LearnerHeader({ onMenuClick }: LearnerHeaderProps) {
   const [profileName, setProfileName] = useState<string | null>(null)
   const [profileAvatar, setProfileAvatar] = useState<string | null>(null)
   const [currentRole, setCurrentRole] = useState<UserRole>('learner')
+  const [canSwitchRoles, setCanSwitchRoles] = useState(false)
   const [visibleRoleOptions, setVisibleRoleOptions] = useState<RoleOption[]>(() =>
     ROLE_OPTIONS.filter((r) => r.id === 'learner')
   )
@@ -85,17 +87,11 @@ export function LearnerHeader({ onMenuClick }: LearnerHeaderProps) {
         .eq('id', user.id)
         .maybeSingle()
 
-      const role = String(profile?.role ?? '').toLowerCase()
-      const canAdmin = role === 'admin'
-      const canMentor = canAdmin || role === 'mentor' || role === 'faculty'
+      const canUseSwitcher = isAllowedAdmin(profile?.role, user.email)
+      setCanSwitchRoles(canUseSwitcher)
 
       setVisibleRoleOptions(
-        ROLE_OPTIONS.filter((r) => {
-          if (r.id === 'learner') return true
-          if (r.id === 'mentor') return canMentor
-          if (r.id === 'admin') return canAdmin
-          return false
-        })
+        canUseSwitcher ? ROLE_OPTIONS : ROLE_OPTIONS.filter((r) => r.id === 'learner')
       )
     })
   }, [])
@@ -132,6 +128,11 @@ export function LearnerHeader({ onMenuClick }: LearnerHeaderProps) {
   }, [])
 
   const handleRoleSwitch = (role: UserRole, href: string) => {
+    if (!canSwitchRoles) {
+      setRoleSwitcherOpen(false)
+      return
+    }
+
     if (!visibleRoleOptions.some((r) => r.id === role)) {
       toast({
         variant: 'destructive',
@@ -237,7 +238,8 @@ export function LearnerHeader({ onMenuClick }: LearnerHeaderProps) {
         </div>
 
         {/* Role Switcher – avoid accidental switch on tap */}
-        <div className="relative flex-shrink-0" data-dropdown>
+        {canSwitchRoles && (
+          <div className="relative flex-shrink-0" data-dropdown>
           <button
             type="button"
             className="flex items-center gap-2 rounded-full border border-slate-200 bg-white min-h-[44px] py-2.5 px-3 md:px-4 hover:bg-slate-50 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1 touch-manipulation"
@@ -301,7 +303,8 @@ export function LearnerHeader({ onMenuClick }: LearnerHeaderProps) {
               })}
             </div>
           )}
-        </div>
+          </div>
+        )}
 
         {/* Profile menu – avatar + name */}
         <div className="relative flex-shrink-0" data-dropdown>

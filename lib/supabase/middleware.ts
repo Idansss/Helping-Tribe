@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { isPublicPath, unauthenticatedRedirectTarget } from '@/lib/auth/gate'
+import { resolvePortalRole } from '@/lib/auth/admin'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -85,9 +86,9 @@ export async function updateSession(request: NextRequest) {
         .eq('id', user.id)
         .maybeSingle()
 
-      const role = String((profile as any)?.role ?? '').toLowerCase()
-      if (role === 'admin') safeRedirect = '/admin'
-      else if (role === 'mentor' || role === 'faculty') safeRedirect = '/mentor'
+      const portalRole = resolvePortalRole((profile as any)?.role, user.email)
+      if (portalRole === 'admin') safeRedirect = '/admin'
+      else if (portalRole === 'mentor') safeRedirect = '/mentor'
       else safeRedirect = '/learner/dashboard'
     }
 

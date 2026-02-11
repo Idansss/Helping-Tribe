@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { isAllowedAdmin } from '@/lib/auth/admin'
 
 const RejectSchema = z.object({
   applicantId: z.string().uuid(),
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
     .eq('id', user.id)
     .maybeSingle()
 
-  if (profile?.role !== 'admin') {
+  if (!isAllowedAdmin(profile?.role, user.email)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -65,4 +66,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to reject applicant' }, { status: 500 })
   }
 }
-

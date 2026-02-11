@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
+import { isAllowedAdmin, resolvePortalRole } from '@/lib/auth/admin'
 
 interface AdminHeaderProps {
   title?: string
@@ -44,7 +45,7 @@ const ROLE_OPTIONS: RoleOption[] = [
   {
     id: 'learner',
     label: 'Learner',
-    href: '/',
+    href: '/learner/dashboard',
     icon: Users,
     description: 'My training',
   },
@@ -66,6 +67,7 @@ export function AdminHeader({
   const [profileName, setProfileName] = useState<string | null>(null)
   const [profileAvatar, setProfileAvatar] = useState<string | null>(null)
   const [currentRole, setCurrentRole] = useState<UserRole>('admin')
+  const [canSwitchRoles, setCanSwitchRoles] = useState(false)
   const [visibleRoleOptions, setVisibleRoleOptions] = useState<RoleOption[]>(ROLE_OPTIONS)
 
   // Determine current role from pathname so the header always matches the portal you're on
@@ -115,22 +117,26 @@ export function AdminHeader({
         .eq('id', user.id)
         .maybeSingle()
 
-      const role = String(profile?.role ?? '').toLowerCase()
-      const canAdmin = role === 'admin'
-      const canMentor = canAdmin || role === 'mentor' || role === 'faculty'
+      const canUseSwitcher = isAllowedAdmin(profile?.role, user.email)
+      const portalRole = resolvePortalRole(profile?.role, user.email)
+      setCanSwitchRoles(canUseSwitcher)
 
       setVisibleRoleOptions(
-        ROLE_OPTIONS.filter((r) => {
-          if (r.id === 'learner') return true
-          if (r.id === 'mentor') return canMentor
-          if (r.id === 'admin') return canAdmin
-          return false
-        })
+        canUseSwitcher ? ROLE_OPTIONS : ROLE_OPTIONS.filter((r) => r.id === portalRole)
       )
+
+      if (!canUseSwitcher) {
+        setCurrentRole(portalRole)
+      }
     })
   }, [])
 
   const handleRoleSwitch = (role: UserRole, href: string) => {
+    if (!canSwitchRoles) {
+      setIsRoleSwitcherOpen(false)
+      return
+    }
+
     if (!visibleRoleOptions.some((r) => r.id === role)) {
       toast({
         variant: 'destructive',
@@ -377,72 +383,73 @@ export function AdminHeader({
 
         <NotificationBell className="relative rounded-full hover:bg-slate-100 p-2 text-slate-600" iconSize="sm" />
 
-        {/* Role Switcher - avoid accidental switch on tap (e.g. same tap hitting Learner) */}
-        <div className="relative" data-dropdown>
-          <button
-            type="button"
-            className="flex items-center gap-2 rounded-full border border-slate-200 bg-white min-h-[44px] py-2.5 px-4 hover:bg-slate-50 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--talent-primary)] focus-visible:ring-offset-1 touch-manipulation"
-            onClick={(e) => {
-              e.stopPropagation()
-              setIsRoleSwitcherOpen(open => !open)
-              setIsProfileOpen(false)
-            }}
-            aria-label="Switch role"
-          >
-            <span className="pointer-events-none">
-              <currentRoleOption.icon className="h-4 w-4 text-slate-700" />
-            </span>
-            <span className="hidden md:inline text-xs font-medium text-slate-800 pointer-events-none">
-              {currentRoleOption.label}
-            </span>
-            <span className="pointer-events-none">
-              <ChevronDown className="h-3 w-3 text-slate-500" />
-            </span>
-          </button>
+        {canSwitchRoles && (
+          <div className="relative" data-dropdown>
+            <button
+              type="button"
+              className="flex items-center gap-2 rounded-full border border-slate-200 bg-white min-h-[44px] py-2.5 px-4 hover:bg-slate-50 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--talent-primary)] focus-visible:ring-offset-1 touch-manipulation"
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsRoleSwitcherOpen(open => !open)
+                setIsProfileOpen(false)
+              }}
+              aria-label="Switch role"
+            >
+              <span className="pointer-events-none">
+                <currentRoleOption.icon className="h-4 w-4 text-slate-700" />
+              </span>
+              <span className="hidden md:inline text-xs font-medium text-slate-800 pointer-events-none">
+                {currentRoleOption.label}
+              </span>
+              <span className="pointer-events-none">
+                <ChevronDown className="h-3 w-3 text-slate-500" />
+              </span>
+            </button>
 
-          {isRoleSwitcherOpen && (
-            <div className="absolute right-0 mt-3 sm:mt-2 w-56 rounded-xl border border-slate-200 bg-white shadow-lg text-[11px] z-30">
-              <div className="px-3 py-2 border-b border-slate-100">
-                <p className="font-semibold text-slate-900">Switch Role</p>
-                <p className="text-[10px] text-slate-500">
-                  View portal from different perspectives
-                </p>
-              </div>
-              {visibleRoleOptions.map((role) => {
-                const Icon = role.icon
-                const isActive = role.id === currentRole
-                return (
-                  <button
-                    key={role.id}
-                    type="button"
-                    className={`w-full text-left px-3 py-2.5 min-h-[44px] flex items-center gap-3 touch-manipulation ${
-                      isActive ? 'bg-[var(--talent-primary)]/5 cursor-default' : 'hover:bg-slate-50'
-                    }`}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      if (isActive) {
-                        setIsRoleSwitcherOpen(false)
-                        return
-                      }
-                      handleRoleSwitch(role.id, role.href)
-                    }}
-                  >
-                    <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-[var(--talent-primary)]' : 'text-slate-600'}`} />
-                    <div className="flex-1 min-w-0 text-left">
-                      <div className={`font-medium ${isActive ? 'text-[var(--talent-primary)]' : 'text-slate-900'}`}>
-                        {role.label}
+            {isRoleSwitcherOpen && (
+              <div className="absolute right-0 mt-3 sm:mt-2 w-56 rounded-xl border border-slate-200 bg-white shadow-lg text-[11px] z-30">
+                <div className="px-3 py-2 border-b border-slate-100">
+                  <p className="font-semibold text-slate-900">Switch Role</p>
+                  <p className="text-[10px] text-slate-500">
+                    View portal from different perspectives
+                  </p>
+                </div>
+                {visibleRoleOptions.map((role) => {
+                  const Icon = role.icon
+                  const isActive = role.id === currentRole
+                  return (
+                    <button
+                      key={role.id}
+                      type="button"
+                      className={`w-full text-left px-3 py-2.5 min-h-[44px] flex items-center gap-3 touch-manipulation ${
+                        isActive ? 'bg-[var(--talent-primary)]/5 cursor-default' : 'hover:bg-slate-50'
+                      }`}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (isActive) {
+                          setIsRoleSwitcherOpen(false)
+                          return
+                        }
+                        handleRoleSwitch(role.id, role.href)
+                      }}
+                    >
+                      <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-[var(--talent-primary)]' : 'text-slate-600'}`} />
+                      <div className="flex-1 min-w-0 text-left">
+                        <div className={`font-medium ${isActive ? 'text-[var(--talent-primary)]' : 'text-slate-900'}`}>
+                          {role.label}
+                        </div>
+                        <div className="text-[10px] text-slate-500">{role.description}</div>
                       </div>
-                      <div className="text-[10px] text-slate-500">{role.description}</div>
-                    </div>
-                    {isActive && (
-                      <span className="h-2 w-2 rounded-full bg-[var(--talent-primary)] shrink-0" />
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-          )}
-        </div>
+                      {isActive && (
+                        <span className="h-2 w-2 rounded-full bg-[var(--talent-primary)] shrink-0" />
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Profile Menu */}
         <div className="relative" data-dropdown>

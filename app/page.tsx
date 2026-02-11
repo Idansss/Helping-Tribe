@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { resolvePortalRole } from '@/lib/auth/admin'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,10 +20,8 @@ export default async function HomePage() {
     .eq('id', user.id)
     .maybeSingle()
 
-  const role = (profile?.role as any) ?? 'student'
-
-  if (role === 'admin') redirect('/admin')
-  if (role === 'faculty' || role === 'mentor') redirect('/mentor')
-
+  const portalRole = resolvePortalRole(profile?.role, user.email)
+  if (portalRole === 'admin') redirect('/admin')
+  if (portalRole === 'mentor') redirect('/mentor')
   redirect('/learner/dashboard')
 }

@@ -4,6 +4,7 @@ import crypto from 'crypto'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { matricToAuthEmail } from '@/lib/auth/constants'
+import { isAllowedAdmin } from '@/lib/auth/admin'
 
 const ApproveSchema = z.object({
   applicantId: z.string().uuid(),
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
     .eq('id', user.id)
     .maybeSingle()
 
-  if (profile?.role !== 'admin') {
+  if (!isAllowedAdmin(profile?.role, user.email)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -141,4 +142,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to approve applicant' }, { status: 500 })
   }
 }
-
