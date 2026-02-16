@@ -779,7 +779,11 @@ export function ApplicationForm() {
           </SectionCard>
 
           <div className="pt-1">
-            <Button type="submit" disabled={isSubmitting} className="w-full">
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="h-12 w-full rounded-lg bg-teal-700 text-base font-semibold text-white shadow-[0_10px_20px_rgba(15,118,110,0.28)] transition-all hover:-translate-y-0.5 hover:bg-teal-800 hover:shadow-[0_12px_24px_rgba(15,118,110,0.34)] focus-visible:ring-2 focus-visible:ring-teal-700/40 focus-visible:ring-offset-2 disabled:translate-y-0 disabled:bg-slate-400 disabled:shadow-none"
+            >
               {isSubmitting ? 'Submitting...' : 'Submit Application'}
             </Button>
           </div>
