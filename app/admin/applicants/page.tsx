@@ -160,29 +160,38 @@ export default function ApplicantsPage() {
         throw new Error(json?.error || 'Failed to approve applicant')
       }
 
-      // Default flow: pay after approval. Generate a Paystack payment link for the approved student.
-      const payRes = await fetch('/api/paystack/initialize', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ applicantId }),
-      })
-      const payJson = await payRes.json()
-      if (!payRes.ok) {
-        throw new Error(payJson?.error || 'Approved, but failed to generate payment link')
-      }
-
-      const fullPaymentUrl = toAbsoluteUrl(payJson.authorizationUrl)
-
+      // Approval and payment-link generation are separate steps.
+      // If payment link generation fails, keep approval success visible.
       try {
-        await navigator.clipboard.writeText(fullPaymentUrl)
-        toast({
-          title: 'Approved',
-          description: `Matric: ${json.matricNumber}. Paystack payment link copied. Amount: NGN ${Number(payJson.amountNgn).toLocaleString()}`,
+        const payRes = await fetch('/api/paystack/initialize', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ applicantId }),
         })
-      } catch {
+        const payJson = await payRes.json()
+        if (!payRes.ok) {
+          throw new Error(payJson?.error || 'Failed to generate payment link')
+        }
+
+        const fullPaymentUrl = toAbsoluteUrl(payJson.authorizationUrl)
+
+        try {
+          await navigator.clipboard.writeText(fullPaymentUrl)
+          toast({
+            title: 'Approved',
+            description: `Matric: ${json.matricNumber}. Paystack payment link copied. Amount: NGN ${Number(payJson.amountNgn).toLocaleString()}`,
+          })
+        } catch {
+          toast({
+            title: 'Approved',
+            description: `Matric: ${json.matricNumber}. Payment link: ${fullPaymentUrl}`,
+          })
+        }
+      } catch (paymentError: any) {
         toast({
-          title: 'Approved',
-          description: `Matric: ${json.matricNumber}. Payment link: ${fullPaymentUrl}`,
+          variant: 'destructive',
+          title: 'Approved, but payment link failed',
+          description: paymentError?.message || 'Generate the Paystack link from the processed applicant panel.',
         })
       }
 

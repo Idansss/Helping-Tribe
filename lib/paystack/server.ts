@@ -21,8 +21,11 @@ export type PaystackVerifyResult = {
 }
 
 function getPaystackSecretKey() {
-  const key = process.env.PAYSTACK_SECRET_KEY
-  if (!key) throw new Error('Missing PAYSTACK_SECRET_KEY')
+  const key = (process.env.PAYSTACK_SECRET_KEY || process.env.PAYSTACK_SECRET || '').trim()
+  if (!key) {
+    const envLabel = process.env.VERCEL_ENV ? ` in ${process.env.VERCEL_ENV}` : ''
+    throw new Error(`Missing PAYSTACK_SECRET_KEY (or PAYSTACK_SECRET)${envLabel}`)
+  }
   return key
 }
 
