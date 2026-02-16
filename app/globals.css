@@ -1,3 +1,4 @@
+@config "../tailwind.config.ts";
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
 
@@ -52,4 +53,3 @@
     @apply bg-background text-foreground;
   }
 }
-
