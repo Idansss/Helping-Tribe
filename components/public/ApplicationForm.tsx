@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState, type ReactNode } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -16,6 +16,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils/cn'
 
@@ -129,6 +136,15 @@ const QUALIFICATIONS = [
   "Bachelor's Degree",
   "Master's Degree",
   'PhD',
+  'Other',
+] as const
+
+const HEAR_ABOUT_OPTIONS = [
+  'Social Media',
+  'WhatsApp Broadcast',
+  'Referral',
+  'Previous Participant',
+  'Event / Seminar',
   'Other',
 ] as const
 
@@ -259,6 +275,7 @@ export function ApplicationForm() {
   )
 
   const {
+    control,
     register,
     handleSubmit,
     watch,
@@ -284,9 +301,6 @@ export function ApplicationForm() {
   const intendToServe = watch('intendToServe') ?? []
   const availability = watch('availability') ?? []
   const declarationAgree = watch('declarationAgree')
-
-  const selectClassName =
-    'flex h-10 w-full rounded-md border border-[#e2e8f0] bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
 
   async function onSubmit(values: ApplyFormValues) {
     try {
@@ -390,14 +404,24 @@ export function ApplicationForm() {
           <SectionCard title="SECTION B: EDUCATIONAL & PROFESSIONAL BACKGROUND">
             <div className="space-y-1.5">
               <Label>8. Highest Educational Qualification *</Label>
-              <select className={selectClassName} {...register('highestQualification')}>
-                <option value="">Select...</option>
-                {QUALIFICATIONS.map((q) => (
-                  <option key={q} value={q}>
-                    {q}
-                  </option>
-                ))}
-              </select>
+              <Controller
+                control={control}
+                name="highestQualification"
+                render={({ field }) => (
+                  <Select value={field.value || undefined} onValueChange={field.onChange}>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Select..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {QUALIFICATIONS.map((q) => (
+                        <SelectItem key={q} value={q}>
+                          {q}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
               <FieldError message={errors.highestQualification?.message} />
             </div>
 
@@ -696,14 +720,24 @@ export function ApplicationForm() {
 
             <div className="space-y-1.5">
               <Label>23. How did you hear about the Help Foundation Course? *</Label>
-              <select className={selectClassName} {...register('hearAbout')}>
-                <option value="">Select...</option>
-                {['Social Media', 'WhatsApp Broadcast', 'Referral', 'Previous Participant', 'Event / Seminar', 'Other'].map((v) => (
-                  <option key={v} value={v}>
-                    {v}
-                  </option>
-                ))}
-              </select>
+              <Controller
+                control={control}
+                name="hearAbout"
+                render={({ field }) => (
+                  <Select value={field.value || undefined} onValueChange={field.onChange}>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Select..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {HEAR_ABOUT_OPTIONS.map((v) => (
+                        <SelectItem key={v} value={v}>
+                          {v}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
               <FieldError message={errors.hearAbout?.message} />
             </div>
 
