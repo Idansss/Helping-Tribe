@@ -4,12 +4,14 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, BookOpenCheck, KeyRound, ShieldCheck, UserRoundCheck } from 'lucide-react'
 import { ApplicationForm } from '@/components/public/ApplicationForm'
+import { TopNav } from '@/components/top-nav'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
 export function PublicHome() {
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,#d9f7f1_0%,#edf7f6_35%,#f8fbfb_65%,#ffffff_100%)] text-slate-900">
+      <TopNav />
       <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 md:py-10">
         <Card className="overflow-hidden rounded-2xl border-teal-100/80 shadow-[0_10px_30px_rgba(15,118,110,0.12)]">
           <div className="relative overflow-hidden bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-700 px-6 py-7 text-white md:px-10 md:py-10">

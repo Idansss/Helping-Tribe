@@ -1,14 +1,22 @@
 import React from "react"
 import type { Metadata, Viewport } from 'next'
 import { Analytics } from '@vercel/analytics/next'
+import { Inter, DM_Sans } from 'next/font/google'
 import './globals.css'
 import { LowDataProvider } from '@/lib/contexts/LowDataContext'
 import { GroundingButton } from '@/components/lms/GroundingButton'
 import { Toaster } from '@/components/ui/toaster'
 
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-dm-sans',
+  weight: ['400', '500', '600', '700'],
+})
+
 export const metadata: Metadata = {
-  title: 'Help Foundation Course - Counsellor Training | The Helping Tribe',
-  description: 'Admissions, onboarding, and learning platform for The Helping Tribe School of Counselling & Positive Psychology.',
+  title: 'The Helping Tribe | School of Counselling & Positive Psychology',
+  description: 'Premium counsellor training - apply, learn, and grow with The Helping Tribe School of Counselling & Positive Psychology.',
   icons: {
     icon: '/icon.svg',
   },
@@ -27,7 +35,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased">
+      <body className={`${inter.variable} ${dmSans.variable} font-sans antialiased`}>
         <LowDataProvider>
           {children}
           <GroundingButton />

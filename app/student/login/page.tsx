@@ -1,198 +1,138 @@
-'use client'
-
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
-import { useToast } from '@/hooks/use-toast'
-import { ArrowRight, GraduationCap, Hash, KeyRound, ShieldCheck } from 'lucide-react'
-import { PROGRAM_FULL_NAME } from '@/lib/brand/program'
+import {
+  GraduationCap,
+  BookOpen,
+  Award,
+  Users,
+  ShieldCheck,
+} from 'lucide-react'
+import { BlurBlobs } from '@/components/blur-blobs'
+import { StudentLoginForm } from './student-login-form'
 
-function getSafeRedirectPath(redirectTo: string | null) {
-  if (!redirectTo) return '/learner/dashboard'
-  if (!redirectTo.startsWith('/')) return '/'
-  if (redirectTo.startsWith('//')) return '/'
-  return redirectTo
-}
-
-export default function StudentLoginPage() {
-  const router = useRouter()
-  const { toast } = useToast()
-  const [matricNumber, setMatricNumber] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [redirectTo, setRedirectTo] = useState('/learner/dashboard')
-  const [inlineError, setInlineError] = useState<string | null>(null)
-
-  useEffect(() => {
-    const sp = new URLSearchParams(window.location.search)
-    setRedirectTo(getSafeRedirectPath(sp.get('redirectTo')))
-  }, [])
-
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
-    setInlineError(null)
-    try {
-      const res = await fetch('/api/student/login', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ matricNumber, password }),
-      })
-      const json = await res.json()
-
-      if (!res.ok) {
-        const code = String(json?.code ?? '')
-        if (code === 'PAYMENT_REQUIRED') {
-          const msg = 'Payment required. Please pay with the Paystack link from admin, then set your password using the one-time link.'
-          setInlineError(msg)
-          throw new Error('Payment required')
-        }
-        if (code === 'PASSWORD_SETUP_REQUIRED') {
-          const msg = 'Password setup required. Ask admin for your one-time set-password link.'
-          setInlineError(msg)
-          throw new Error('Password setup required')
-        }
-        if (code === 'PAYMENTS_NOT_CONFIGURED') {
-          const msg = 'Payments are not configured yet. Admin must run the payments database migration.'
-          setInlineError(msg)
-          throw new Error('Payments not configured')
-        }
-        throw new Error(json?.error || 'Login failed')
-      }
-
-      router.push(redirectTo)
-      router.refresh()
-    } catch (err: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Login failed',
-        description: err?.message || 'Invalid credentials',
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
-
+function MarketingPanel() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-slate-100 text-slate-900">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-24 top-14 h-72 w-72 rounded-full bg-cyan-500/15 blur-3xl" />
-        <div className="absolute -right-24 bottom-10 h-80 w-80 rounded-full bg-emerald-500/10 blur-3xl" />
+    <div className="relative flex flex-col justify-center overflow-hidden bg-gradient-to-br from-teal-700 via-teal-600 to-emerald-600 px-8 py-16 lg:px-14 lg:py-0">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-white/5 blur-2xl" />
+        <div className="absolute -left-16 bottom-10 h-56 w-56 rounded-full bg-emerald-400/10 blur-2xl" />
       </div>
 
-      <div className="relative mx-auto flex min-h-screen w-full max-w-6xl items-center px-4 py-10 md:px-8">
-        <div className="grid w-full items-center gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-          <section className="hidden lg:block">
-            <div className="max-w-lg space-y-5">
-              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-900/10 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-800">
-                <GraduationCap className="h-4 w-4" />
-                Learner Access
+      <div className="relative z-10 mx-auto max-w-md">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm">
+          <GraduationCap className="h-7 w-7 text-white" />
+        </div>
+
+        <h1 className="mt-8 font-display text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl text-balance">
+          Continue your training journey
+        </h1>
+
+        <p className="mt-5 text-base leading-relaxed text-teal-100/90">
+          Access your personalised dashboard, course materials, and progress
+          tracking - all in one place.
+        </p>
+
+        <div className="mt-10 flex flex-col gap-4">
+          {[
+            {
+              icon: BookOpen,
+              text: 'Full access to course modules & resources',
+            },
+            {
+              icon: Award,
+              text: 'Track your certification progress',
+            },
+            {
+              icon: Users,
+              text: 'Connect with mentors and peers',
+            },
+          ].map((item) => (
+            <div key={item.text} className="flex items-center gap-3.5">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10 backdrop-blur-sm">
+                <item.icon className="h-4 w-4 text-teal-100" />
               </div>
-              <h1 className="text-4xl font-semibold leading-tight text-slate-900">
-                Continue your training journey
-              </h1>
-              <p className="text-base leading-relaxed text-slate-600">
-                Sign in with your matric number and password to access {PROGRAM_FULL_NAME} courses, journals, quizzes, and your learner dashboard.
-              </p>
-              <div className="grid gap-3 pt-1 text-sm text-slate-700">
-                <div className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white/70 px-4 py-3">
-                  <Hash className="h-4 w-4 text-cyan-700" />
-                  <span>Use the approved matric number shared by admin.</span>
-                </div>
-                <div className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white/70 px-4 py-3">
-                  <KeyRound className="h-4 w-4 text-cyan-700" />
-                  <span>Password must be set using your one-time setup link first.</span>
-                </div>
-              </div>
+              <span className="text-sm font-medium text-teal-50/95">
+                {item.text}
+              </span>
             </div>
-          </section>
-
-          <Card className="w-full border-slate-200 bg-white/95 shadow-xl shadow-slate-300/25 backdrop-blur-sm">
-            <CardHeader className="space-y-3 pb-4">
-              <div className="inline-flex w-fit items-center gap-2 rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-800">
-                <ShieldCheck className="h-3.5 w-3.5" />
-                Secure learner login
-              </div>
-              <div className="space-y-1">
-                <CardTitle className="text-3xl font-semibold tracking-tight">Student Login</CardTitle>
-                <p className="text-sm text-slate-600">
-                  Use your Matric Number + Password.
-                </p>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={onSubmit} className="space-y-5">
-                {inlineError && (
-                  <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-                    {inlineError}
-                  </div>
-                )}
-                <div className="space-y-2">
-                  <Label htmlFor="matric" className="text-sm font-medium text-slate-800">Matric Number</Label>
-                  <div className="relative">
-                    <Hash className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                    <Input
-                      id="matric"
-                      value={matricNumber}
-                      onChange={(e) => setMatricNumber(e.target.value.toUpperCase())}
-                      placeholder="HF-CT-2026-0001"
-                      autoCapitalize="characters"
-                      required
-                      className="h-12 rounded-xl border-slate-200 bg-slate-50 pl-10 text-[15px] focus-visible:ring-2 focus-visible:ring-cyan-500"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm font-medium text-slate-800">Password</Label>
-                  <div className="relative">
-                    <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                    <Input
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className="h-12 rounded-xl border-slate-200 bg-slate-50 pl-10 text-[15px] focus-visible:ring-2 focus-visible:ring-cyan-500"
-                      placeholder="Enter your password"
-                    />
-                  </div>
-                </div>
-                <Button
-                  type="submit"
-                  className="h-12 w-full rounded-xl bg-cyan-700 text-white hover:bg-cyan-800"
-                  disabled={loading}
-                >
-                  {loading ? 'Signing in...' : 'Sign in'}
-                  {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
-                </Button>
-
-                <div className="rounded-lg border border-cyan-100 bg-cyan-50/60 px-3 py-2 text-xs text-cyan-900">
-                  Payment is required before set-password and login. Ask admin for your Paystack payment link, then your one-time set-password link.
-                </div>
-
-                <div className="flex items-center justify-between pt-2 text-xs text-slate-600 focus-within:outline-none focus-within:ring-0">
-                  <Link
-                    href="/apply"
-                    className="font-medium hover:text-slate-900 hover:underline focus:outline-none focus:underline focus:underline-offset-4 focus:decoration-2 focus-visible:outline-none"
-                  >
-                    Back to application
-                  </Link>
-                  <Link
-                    href="/staff/login"
-                    className="font-medium hover:text-slate-900 hover:underline focus:outline-none focus:underline focus:underline-offset-4 focus:decoration-2 focus-visible:outline-none"
-                  >
-                    Mentor/Admin login
-                  </Link>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+          ))}
         </div>
       </div>
     </div>
   )
 }
+
+function InfoAlert() {
+  return (
+    <div className="rounded-2xl border border-amber-200/60 bg-amber-50/60 p-4 backdrop-blur-sm">
+      <div className="flex gap-3">
+        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+        <div className="text-sm leading-relaxed text-amber-800/80">
+          <p>
+            <strong className="font-semibold text-amber-900">
+              Payment is required
+            </strong>{' '}
+            before you can set your password. Use the one-time setup link sent to
+            you after approval.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function StudentLoginPage() {
+  return (
+    <div className="relative min-h-screen">
+      <BlurBlobs />
+
+      <div className="grid min-h-screen lg:grid-cols-2">
+        <MarketingPanel />
+
+        <div className="flex flex-col items-center justify-center px-6 py-16 lg:px-12">
+          <div className="w-full max-w-md">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-200/60 bg-teal-50/60 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-teal-700 backdrop-blur-sm">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              Secure learner login
+            </span>
+
+            <h2 className="mt-8 font-display text-3xl font-bold tracking-tight text-foreground">
+              Student Login
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Enter your matric number and password to access your dashboard.
+            </p>
+
+            <StudentLoginForm />
+
+            <InfoAlert />
+
+            <div className="mt-8 flex flex-col items-center gap-3 text-sm text-muted-foreground">
+              <div className="flex items-center gap-4">
+                <Link
+                  href="/apply"
+                  className="font-medium transition-colors hover:text-foreground"
+                >
+                  Back to application
+                </Link>
+                <span className="text-border">|</span>
+                <Link
+                  href="/staff/login"
+                  className="font-medium transition-colors hover:text-foreground"
+                >
+                  Mentor / Admin login
+                </Link>
+              </div>
+              <Link
+                href="/contact"
+                className="font-medium transition-colors hover:text-foreground"
+              >
+                Need help?
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+

@@ -1,268 +1,55 @@
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
 
-/* === Design Tokens & Typography === */
-
-:root {
-  /* Neutral grayscale */
-  --talent-gray-50: #f7fafc;
-  --talent-gray-100: #edf2f7;
-  --talent-gray-200: #e2e8f0;
-  --talent-gray-300: #cbd5e0;
-  --talent-gray-400: #a0aec0;
-  --talent-gray-500: #718096;
-  --talent-gray-600: #4a5568;
-  --talent-gray-700: #2d3748;
-  --talent-gray-800: #1a202c;
-  --talent-gray-900: #171923;
-
-  /* HELPING TRIBE brand palette (teal + earth tones to match logo) */
-  --talent-primary: #0f766e;       /* teal main */
-  --talent-primary-dark: #115e59;  /* deeper teal */
-  --talent-primary-light: #5eead4; /* light aqua accent */
-}
-
-body {
-  /* Inter is provided via next/font as --font-sans */
-  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  color: var(--talent-gray-800);
-  line-height: 1.5;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Reduce tap delay on touch devices */
-@media (hover: none) and (pointer: coarse) {
-  button,
-  a,
-  [role="button"] {
-    touch-action: manipulation;
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
   }
 }
 
-/* Container wrapper for learner dashboard */
-.talentlms-styled-dashboard {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 16px;
-}
-@media (min-width: 640px) {
-  .talentlms-styled-dashboard {
-    padding: 24px;
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 215 25% 14%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 14%;
+    --primary: 166 72% 28%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 18% 95%;
+    --secondary-foreground: 215 20% 25%;
+    --muted: 210 16% 93%;
+    --muted-foreground: 215 14% 46%;
+    --accent: 160 60% 93%;
+    --accent-foreground: 166 72% 22%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 18% 90%;
+    --input: 214 18% 88%;
+    --ring: 166 72% 28%;
+    --chart-1: 166 72% 28%;
+    --chart-2: 160 60% 42%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.75rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 166 72% 28%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 160 60% 93%;
+    --sidebar-accent-foreground: 166 72% 22%;
+    --sidebar-border: 214 18% 90%;
+    --sidebar-ring: 166 72% 28%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
   }
 }
-@media (min-width: 1024px) {
-  .talentlms-styled-dashboard {
-    padding: 32px;
-  }
-}
 
-/* Welcome Section - TalentLMS exact */
-.welcome-title {
-  font-size: 28px;
-  font-weight: 600;
-  line-height: 1.2;
-  color: var(--talent-gray-800);
-  margin: 0 0 4px 0;
-  letter-spacing: -0.25px;
-}
-
-.welcome-subtitle {
-  font-size: 16px;
-  font-weight: 400;
-  color: var(--talent-gray-500);
-  margin: 0 0 32px 0;
-}
-
-/* Section headers / descriptions */
-.section-header {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--talent-gray-800);
-  margin: 0 0 8px 0;
-  letter-spacing: -0.1px;
-}
-
-.section-description {
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--talent-gray-500);
-  margin: 0 0 24px 0;
-  line-height: 1.5;
-}
-
-/* Empty state card */
-.empty-state-card {
-  background-color: #ffffff;
-  border: 1px solid var(--talent-gray-200);
-  border-radius: 8px;
-  padding: 40px 32px;
-  text-align: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.empty-state-primary {
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--talent-gray-800);
-  margin: 0 0 4px 0;
-  line-height: 1.4;
-}
-
-.empty-state-secondary {
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--talent-gray-500);
-  margin: 0 0 24px 0;
-  line-height: 1.5;
-  max-width: 500px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-/* Primary button */
-.talentlms-primary-btn {
-  background-color: var(--talent-primary);
-  color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.5;
-  letter-spacing: 0.25px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.talentlms-primary-btn:hover {
-  background-color: var(--talent-primary-dark);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.talentlms-primary-btn:active {
-  transform: translateY(1px);
-}
-
-/* Generic card styling */
-.talentlms-card {
-  background-color: #ffffff;
-  border: 1px solid var(--talent-gray-200) !important;
-  border-radius: 8px;
-  padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-/* Ensure borders are subtle and soft */
-.border,
-.border-l,
-.border-r,
-.border-t,
-.border-b,
-[class*="rounded-lg"].border,
-[class*="rounded-md"].border,
-[class*="rounded-xl"].border {
-  border-color: var(--talent-gray-200) !important;
-  border-width: 1px !important;
-}
-
-/* Input fields should have subtle borders */
-input[type="text"],
-input[type="search"],
-input[type="email"],
-input[type="password"],
-select,
-textarea {
-  border-color: var(--talent-gray-200) !important;
-  border-width: 1px !important;
-}
-
-/* Give labels a little breathing room above inputs */
-label:not(.flex):not(.inline-flex):not(.grid) {
-  display: inline-block;
-  margin-bottom: 4px;
-}
-
-/* Dashed borders for empty states */
-.border-dashed {
-  border-color: var(--talent-gray-200) !important;
-  border-width: 1px !important;
-}
-
-/* === Brand overrides for legacy purple utilities === */
-/* Map old purple Tailwind-style classes to Helping Tribe teal palette so the UI is consistent. */
-
-/* Semantic teal swatches */
-:root {
-  --ht-teal-50: #f0fdfa;
-  --ht-teal-100: #ccfbf1;
-  --ht-teal-200: #99f6e4;
-}
-
-/* Backgrounds */
-.bg-purple-50,
-.hover\:bg-purple-50:hover {
-  background-color: var(--ht-teal-50) !important;
-}
-
-.bg-purple-100,
-.hover\:bg-purple-100:hover {
-  background-color: var(--ht-teal-100) !important;
-}
-
-.bg-purple-200 {
-  background-color: var(--ht-teal-200) !important;
-}
-
-.bg-purple-500,
-.bg-purple-600,
-.bg-purple-700,
-.bg-\[\#7c3aed\],
-.hover\:bg-\[\#7c3aed\]:hover {
-  background-color: var(--talent-primary) !important;
-}
-
-.hover\:bg-purple-700:hover,
-.hover\:bg-purple-800:hover,
-.hover\:bg-\[\#5b21b6\]:hover,
-.hover\:bg-\[\#4c1d95\]:hover {
-  background-color: var(--talent-primary-dark) !important;
-}
-
-.bg-\[\#4c1d95\] {
-  background-color: var(--talent-primary-dark) !important;
-}
-
-/* Text colors */
-.text-purple-600,
-.hover\:text-purple-600:hover,
-.text-\[\#7c3aed\],
-.text-\[\#4c1d95\],
-.hover\:text-\[\#4c1d95\]:hover {
-  color: var(--talent-primary-dark) !important;
-}
-
-.text-purple-700,
-.text-purple-800,
-.text-purple-900 {
-  color: var(--talent-primary-dark) !important;
-}
-
-/* Borders and rings */
-.border-purple-200,
-.border-purple-300,
-.border-\[\#4c1d95\],
-.hover\:border-\[\#4c1d95\]:hover,
-.hover\:border-\[\#7c3aed\]:hover {
-  border-color: var(--talent-primary-light) !important;
-}
-
-.ring-purple-500,
-.ring-purple-600,
-.focus\:ring-purple-500:focus,
-.focus\:ring-\[\#7c3aed\]:focus,
-.focus-within\:ring-\[\#7c3aed\]:focus-within {
-  --tw-ring-color: color-mix(in srgb, var(--talent-primary) 60%, transparent) !important;
-}
