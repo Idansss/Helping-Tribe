@@ -94,16 +94,17 @@ export default function LearnerTakeQuizPage() {
           setLoading(false)
           return
         }
-        if (attemptResult.redirect) {
+        if ('redirect' in attemptResult) {
           setLoading(false)
           return
         }
-        setAttemptId(attemptResult.id)
+        const activeAttemptId = attemptResult.id
+        setAttemptId(activeAttemptId)
 
         const { data: respData } = await supabase
           .from('quiz_question_responses')
           .select('question_id, selected_answer_index, is_correct, submitted_at')
-          .eq('attempt_id', attemptResult.id)
+          .eq('attempt_id', activeAttemptId)
         setResponses((respData ?? []) as Response[])
       } catch (e) {
         console.error(e)

@@ -188,11 +188,18 @@ export default function MentorGroupsPage() {
       if (learnersRes.error) throw learnersRes.error
       if (membersRes.error) throw membersRes.error
       setLearners(learnersRes.data ?? [])
-      const members: CircleMember[] = (membersRes.data ?? []).map((m: { id: string; user_id: string; profiles?: { full_name: string | null } }) => ({
-        id: m.id,
-        user_id: m.user_id,
-        full_name: m.profiles?.full_name ?? null,
-      }))
+      const members: CircleMember[] = (membersRes.data ?? []).map((m: {
+        id: string
+        user_id: string
+        profiles?: { full_name: string | null } | { full_name: string | null }[] | null
+      }) => {
+        const profile = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles
+        return {
+          id: m.id,
+          user_id: m.user_id,
+          full_name: profile?.full_name ?? null,
+        }
+      })
       setCircleMembers(members)
     } catch (e) {
       console.error('Error loading members:', e)

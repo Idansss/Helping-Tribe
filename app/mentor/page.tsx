@@ -96,8 +96,8 @@ export default function MentorDashboardPage() {
       const ethicsWeekNumbers = [3, 4, 5]
       const ethicsModuleIds = (modulesData ?? []).filter((m: { week_number: number }) => ethicsWeekNumbers.includes(m.week_number)).map((m: { id: string }) => m.id)
 
-      const { data: allProgress } = await supabase.from('module_progress').select('user_id, module_id, completed')
-      const progressList = (allProgress ?? []) as { user_id: string; module_id: string; completed: boolean }[]
+      const { data: allProgress } = await supabase.from('module_progress').select('user_id, module_id, is_completed')
+      const progressList = (allProgress ?? []) as { user_id: string; module_id: string; is_completed: boolean }[]
 
       const { data: studentProfiles } = await supabase.from('profiles').select('id').eq('role', 'student')
       const studentIds = new Set((studentProfiles ?? []).map((p: { id: string }) => p.id))
@@ -108,7 +108,7 @@ export default function MentorDashboardPage() {
       const completedByUser = new Set<string>()
       progressList.forEach((p) => {
         if (!studentIds.has(p.user_id)) return
-        if (p.completed) {
+        if (p.is_completed) {
           completedTotal += 1
           if (ethicsModuleIds.includes(p.module_id)) ethicsCompleted += 1
           completedByUser.add(p.user_id)

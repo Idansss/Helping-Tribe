@@ -83,7 +83,10 @@ export function PeerCircleList() {
             const peerNames: string[] = []
             if (Array.isArray(members)) {
               for (const row of members) {
-                const p = (row as { profiles?: { full_name: string } | null })?.profiles
+                const rawProfiles = (row as {
+                  profiles?: { full_name: string | null } | { full_name: string | null }[] | null
+                })?.profiles
+                const p = Array.isArray(rawProfiles) ? rawProfiles[0] : rawProfiles
                 if (p?.full_name) peerNames.push(p.full_name)
                 else peerNames.push('Unknown')
               }

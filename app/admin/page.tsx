@@ -315,7 +315,7 @@ export default function AdminDashboardPage() {
       const ethicsExpected = studentIds.size * ethicsIds.length
       let ethicsCompleted = 0
       progressList.forEach((p) => {
-        if (studentIds.has(p.user_id) && p.completed && ethicsIds.includes(p.module_id)) ethicsCompleted += 1
+        if (studentIds.has(p.user_id) && p.is_completed && ethicsIds.includes(p.module_id)) ethicsCompleted += 1
       })
       const ethicsPct = ethicsExpected > 0 ? Math.round((ethicsCompleted / ethicsExpected) * 100) : 0
 

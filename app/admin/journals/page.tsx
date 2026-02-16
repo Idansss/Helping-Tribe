@@ -18,6 +18,10 @@ interface JournalEntry {
   modules: { title: string; week_number: number } | null
 }
 
+type JournalEntryQueryRow = Omit<JournalEntry, 'modules'> & {
+  modules: { title: string; week_number: number } | { title: string; week_number: number }[] | null
+}
+
 interface ProfileRow {
   id: string
   full_name: string | null
@@ -40,7 +44,10 @@ export default function AdminJournalsPage() {
         .order('updated_at', { ascending: false })
 
       if (journalError) throw journalError
-      const list = (journalData || []) as JournalEntry[]
+      const list = ((journalData || []) as JournalEntryQueryRow[]).map((entry) => ({
+        ...entry,
+        modules: Array.isArray(entry.modules) ? (entry.modules[0] ?? null) : entry.modules,
+      }))
       setEntries(list)
 
       const userIds = [...new Set(list.map((e) => e.user_id))]

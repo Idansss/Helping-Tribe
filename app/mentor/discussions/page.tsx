@@ -46,6 +46,11 @@ type PromptRow = {
   response_count?: number
 }
 
+type PromptQueryRow = Omit<PromptRow, 'module' | 'sort_order'> & {
+  sort_order?: number | null
+  module?: { week_number: number; title: string } | { week_number: number; title: string }[] | null
+}
+
 export default function MentorDiscussionsPage() {
   const supabase = createClient()
   const [modules, setModules] = useState<ModuleOption[]>([])
@@ -95,14 +100,19 @@ export default function MentorDiscussionsPage() {
         .order('posted_at', { ascending: false })
 
       if (error) throw error
-      const rows = (data ?? []) as (PromptRow & { sort_order?: number })[]
+      const rows = (data ?? []) as PromptQueryRow[]
+      const normalizedRows: PromptRow[] = rows.map((p) => ({
+        ...p,
+        sort_order: p.sort_order ?? 0,
+        module: Array.isArray(p.module) ? (p.module[0] ?? undefined) : (p.module ?? undefined),
+      }))
       const withCounts = await Promise.all(
-        rows.map(async (p) => {
+        normalizedRows.map(async (p) => {
           const { count } = await supabase
             .from('discussion_responses')
             .select('*', { count: 'exact', head: true })
             .eq('prompt_id', p.id)
-          return { ...p, sort_order: p.sort_order ?? 0, response_count: count ?? 0 }
+          return { ...p, response_count: count ?? 0 }
         })
       )
       setPrompts(withCounts)

@@ -131,7 +131,7 @@ export default function MentorCoursesPage() {
         }
       }
 
-      const supabaseModules = (moduleRows || []).map((m: any) => ({
+      const supabaseModules: ModuleRow[] = (moduleRows || []).map((m: any) => ({
         id: m.id,
         title: m.title,
         week_number: m.week_number,
@@ -151,7 +151,7 @@ export default function MentorCoursesPage() {
       }
 
       // Merge and deduplicate (localStorage takes precedence for manually created courses)
-      const allModules = [...supabaseModules]
+      const allModules: ModuleRow[] = [...supabaseModules]
       const existingIds = new Set(supabaseModules.map(m => m.id))
       
       for (const localCourse of localCourses) {
