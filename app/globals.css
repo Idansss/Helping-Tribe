@@ -43,6 +43,11 @@
     --sidebar-accent-foreground: 166 72% 22%;
     --sidebar-border: 214 18% 90%;
     --sidebar-ring: 166 72% 28%;
+
+    /* Legacy brand vars still used across admin/mentor/learner dashboards */
+    --talent-primary: #0f766e;
+    --talent-primary-dark: #115e59;
+    --talent-primary-light: #5eead4;
   }
 
   * {
