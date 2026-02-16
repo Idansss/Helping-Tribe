@@ -42,13 +42,6 @@ type QuestionRow = {
   sort_order: number
 }
 
-function parseQuestionOptions(raw: string) {
-  return raw
-    .split(/\r?\n|\\n/g)
-    .map((s) => s.trim())
-    .filter(Boolean)
-}
-
 function optionLetter(index: number) {
   if (index >= 0 && index < 26) return String.fromCharCode(65 + index)
   return String(index + 1)
@@ -72,16 +65,16 @@ export default function AdminQuizzesPage() {
   const [questionDialogOpen, setQuestionDialogOpen] = useState(false)
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null)
   const [qText, setQText] = useState('')
-  const [qOptions, setQOptions] = useState('')
+  const [qOptionValues, setQOptionValues] = useState<string[]>(['', '', '', ''])
   const [qCorrectIndex, setQCorrectIndex] = useState(0)
   const [savingQuestion, setSavingQuestion] = useState(false)
 
-  const qParsedOptions = useMemo(() => parseQuestionOptions(qOptions), [qOptions])
-  const canPickCorrectAnswer = qParsedOptions.length >= 2
-  const clampedCorrectIndex = Math.min(
-    qCorrectIndex,
-    Math.max(0, qParsedOptions.length - 1)
+  const qParsedOptions = useMemo(
+    () => qOptionValues.map((value) => value.trim()),
+    [qOptionValues]
   )
+  const allObjectiveOptionsValid = qParsedOptions.every(Boolean)
+  const clampedCorrectIndex = Math.min(Math.max(qCorrectIndex, 0), 3)
 
   const loadQuizzes = async () => {
     setLoading(true)
@@ -187,7 +180,7 @@ export default function AdminQuizzesPage() {
     if (!selectedQuizId) return
     setEditingQuestionId(null)
     setQText('')
-    setQOptions('')
+    setQOptionValues(['', '', '', ''])
     setQCorrectIndex(0)
     setQuestionDialogOpen(true)
   }
@@ -195,7 +188,13 @@ export default function AdminQuizzesPage() {
   const openEditQuestion = (q: QuestionRow) => {
     setEditingQuestionId(q.id)
     setQText(q.question_text)
-    setQOptions(Array.isArray(q.options) ? q.options.join('\n') : '')
+    const options = Array.isArray(q.options) ? q.options : []
+    setQOptionValues([
+      options[0] ?? '',
+      options[1] ?? '',
+      options[2] ?? '',
+      options[3] ?? '',
+    ])
     setQCorrectIndex(Number(q.correct_answer_index))
     setQuestionDialogOpen(true)
   }
@@ -203,11 +202,11 @@ export default function AdminQuizzesPage() {
   const saveQuestion = async () => {
     if (!selectedQuizId || !qText.trim()) return
     const opts = qParsedOptions
-    if (opts.length < 2) {
-      alert('Add at least 2 options (one per line).')
+    if (!allObjectiveOptionsValid) {
+      alert('Provide all four options (A, B, C, D).')
       return
     }
-    const idx = Math.min(qCorrectIndex, opts.length - 1)
+    const idx = Math.min(Math.max(qCorrectIndex, 0), 3)
     setSavingQuestion(true)
     try {
       const payload = {
@@ -411,7 +410,7 @@ export default function AdminQuizzesPage() {
           <DialogHeader>
             <DialogTitle>{editingQuestionId ? 'Edit question' : 'New question'}</DialogTitle>
             <DialogDescription>
-              One question per form. Options one per line. Select which option is the correct answer (learners cannot change after submit).
+              One question per form. Use objective format with exactly four options (A, B, C, D).
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-2">
@@ -420,30 +419,41 @@ export default function AdminQuizzesPage() {
               <Input value={qText} onChange={(e) => setQText(e.target.value)} placeholder="e.g. What is the first step in active listening?" className="mt-1" />
             </div>
             <div>
-              <Label>Options (one per line; first line = Option 1, etc.)</Label>
-              <Textarea value={qOptions} onChange={(e) => setQOptions(e.target.value)} placeholder="Reflect back what you heard\nAsk open questions\nGive advice immediately\nEnd the conversation" rows={4} className="mt-1 font-mono text-sm" />
+              <Label>Options (A - D)</Label>
+              <div className="mt-2 grid gap-2">
+                {(['A', 'B', 'C', 'D'] as const).map((letter, index) => (
+                  <div key={letter} className="grid grid-cols-[30px_1fr] items-center gap-2">
+                    <span className="text-sm font-semibold text-slate-700">{letter}.</span>
+                    <Input
+                      value={qOptionValues[index]}
+                      onChange={(e) =>
+                        setQOptionValues((prev) => {
+                          const next = [...prev]
+                          next[index] = e.target.value
+                          return next
+                        })
+                      }
+                      placeholder={`Option ${letter}`}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
             <div>
               <Label>Correct answer</Label>
               <Select
-                value={canPickCorrectAnswer ? String(clampedCorrectIndex) : undefined}
+                value={String(clampedCorrectIndex)}
                 onValueChange={(v) => setQCorrectIndex(Number(v))}
               >
-                <SelectTrigger className="mt-1 w-full" disabled={!canPickCorrectAnswer}>
+                <SelectTrigger className="mt-1 w-full">
                   <SelectValue placeholder="Select correct option" />
                 </SelectTrigger>
                 <SelectContent>
-                  {canPickCorrectAnswer ? (
-                    qParsedOptions.map((opt, i) => (
-                      <SelectItem key={i} value={String(i)}>
-                        {optionLetter(i)}. {opt}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="__placeholder__" disabled>
-                      Add at least 2 options above
+                  {[0, 1, 2, 3].map((i) => (
+                    <SelectItem key={i} value={String(i)}>
+                      {optionLetter(i)}
                     </SelectItem>
-                  )}
+                  ))}
                 </SelectContent>
               </Select>
             </div>
