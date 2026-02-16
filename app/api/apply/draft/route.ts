@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { checkRateLimit, getRequestIp } from '@/lib/server/rate-limit'
-import { APPLICATION_HONEYPOT_FIELD, ApplicationDraftSchema } from '@/lib/applications/schema'
+import { APPLICATION_HONEYPOT_FIELD } from '@/lib/applications/schema'
 
 const DraftSaveSchema = z.object({
   draftId: z.string().uuid().optional(),
   email: z.string().email().optional(),
   lastStep: z.number().int().min(1).max(8).optional(),
-  data: ApplicationDraftSchema,
+  // Drafts are in-progress snapshots, so keep this permissive.
+  data: z.record(z.string(), z.unknown()),
 })
 
 const DraftQuerySchema = z.object({
