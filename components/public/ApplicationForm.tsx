@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -293,7 +293,6 @@ export function ApplicationForm() {
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null)
   const [loadingDraft, setLoadingDraft] = useState(true)
   const [savingDraft, setSavingDraft] = useState(false)
-  const autosaveToastAtRef = useRef<number>(0)
 
   const defaultValues = useMemo<ApplyFormValues>(
     () => ({
@@ -461,12 +460,6 @@ export function ApplicationForm() {
 
       if (mode === 'manual') {
         toast({ title: 'Draft saved', description: 'You can resume this application later.' })
-      } else {
-        const now = Date.now()
-        if (now - autosaveToastAtRef.current > 60_000) {
-          autosaveToastAtRef.current = now
-          toast({ title: 'Autosaved', description: 'Draft saved securely.' })
-        }
       }
       return true
     } catch (e: any) {
