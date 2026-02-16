@@ -22,7 +22,7 @@ type MentorProfile = {
 
 const DEFAULT_PROFILE: MentorProfile = {
   name: '',
-  email: 'mentor@example.com',
+  email: '',
   role: 'Counselor / Mentor',
   timezone: 'Africa/Lagos',
   bio: 'Mentor on the HELP Foundations counseling program.',
@@ -72,7 +72,7 @@ export default function MentorSettingsPage() {
           })
         }
       } catch {
-        // ignore auth errors for this demo
+        // ignore auth errors
       }
     }
 

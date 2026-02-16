@@ -19,12 +19,14 @@ export default function DiscussionsPage() {
   const [sortBy, setSortBy] = useState('activity-date')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
   
-  // Mock discussion threads
-  const mockDiscussions = [
-    { id: 1, title: 'Ethical Dilemmas in Counseling', author: 'Sarah M.', replies: 12, lastActivity: '2 hours ago', unread: true },
-    { id: 2, title: 'Active Listening Techniques', author: 'John D.', replies: 8, lastActivity: '5 hours ago', unread: false },
-    { id: 3, title: 'Case Study Discussion: Week 3', author: 'Maria L.', replies: 15, lastActivity: '1 day ago', unread: true },
-  ]
+  const discussions: Array<{
+    id: number
+    title: string
+    author: string
+    replies: number
+    lastActivity: string
+    unread: boolean
+  }> = []
 
   return (
     <LearnerPortalPlaceholder>
@@ -80,9 +82,9 @@ export default function DiscussionsPage() {
             </div>
           </div>
 
-          {mockDiscussions.length > 0 ? (
+          {discussions.length > 0 ? (
             <div className="space-y-3">
-              {mockDiscussions.map((discussion) => (
+              {discussions.map((discussion) => (
                 <Card key={discussion.id} className="p-4 border-[#e2e8f0] hover:shadow-md transition-shadow cursor-pointer">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">

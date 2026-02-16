@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { EmptyState } from '@/components/admin/EmptyState'
-import { Mail, Filter, X, Circle } from 'lucide-react'
+import { Mail, Filter, Circle } from 'lucide-react'
 import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 
@@ -13,26 +13,14 @@ export default function MessagesPage() {
   const [showFilters, setShowFilters] = useState(false)
   const [activeFilters, setActiveFilters] = useState<string[]>([])
 
-  const mockMessages = [
-    {
-      id: 1,
-      from: 'Program Coordinator',
-      subject: 'Welcome to Helping Tribe',
-      preview:
-        'We’re excited to have you in this counseling training journey. Here’s how to get started...',
-      time: '2 hours ago',
-      unread: true,
-    },
-    {
-      id: 2,
-      from: 'Your Mentor',
-      subject: 'Check‑in on Week 1 reflections',
-      preview:
-        'Hi, I’ve gone through your Week 1 reflections. Let’s schedule time to talk through your goals...',
-      time: 'Yesterday',
-      unread: false,
-    },
-  ]
+  const messages: Array<{
+    id: number
+    from: string
+    subject: string
+    preview: string
+    time: string
+    unread: boolean
+  }> = []
 
   return (
     <LearnerPortalPlaceholder>
@@ -120,9 +108,9 @@ export default function MessagesPage() {
             )}
 
             <TabsContent value="inbox">
-              {mockMessages.length > 0 ? (
+              {messages.length > 0 ? (
                 <div className="space-y-2">
-                  {mockMessages.map((message) => (
+                  {messages.map((message) => (
                     <Card key={message.id} className="p-4 border-[#e2e8f0] hover:shadow-md transition-shadow cursor-pointer">
                       <div className="flex items-start gap-3">
                         <div className="mt-1">
@@ -172,3 +160,4 @@ export default function MessagesPage() {
     </LearnerPortalPlaceholder>
   )
 }
+

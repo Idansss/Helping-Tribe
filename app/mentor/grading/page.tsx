@@ -32,7 +32,7 @@ import {
   Video,
   GraduationCap,
 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 type GradingType =
   | 'assignments'
@@ -57,8 +57,6 @@ type GradingItem = {
   feedback?: string
   notes?: string
 }
-
-const STORAGE_KEY = 'ht-mentor-grading-items'
 
 const TYPE_LABELS: Record<GradingType, string> = {
   'assignments': 'Assignments',
@@ -105,82 +103,6 @@ export default function MentorGradingHubPage() {
   const [reviewOpen, setReviewOpen] = useState(false)
   const [score, setScore] = useState<string>('') // keep as string for input
   const [feedback, setFeedback] = useState<string>('')
-
-  // load + seed demo
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (raw) {
-        const parsed = JSON.parse(raw) as GradingItem[]
-        if (Array.isArray(parsed)) {
-          setItems(parsed)
-          return
-        }
-      }
-    } catch {
-      // ignore
-    }
-
-    const now = Date.now()
-    const seeded: GradingItem[] = [
-      {
-        id: `g-${now}-1`,
-        type: 'assignments',
-        title: 'Week 3: Ethics Reflection (Written)',
-        learnerName: 'Amina Yusuf',
-        courseTitle: 'Introduction to Ethical Practice',
-        submittedAt: new Date(now - 1000 * 60 * 60 * 5).toISOString(),
-        status: 'pending',
-        notes: 'Please assess clarity, boundaries, and reflection depth.',
-      },
-      {
-        id: `g-${now}-2`,
-        type: 'case-studies',
-        title: 'Case Study 2: Boundary Setting',
-        learnerName: 'Chinedu Okafor',
-        courseTitle: 'Foundations of Counseling',
-        submittedAt: new Date(now - 1000 * 60 * 60 * 26).toISOString(),
-        status: 'pending',
-        notes: 'Focus on ethics, risk, and referral points.',
-      },
-      {
-        id: `g-${now}-3`,
-        type: 'learning-journals',
-        title: 'Journal: Week 2 Reflection',
-        learnerName: 'Zainab Bello',
-        courseTitle: 'Foundations of Counseling',
-        submittedAt: new Date(now - 1000 * 60 * 60 * 40).toISOString(),
-        status: 'reviewed',
-        score: 100,
-        feedback: 'Great reflective depth and actionable insights. Keep it up.',
-      },
-      {
-        id: `g-${now}-4`,
-        type: 'practice-recordings',
-        title: 'Practice Recording: Active Listening',
-        learnerName: 'Tunde Adeyemi',
-        courseTitle: 'Counseling Skills Practice',
-        submittedAt: new Date(now - 1000 * 60 * 60 * 12).toISOString(),
-        status: 'pending',
-        notes: 'Provide structured feedback using the rubric.',
-      },
-    ]
-    setItems(seeded)
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(seeded))
-    } catch {
-      // ignore
-    }
-  }, [])
-
-  // persist
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
-    } catch {
-      // ignore
-    }
-  }, [items])
 
   const countsByType = useMemo(() => {
     const counts: Record<GradingType, { total: number; pending: number }> = {

@@ -22,7 +22,7 @@ type AdminProfile = {
 
 const DEFAULT_PROFILE: AdminProfile = {
   name: '',
-  email: 'admin@example.com',
+  email: '',
   role: 'Counseling LMS administrator',
   timezone: 'Africa/Lagos',
   bio: 'Lead coordinator for the HELP Foundations counseling program.',
@@ -72,7 +72,7 @@ export default function AdminProfilePage() {
           })
         }
       } catch {
-        // ignore auth errors for this demo
+        // ignore auth errors
       }
     }
 

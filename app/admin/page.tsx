@@ -217,7 +217,7 @@ const CHECKLIST_SECTIONS: ChecklistSection[] = [
       { id: 'settings-announcements', label: 'Announcements: internal (dashboard) + external (login page)' },
       { id: 'settings-branding-controls', label: 'Branding: hide “Powered by …”, restrict product emails to Admins/Instructors' },
       { id: 'settings-portal', label: 'Portal settings: AI features on/off; legacy vs new interface default' },
-      { id: 'settings-demo-data', label: 'Demo data: reset/delete demo environment' },
+      { id: 'settings-data-reset', label: 'Data reset controls for test environments' },
       { id: 'settings-branding', label: 'Branding uploads: logo/favicon/default course image (type/size limits)' },
       { id: 'settings-theme', label: 'Theme picker (e.g., “Fun blue”)' },
       { id: 'settings-homepage', label: 'Custom homepage (optional)' },

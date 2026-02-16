@@ -172,3 +172,18 @@ Application journey:
 
 Run migration:
 - `supabase/migrations/033_application_drafts_and_outbox.sql`
+
+## Reset Test Data Safely
+
+Use the built-in reset script before handover or production launch cleanup.
+
+1. Dry run:
+   - `CONFIRM=YES DRY_RUN=1 node scripts/reset-test-data.mjs`
+2. Execute:
+   - `CONFIRM=YES DRY_RUN=0 node scripts/reset-test-data.mjs`
+
+Notes:
+- The script keeps staff/admin access by default and removes test user/application data.
+- Schema and migrations are not deleted.
+- Optional `WIPE_REFERENCE_DATA=YES` also clears seeded content tables.
+- See `HANDOVER.md` for full reset scope and post-reset account notes.

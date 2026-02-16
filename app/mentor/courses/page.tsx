@@ -916,13 +916,13 @@ export default function MentorCoursesPage() {
             </DialogContent>
           </Dialog>
 
-          {/* Learners Dialog (mock) */}
+          {/* Learners Dialog */}
           <Dialog open={showLearnersDialog} onOpenChange={setShowLearnersDialog}>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Course learners</DialogTitle>
                 <DialogDescription>
-                  Learners currently assigned to this course (demo data).
+                  Learners currently assigned to this course.
                 </DialogDescription>
               </DialogHeader>
               {selectedCourse ? (
@@ -938,7 +938,7 @@ export default function MentorCoursesPage() {
                       </p>
                     </div>
                     <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">
-                      0 assigned (demo)
+                      0 assigned
                     </Badge>
                   </div>
                   <div className="rounded-md border border-[#e2e8f0] bg-white p-4 text-center">
@@ -947,14 +947,13 @@ export default function MentorCoursesPage() {
                       No learners assigned yet
                     </p>
                     <p className="text-xs text-slate-500 mt-1">
-                      In production, this will show enrolled learners and allow
-                      assigning cohorts.
+                      This will show enrolled learners and allow assigning cohorts.
                     </p>
                     <div className="mt-3 flex justify-center">
                       <Button
                         type="button"
                         className="bg-purple-600 hover:bg-purple-700 text-white text-xs"
-                        onClick={() => alert('Assign learners (demo placeholder)')}
+                        onClick={() => alert('Assign learners flow is not configured yet.')}
                       >
                         Assign learners
                       </Button>

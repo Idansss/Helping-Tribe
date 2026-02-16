@@ -1134,7 +1134,7 @@ export default function MentorConferencesPage() {
             </DialogHeader>
             <div className="mt-4 space-y-3">
               <div className="text-sm text-slate-600">
-                <p>This is a demo feature. In production, this would show:</p>
+                <p>Attendee management will appear here:</p>
                 <ul className="list-disc list-inside mt-2 space-y-1">
                   <li>Registered attendees</li>
                   <li>Attendance tracking</li>
@@ -1145,14 +1145,14 @@ export default function MentorConferencesPage() {
               <div className="border rounded-md p-4 bg-slate-50">
                 <div className="flex items-center gap-2 text-sm text-slate-600">
                   <Users className="h-4 w-4" />
-                  <span>Mock attendees list would appear here</span>
+                  <span>No attendees found for this conference yet.</span>
                 </div>
               </div>
               <Button
                 variant="outline"
                 size="sm"
                 className="w-full"
-                onClick={() => alert('Invite attendees feature would open here')}
+                onClick={() => alert('Invite attendees flow is not configured yet.')}
               >
                 <Users className="h-3.5 w-3.5 mr-2" />
                 Invite Attendees
@@ -1164,4 +1164,3 @@ export default function MentorConferencesPage() {
     </MentorLayout>
   )
 }
-

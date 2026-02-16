@@ -8,8 +8,8 @@ export default function AdminSubscriptionPage() {
   return (
     <div className="space-y-4">
       <Card className="p-4 text-sm text-slate-700">
-        Subscription and billing are handled outside this demo.
-        If you need to manage your real plan, please use your production billing system.
+        Subscription and billing are managed externally.
+        Use your organization billing dashboard for plan changes and invoices.
       </Card>
     </div>
   )

@@ -82,7 +82,7 @@ export function StudentLoginForm() {
             id="matric"
             value={matricNumber}
             onChange={(e) => setMatricNumber(e.target.value.toUpperCase())}
-            placeholder="e.g. HFC-2025-001"
+            placeholder="Enter your matric number"
             className="h-12 rounded-xl border-border/60 bg-background/60 pl-10 text-sm shadow-sm backdrop-blur-sm transition-all duration-200 placeholder:text-muted-foreground/60 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
             autoCapitalize="characters"
             required
@@ -134,4 +134,3 @@ export function StudentLoginForm() {
     </form>
   )
 }
-

@@ -9,6 +9,7 @@
     "test": "vitest run",
     "update:baseline": "npm i baseline-browser-mapping@latest -D",
     "seed:admin": "node scripts/create-admin.mjs",
+    "reset:test-data": "node scripts/reset-test-data.mjs",
     "start": "next start"
   },
   "dependencies": {

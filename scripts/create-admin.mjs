@@ -1,5 +1,31 @@
 import process from 'process'
 import { createClient } from '@supabase/supabase-js'
+import fs from 'fs'
+import path from 'path'
+
+function loadEnvFile(filePath) {
+  if (!fs.existsSync(filePath)) return
+  const raw = fs.readFileSync(filePath, 'utf8')
+  for (const line of raw.split(/\r?\n/)) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+    const idx = trimmed.indexOf('=')
+    if (idx <= 0) continue
+    const key = trimmed.slice(0, idx).trim()
+    if (!key || process.env[key] != null) continue
+    let value = trimmed.slice(idx + 1).trim()
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1)
+    }
+    process.env[key] = value
+  }
+}
+
+loadEnvFile(path.resolve(process.cwd(), '.env.local'))
+loadEnvFile(path.resolve(process.cwd(), '.env'))
 
 function getArg(name) {
   const idx = process.argv.indexOf(`--${name}`)
@@ -20,7 +46,7 @@ if (!url || !serviceRoleKey) {
 }
 
 if (!email || !password) {
-  console.error('Usage: node scripts/create-admin.mjs --email admin@example.com --password "StrongPassword123!" [--name "Full Name"]')
+  console.error('Usage: node scripts/create-admin.mjs --email admin@yourdomain.com --password "StrongPassword123!" [--name "Full Name"]')
   process.exit(1)
 }
 
@@ -57,4 +83,3 @@ if (profileErr) {
 console.log('✅ Admin created')
 console.log(`- id: ${userId}`)
 console.log(`- email: ${email}`)
-
