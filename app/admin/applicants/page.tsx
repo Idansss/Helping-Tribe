@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -517,11 +518,16 @@ export default function ApplicantsPage() {
 
   return (
     <div className="space-y-4">
-      <div>
+      <div className="flex items-center justify-between gap-3">
+        <div>
         <h1 className="text-xl font-semibold text-slate-900">Applicants</h1>
         <p className="text-sm text-slate-600">
           Review applications, approve to generate a matric number + set-password link.
         </p>
+        </div>
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/admin/outbox">Email outbox</Link>
+        </Button>
       </div>
 
       <Card className="p-4 border-slate-200 bg-white">

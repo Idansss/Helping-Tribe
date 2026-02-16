@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { ArrowRight, BriefcaseBusiness, Lock, Mail, ShieldCheck } from 'lucide-react'
+import { PROGRAM_FULL_NAME } from '@/lib/brand/program'
 
 function getSafeRedirectPath(redirectTo: string | null) {
   if (!redirectTo) return '/mentor'
@@ -41,7 +42,7 @@ export default function StaffLoginPage() {
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json?.error || 'Login failed')
-      router.push(redirectTo)
+      router.push(getSafeRedirectPath(json?.redirectTo || redirectTo))
       router.refresh()
     } catch (err: any) {
       toast({
@@ -73,7 +74,7 @@ export default function StaffLoginPage() {
                 Mentor and Admin portal sign in
               </h1>
               <p className="text-base leading-relaxed text-slate-600">
-                Use your staff credentials to manage learners, review applicants, and run the training workspace.
+                Use your staff credentials to manage learners, review {PROGRAM_FULL_NAME} applicants, and run the training workspace.
               </p>
               <div className="grid gap-3 pt-1 text-sm text-slate-700">
                 <div className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white/70 px-4 py-3">

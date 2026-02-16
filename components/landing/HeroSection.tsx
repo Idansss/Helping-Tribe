@@ -74,14 +74,12 @@ export function HeroSection() {
                 size="lg"
                 variant="outline"
                 className="border-2 border-[var(--talent-primary-dark)] text-[var(--talent-primary-dark)] bg-white hover:bg-[var(--talent-primary-dark)] hover:text-white transition-colors text-lg px-8 py-6"
-                onClick={() => {
-                  // Create a simple PDF download link
-                  // In production, this would link to an actual syllabus PDF
-                  alert('Syllabus download will be available soon. Please contact us for more information.')
-                }}
+                asChild
               >
-                <Download className="mr-2 h-5 w-5" />
-                Download Syllabus
+                <Link href="/contact">
+                  <Download className="mr-2 h-5 w-5" />
+                  Request Syllabus
+                </Link>
               </Button>
             </div>
           </div>

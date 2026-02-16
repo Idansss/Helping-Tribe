@@ -1,5 +1,5 @@
 export const HELP_FOUNDATIONAL_COURSE = {
-  title: 'THE HELP FOUNDATIONAL COURSE',
+  title: 'Help Foundation Course - Counsellor Training',
   currency: 'NGN',
   baseFeeNgn: 195_000,
   earlyBirdDiscountPercent: 15,

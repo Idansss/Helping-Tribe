@@ -1,6 +1,8 @@
 'use client'
 
-import { useMemo, useState, type ReactNode } from 'react'
+import Link from 'next/link'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -23,8 +25,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Progress } from '@/components/ui/progress'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils/cn'
+import { APPLICATION_HONEYPOT_FIELD } from '@/lib/applications/schema'
+import {
+  APPLICATION_ESTIMATED_MINUTES,
+  APPLICATION_REVIEW_DAYS,
+  PROGRAM_FULL_NAME,
+  PROGRAM_NAME,
+} from '@/lib/brand/program'
 
 const ApplyFormSchema = z
   .object({
@@ -67,6 +77,9 @@ const ApplyFormSchema = z
     declarationAgree: z.boolean().refine((v) => v === true, 'You must agree'),
     typedSignature: z.string().min(2),
     signatureDate: z.string().min(4),
+    consentPrivacy: z.boolean().refine((v) => v === true, 'Privacy consent is required'),
+    consentSensitiveData: z.boolean().refine((v) => v === true, 'Sensitive data consent is required'),
+    [APPLICATION_HONEYPOT_FIELD]: z.string().optional(),
   })
   .superRefine((values, ctx) => {
     if (values.highestQualification === 'Other' && !values.highestQualificationOther?.trim()) {
@@ -148,6 +161,51 @@ const HEAR_ABOUT_OPTIONS = [
   'Other',
 ] as const
 
+const DRAFT_ID_STORAGE_KEY = 'ht_apply_draft_id'
+const DRAFT_CACHE_STORAGE_KEY = 'ht_apply_form_cache'
+
+const STEP_FIELDS: Array<Array<keyof ApplyFormValues>> = [
+  ['fullNameCertificate', 'gender', 'dob', 'phoneWhatsApp', 'email', 'cityState', 'nationality'],
+  [
+    'highestQualification',
+    'highestQualificationOther',
+    'fieldOfStudy',
+    'currentOccupation',
+    'professionalBackground',
+    'professionalBackgroundOther',
+  ],
+  [
+    'experienceLevel',
+    'formalTraining',
+    'formalTrainingInstitution',
+    'formalTrainingDuration',
+    'areas',
+    'areasOther',
+  ],
+  [
+    'whyEnroll',
+    'hopeToGain',
+    'hopeToGainOther',
+    'intendToServe',
+    'unresolvedIssues',
+    'openToSupervision',
+    'agreeEthics',
+  ],
+  ['trainingMode', 'availability', 'hearAbout', 'hearAboutOther'],
+  ['declarationAgree', 'typedSignature', 'signatureDate', 'consentPrivacy', 'consentSensitiveData'],
+  [],
+]
+
+const STEP_TITLES = [
+  'Personal Information',
+  'Educational & Professional Background',
+  'Experience',
+  'Motivation & Readiness',
+  'Training Logistics',
+  'Declaration & Consent',
+  'Review & Submit',
+] as const
+
 function optionId(group: string, value: string) {
   const slug = value
     .toLowerCase()
@@ -226,8 +284,16 @@ function SectionCard({
 }
 
 export function ApplicationForm() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
   const [submitted, setSubmitted] = useState(false)
+  const [currentStep, setCurrentStep] = useState(1)
+  const [draftId, setDraftId] = useState<string | null>(null)
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null)
+  const [loadingDraft, setLoadingDraft] = useState(true)
+  const [savingDraft, setSavingDraft] = useState(false)
+  const autosaveToastAtRef = useRef<number>(0)
 
   const defaultValues = useMemo<ApplyFormValues>(
     () => ({
@@ -270,6 +336,9 @@ export function ApplicationForm() {
       declarationAgree: false,
       typedSignature: '',
       signatureDate: '',
+      consentPrivacy: false,
+      consentSensitiveData: false,
+      [APPLICATION_HONEYPOT_FIELD]: '',
     }),
     []
   )
@@ -279,6 +348,8 @@ export function ApplicationForm() {
     register,
     handleSubmit,
     watch,
+    trigger,
+    getValues,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<ApplyFormValues>({
@@ -301,23 +372,165 @@ export function ApplicationForm() {
   const intendToServe = watch('intendToServe') ?? []
   const availability = watch('availability') ?? []
   const declarationAgree = watch('declarationAgree')
+  const consentPrivacy = watch('consentPrivacy')
+  const consentSensitiveData = watch('consentSensitiveData')
+  const watchedValues = watch()
+
+  const totalSteps = STEP_FIELDS.length
+  const progressValue = (currentStep / totalSteps) * 100
+
+  useEffect(() => {
+    let mounted = true
+
+    async function hydrateDraft() {
+      try {
+        const queryDraftId = searchParams.get('draft')
+        const localDraftId = localStorage.getItem(DRAFT_ID_STORAGE_KEY)
+        const candidateDraftId = queryDraftId || localDraftId
+
+        if (candidateDraftId) {
+          const res = await fetch(`/api/apply/draft?id=${encodeURIComponent(candidateDraftId)}`, { cache: 'no-store' })
+          if (res.ok) {
+            const json = await res.json()
+            const draft = json?.draft
+            if (draft?.id) {
+              reset({
+                ...defaultValues,
+                ...(draft.data ?? {}),
+              })
+              setDraftId(draft.id)
+              setCurrentStep(Math.min(totalSteps, Math.max(1, Number(draft.lastStep ?? 1))))
+              setLastSavedAt(draft.updatedAt ?? null)
+              localStorage.setItem(DRAFT_ID_STORAGE_KEY, draft.id)
+              localStorage.setItem(DRAFT_CACHE_STORAGE_KEY, JSON.stringify(draft.data ?? {}))
+            }
+          }
+        } else {
+          const cached = localStorage.getItem(DRAFT_CACHE_STORAGE_KEY)
+          if (cached) {
+            reset({
+              ...defaultValues,
+              ...(JSON.parse(cached) as Partial<ApplyFormValues>),
+            })
+          }
+        }
+      } catch {
+        if (mounted) {
+          toast({
+            variant: 'destructive',
+            title: 'Could not load saved draft',
+            description: 'You can continue with this form state.',
+          })
+        }
+      } finally {
+        if (mounted) setLoadingDraft(false)
+      }
+    }
+
+    hydrateDraft()
+    return () => {
+      mounted = false
+    }
+  }, [defaultValues, reset, searchParams, toast, totalSteps])
+
+  async function saveDraft(mode: 'silent' | 'manual' = 'silent') {
+    if (loadingDraft || isSubmitting) return true
+    if (mode === 'manual') setSavingDraft(true)
+    try {
+      const values = getValues()
+      const res = await fetch('/api/apply/draft', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          draftId: draftId ?? undefined,
+          email: values.email || undefined,
+          lastStep: currentStep,
+          data: values,
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json?.error || 'Failed to save draft')
+
+      if (json?.draftId) {
+        setDraftId(json.draftId)
+        localStorage.setItem(DRAFT_ID_STORAGE_KEY, json.draftId)
+      }
+
+      localStorage.setItem(DRAFT_CACHE_STORAGE_KEY, JSON.stringify(values))
+      if (json?.lastSavedAt) setLastSavedAt(json.lastSavedAt)
+
+      if (mode === 'manual') {
+        toast({ title: 'Draft saved', description: 'You can resume this application later.' })
+      } else {
+        const now = Date.now()
+        if (now - autosaveToastAtRef.current > 60_000) {
+          autosaveToastAtRef.current = now
+          toast({ title: 'Autosaved', description: 'Draft saved securely.' })
+        }
+      }
+      return true
+    } catch (e: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Draft save failed',
+        description: e?.message || 'Could not save draft.',
+      })
+      return false
+    } finally {
+      if (mode === 'manual') setSavingDraft(false)
+    }
+  }
+
+  useEffect(() => {
+    if (loadingDraft || isSubmitting) return
+    const timeout = setTimeout(() => {
+      void saveDraft('silent')
+    }, 2500)
+    return () => clearTimeout(timeout)
+  }, [watchedValues, currentStep, loadingDraft, isSubmitting])
+
+  async function nextStep() {
+    const fields = STEP_FIELDS[currentStep - 1]
+    if (fields.length > 0) {
+      const valid = await trigger(fields as any, { shouldFocus: true })
+      if (!valid) return
+    }
+    setCurrentStep((value) => Math.min(totalSteps, value + 1))
+    void saveDraft('silent')
+  }
+
+  function previousStep() {
+    setCurrentStep((value) => Math.max(1, value - 1))
+  }
+
+  async function saveAndExit() {
+    const ok = await saveDraft('manual')
+    if (ok) router.push('/apply/resume')
+  }
 
   async function onSubmit(values: ApplyFormValues) {
     try {
-      const res = await fetch('/api/apply', {
+      const res = await fetch('/api/apply/submit', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          draftId: draftId ?? undefined,
+          data: values,
+        }),
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json?.error || 'Failed to submit')
 
       setSubmitted(true)
+      localStorage.removeItem(DRAFT_ID_STORAGE_KEY)
+      localStorage.removeItem(DRAFT_CACHE_STORAGE_KEY)
       toast({
         title: 'Application submitted',
-        description: 'Thanks. Wait for approval.',
+        description: 'Redirecting to confirmation page...',
       })
       reset(defaultValues)
+      router.push(`/apply/success?id=${encodeURIComponent(json.applicationId)}`)
+      router.refresh()
     } catch (e: any) {
       toast({
         variant: 'destructive',
@@ -327,23 +540,69 @@ export function ApplicationForm() {
     }
   }
 
+  if (loadingDraft) {
+    return (
+      <Card className="border-slate-200 bg-white">
+        <CardContent className="p-6 text-sm text-slate-600">Loading saved application...</CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card className="border-slate-200 bg-white">
       <CardHeader className="pb-4">
-        <CardTitle className="text-xl md:text-2xl">Help Foundation Course - Counsellor Training Application</CardTitle>
+        <CardTitle className="text-xl md:text-2xl">{PROGRAM_FULL_NAME} Application</CardTitle>
         <CardDescription className="text-sm md:text-base">
-          Please complete this form accurately. All information provided will be treated with confidentiality and used strictly for training, placement, and follow-up purposes.
+          Complete all steps accurately. Estimated completion time: {APPLICATION_ESTIMATED_MINUTES} minutes.
         </CardDescription>
-        <div className="text-xs text-slate-500">Fields marked with * are required.</div>
+        <div className="rounded-lg border border-teal-100 bg-teal-50 px-3 py-2 text-xs text-teal-900">
+          Applications are reviewed within {APPLICATION_REVIEW_DAYS} working days.
+        </div>
+        <div className="space-y-2 pt-1">
+          <div className="flex items-center justify-between text-xs font-medium text-slate-600">
+            <span>Step {currentStep} of {totalSteps}</span>
+            <span>{STEP_TITLES[currentStep - 1]}</span>
+          </div>
+          <Progress value={progressValue} className="h-2" />
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="text-slate-500">
+            {lastSavedAt ? `Last saved: ${new Date(lastSavedAt).toLocaleString()}` : 'Draft not saved yet'}
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={saveAndExit}
+            disabled={savingDraft || isSubmitting}
+          >
+            {savingDraft ? 'Saving...' : 'Save & exit'}
+          </Button>
+        </div>
         {submitted ? (
           <div className="mt-2 text-sm rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 p-3">
-            Thanks. Wait for approval.
+            Application submitted successfully.
           </div>
         ) : null}
       </CardHeader>
 
       <CardContent className="pt-0">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <form
+          onSubmit={
+            currentStep === totalSteps
+              ? handleSubmit(onSubmit)
+              : (event) => {
+                  event.preventDefault()
+                  void nextStep()
+                }
+          }
+          className="space-y-5"
+        >
+          <div className="hidden" aria-hidden>
+            <Input tabIndex={-1} autoComplete="off" {...register(APPLICATION_HONEYPOT_FIELD)} />
+          </div>
+
+          {currentStep === 1 && (
           <SectionCard title="SECTION A: PERSONAL INFORMATION">
             <div className="space-y-1.5">
               <Label>1. Full Name (as you want it on your certificate) *</Label>
@@ -400,7 +659,9 @@ export function ApplicationForm() {
               </div>
             </div>
           </SectionCard>
+          )}
 
+          {currentStep === 2 && (
           <SectionCard title="SECTION B: EDUCATIONAL & PROFESSIONAL BACKGROUND">
             <div className="space-y-1.5">
               <Label>8. Highest Educational Qualification *</Label>
@@ -481,7 +742,9 @@ export function ApplicationForm() {
               ) : null}
             </div>
           </SectionCard>
+          )}
 
+          {currentStep === 3 && (
           <SectionCard title="SECTION C: COUNCELLING/THERAPY SERVICE EXPERIENCE">
             <div className="space-y-2">
               <Label>12. Your counselling experience level *</Label>
@@ -572,10 +835,12 @@ export function ApplicationForm() {
               ) : null}
             </div>
           </SectionCard>
+          )}
 
+          {currentStep === 4 && (
           <SectionCard title="SECTION D: MOTIVATION & EXPECTATIONS">
             <div className="space-y-1.5">
-              <Label>15. Why do you want to enroll in the Help Foundation Course? (Short paragraph) *</Label>
+              <Label>15. Why do you want to enroll in the {PROGRAM_NAME}? (Short paragraph) *</Label>
               <Textarea rows={5} {...register('whyEnroll')} />
               <FieldError message={errors.whyEnroll?.message} />
             </div>
@@ -629,7 +894,9 @@ export function ApplicationForm() {
               </div>
             </div>
           </SectionCard>
+          )}
 
+          {currentStep === 4 && (
           <SectionCard
             title="SECTION E: PERSONAL READINESS & ETHICS (IMPORTANT)"
             description="Your answers help us provide appropriate support and ensure a healthy learning environment."
@@ -683,7 +950,9 @@ export function ApplicationForm() {
               </div>
             </div>
           </SectionCard>
+          )}
 
+          {currentStep === 5 && (
           <SectionCard title="SECTION F: TRAINING LOGISTICS">
             <div className="space-y-2">
               <Label>21. Preferred mode of training *</Label>
@@ -719,7 +988,7 @@ export function ApplicationForm() {
             </div>
 
             <div className="space-y-1.5">
-              <Label>23. How did you hear about the Help Foundation Course? *</Label>
+              <Label>23. How did you hear about the {PROGRAM_NAME}? *</Label>
               <Controller
                 control={control}
                 name="hearAbout"
@@ -749,7 +1018,9 @@ export function ApplicationForm() {
               </div>
             ) : null}
           </SectionCard>
+          )}
 
+          {currentStep === 6 && (
           <SectionCard title="SECTION G: COMMITMENT & DECLARATION">
             <p className="text-sm text-slate-700">
               24. I confirm that the information provided is accurate to the best of my knowledge. I understand that this training requires commitment, emotional maturity, and ethical responsibility.
@@ -776,23 +1047,85 @@ export function ApplicationForm() {
                 <FieldError message={errors.signatureDate?.message} />
               </div>
             </div>
-          </SectionCard>
 
-          <div className="pt-1">
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="h-12 w-full rounded-lg bg-teal-700 text-base font-semibold text-white shadow-[0_10px_20px_rgba(15,118,110,0.28)] transition-all hover:-translate-y-0.5 hover:bg-teal-800 hover:shadow-[0_12px_24px_rgba(15,118,110,0.34)] focus-visible:ring-2 focus-visible:ring-teal-700/40 focus-visible:ring-offset-2 disabled:translate-y-0 disabled:bg-slate-400 disabled:shadow-none"
-            >
-              {isSubmitting ? 'Submitting...' : 'Submit Application'}
+            <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <Option
+                id="consent-privacy"
+                active={!!consentPrivacy}
+                inputProps={{ type: 'checkbox', ...register('consentPrivacy') }}
+              >
+                I consent to collection and processing of my personal data according to the Privacy Policy. *
+              </Option>
+              <FieldError message={errors.consentPrivacy?.message} />
+
+              <Option
+                id="consent-sensitive"
+                active={!!consentSensitiveData}
+                inputProps={{ type: 'checkbox', ...register('consentSensitiveData') }}
+              >
+                I consent to admissions review of sensitive readiness responses included in this application. *
+              </Option>
+              <FieldError message={errors.consentSensitiveData?.message} />
+
+              <p className="text-xs text-slate-600">
+                Read: <Link href="/privacy" className="font-medium text-teal-700 hover:underline">Privacy Policy</Link> and{' '}
+                <Link href="/terms" className="font-medium text-teal-700 hover:underline">Terms of Service</Link>.
+              </p>
+            </div>
+          </SectionCard>
+          )}
+
+          {currentStep === 7 && (
+            <SectionCard title="REVIEW & SUBMIT" description="Confirm key details before final submission.">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                  <div className="text-xs uppercase tracking-wide text-slate-500">Full name</div>
+                  <div className="mt-1 text-slate-900">{watchedValues.fullNameCertificate || '-'}</div>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                  <div className="text-xs uppercase tracking-wide text-slate-500">Email</div>
+                  <div className="mt-1 text-slate-900">{watchedValues.email || '-'}</div>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                  <div className="text-xs uppercase tracking-wide text-slate-500">Phone</div>
+                  <div className="mt-1 text-slate-900">{watchedValues.phoneWhatsApp || '-'}</div>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                  <div className="text-xs uppercase tracking-wide text-slate-500">Training mode</div>
+                  <div className="mt-1 text-slate-900">{watchedValues.trainingMode || '-'}</div>
+                </div>
+              </div>
+              <div className="rounded-lg border border-teal-100 bg-teal-50 p-3 text-sm text-teal-900">
+                Final submission sets your application status to <span className="font-semibold">PENDING</span> for admissions review.
+              </div>
+            </SectionCard>
+          )}
+
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+            <Button type="button" variant="outline" onClick={previousStep} disabled={currentStep === 1 || isSubmitting}>
+              Back
             </Button>
+            {currentStep < totalSteps ? (
+              <Button type="button" onClick={nextStep} className="bg-teal-700 text-white hover:bg-teal-800">
+                Next step
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="h-12 rounded-lg bg-teal-700 px-6 text-base font-semibold text-white shadow-[0_10px_20px_rgba(15,118,110,0.28)] transition-all hover:-translate-y-0.5 hover:bg-teal-800 hover:shadow-[0_12px_24px_rgba(15,118,110,0.34)] focus-visible:ring-2 focus-visible:ring-teal-700/40 focus-visible:ring-offset-2 disabled:translate-y-0 disabled:bg-slate-400 disabled:shadow-none"
+              >
+                {isSubmitting ? 'Submitting...' : 'Submit application'}
+              </Button>
+            )}
           </div>
         </form>
       </CardContent>
 
       <CardFooter className="border-t bg-slate-50/60">
         <div className="text-xs text-slate-600">
-          After submission: your application is saved as <span className="font-medium text-slate-800">PENDING</span> until an admin approves it.
+          After submission: your application is saved as <span className="font-medium text-slate-800">PENDING</span> until an admin reviews it. Need to continue later? Use{' '}
+          <Link href="/apply/resume" className="font-medium text-teal-700 hover:underline">Resume application</Link>.
         </div>
       </CardFooter>
     </Card>

@@ -133,3 +133,42 @@ The platform uses a calming, professional color palette (Blues, Teals, Whites) f
 ## 📝 License
 
 Private - HELP Foundations Training Program
+
+## Application Flow (Updated)
+
+Public routes:
+- `/` unified marketing + intake homepage
+- `/apply` multi-step application wizard
+- `/apply/resume` resume draft flow
+- `/apply/success?id=<applicationId>` submission confirmation
+- `/privacy`, `/terms`, `/contact`
+- `/student/login`, `/staff/login`, `/student/set-password` (and `/set-password` alias)
+
+Application journey:
+1. Applicant starts on `/apply`, completes multi-step form, and drafts autosave to DB (`application_drafts`).
+2. Final submit posts to `/api/apply/submit`, server-validates with Zod, checks honeypot + rate limit, and inserts `applicants` row with status `PENDING`.
+3. User is redirected to `/apply/success` with application ID.
+4. Admin reviews in `/admin/applicants`, approves/rejects.
+5. Approved applicant receives payment instructions; after payment verification, set-password link is generated.
+6. Set-password links are issued at `/student/set-password?token=...` and also logged to `email_outbox`.
+7. Student logs in via matric number on `/student/login`.
+
+## Required Environment Variables
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `PAYSTACK_SECRET_KEY` (for live paystack initialization/verification)
+- `PAYSTACK_WEBHOOK_SECRET` (recommended for webhook verification)
+- `BASE_URL` (recommended in production for callback/link generation)
+
+## New/Updated DB Tables
+
+- `application_drafts`
+  - `id`, `status`, `email`, `form_data`, `last_step`, timestamps
+- `email_outbox`
+  - `id`, `recipient_email`, `subject`, `body`, `kind`, `applicant_id`, `student_id`, `created_at`
+- `applicant_status` enum updated to include `DRAFT` (migration 033)
+
+Run migration:
+- `supabase/migrations/033_application_drafts_and_outbox.sql`

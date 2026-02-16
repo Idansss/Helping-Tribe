@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { ArrowRight, GraduationCap, Hash, KeyRound, ShieldCheck } from 'lucide-react'
+import { PROGRAM_FULL_NAME } from '@/lib/brand/program'
 
 function getSafeRedirectPath(redirectTo: string | null) {
   if (!redirectTo) return '/learner/dashboard'
@@ -95,7 +96,7 @@ export default function StudentLoginPage() {
                 Continue your training journey
               </h1>
               <p className="text-base leading-relaxed text-slate-600">
-                Sign in with your matric number and password to access courses, journals, quizzes, and your learner dashboard.
+                Sign in with your matric number and password to access {PROGRAM_FULL_NAME} courses, journals, quizzes, and your learner dashboard.
               </p>
               <div className="grid gap-3 pt-1 text-sm text-slate-700">
                 <div className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white/70 px-4 py-3">

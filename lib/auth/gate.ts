@@ -1,13 +1,22 @@
 export const PUBLIC_PAGES = new Set([
+  '/',
+  '/landing',
   '/apply',
+  '/apply/success',
+  '/apply/resume',
+  '/privacy',
+  '/terms',
+  '/contact',
   '/student/login',
   '/staff/login',
   '/set-password',
+  '/student/set-password',
 ])
 
 export function isPublicApiPath(pathname: string) {
   return (
     pathname === '/api/apply' ||
+    pathname.startsWith('/api/apply/') ||
     pathname === '/api/student/login' ||
     pathname === '/api/staff/login' ||
     pathname === '/api/set-password' ||
@@ -21,5 +30,5 @@ export function isPublicPath(pathname: string) {
 }
 
 export function unauthenticatedRedirectTarget() {
-  return '/apply'
+  return '/'
 }

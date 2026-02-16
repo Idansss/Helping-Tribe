@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { matricToAuthEmail } from '@/lib/auth/constants'
 import { isAllowedAdmin } from '@/lib/auth/admin'
+import { PROGRAM_FULL_NAME } from '@/lib/brand/program'
 
 const ApproveSchema = z.object({
   applicantId: z.string().uuid(),
@@ -130,6 +131,20 @@ export async function POST(request: NextRequest) {
       if (applicantUpdateErr) {
         throw new Error(`Failed to update applicant status: ${applicantUpdateErr.message}`)
       }
+
+      await admin.from('email_outbox').insert({
+        recipient_email: applicant.email || email,
+        applicant_id: applicant.id,
+        student_id: studentId,
+        kind: 'APPLICATION_APPROVED',
+        subject: `${PROGRAM_FULL_NAME}: application approved`,
+        body: [
+          `Congratulations ${applicant.full_name_certificate}, your application has been approved.`,
+          `Matric Number: ${String(matric)}`,
+          'Next step: complete your course payment. After payment verification, a set-password link will be issued.',
+          'If you need support, contact admissions.',
+        ].join('\n'),
+      })
 
       return NextResponse.json({
         ok: true,

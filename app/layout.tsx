@@ -7,8 +7,8 @@ import { GroundingButton } from '@/components/lms/GroundingButton'
 import { Toaster } from '@/components/ui/toaster'
 
 export const metadata: Metadata = {
-  title: 'HELP Foundations Training Platform',
-  description: 'Helping Tribe Learning Management System',
+  title: 'Help Foundation Course - Counsellor Training | The Helping Tribe',
+  description: 'Admissions, onboarding, and learning platform for The Helping Tribe School of Counselling & Positive Psychology.',
   icons: {
     icon: '/icon.svg',
   },

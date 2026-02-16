@@ -23,11 +23,6 @@ export async function updateSession(request: NextRequest) {
     return url
   }
 
-  // Hard gate rule: the root URL must always land on /apply.
-  if (pathname === '/') {
-    return NextResponse.redirect(urlToApply())
-  }
-
   // Performance: if there are no Supabase auth cookies, we know there's no session.
   const hasAuthCookie = request.cookies.getAll().some((c) => c.name.startsWith('sb-'))
 

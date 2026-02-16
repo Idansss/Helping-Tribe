@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createRouteClient } from '@/lib/supabase/route'
+import { isAllowedAdmin, resolvePortalRole } from '@/lib/auth/admin'
 
 const StaffLoginSchema = z.object({
   email: z.string().email(),
@@ -41,7 +42,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const response = NextResponse.json({ ok: true })
+    const portalRole = resolvePortalRole((profile as any)?.role, user.email)
+    const redirectTo = isAllowedAdmin((profile as any)?.role, user.email)
+      ? '/admin/applicants'
+      : portalRole === 'mentor'
+        ? '/mentor'
+        : '/learner/dashboard'
+
+    const response = NextResponse.json({ ok: true, redirectTo })
     cookiesToSet.forEach((c) => response.cookies.set(c.name, c.value, c.options))
     return response
   } catch (e: any) {

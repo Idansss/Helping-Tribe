@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isAllowedAdmin } from '@/lib/auth/admin'
 import { isMissingColumnError, missingPaymentsSchemaMessage } from '@/lib/supabase/migrations'
+import { PROGRAM_FULL_NAME } from '@/lib/brand/program'
 
 const SetupLinkSchema = z.object({
   applicantId: z.string().uuid(),
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     const { data: applicant, error: applicantErr } = await admin
       .from('applicants')
-      .select('id, status')
+      .select('id, status, email')
       .eq('id', body.applicantId)
       .maybeSingle()
 
@@ -106,7 +107,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: tokenErr.message || 'Failed to generate setup link' }, { status: 500 })
     }
 
-    const setPasswordUrl = `/set-password?token=${encodeURIComponent(token)}`
+    const setPasswordUrl = `/student/set-password?token=${encodeURIComponent(token)}`
+
+    await admin.from('email_outbox').insert({
+      recipient_email: applicant.email || `student+${student.id}@helpingtribe.local`,
+      applicant_id: applicant.id,
+      student_id: student.id,
+      kind: 'SET_PASSWORD',
+      subject: `${PROGRAM_FULL_NAME}: set your password`,
+      body: [
+        'Your payment has been verified.',
+        `Use this one-time set-password link: ${setPasswordUrl}`,
+        `Matric Number: ${student.matric_number}`,
+        `This link expires on ${new Date(expiresAt).toLocaleString()}.`,
+      ].join('\n'),
+    })
 
     return NextResponse.json({
       ok: true,
