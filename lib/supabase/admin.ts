@@ -1,13 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
+import { getServerAuthMissingVars, getSupabaseServiceRoleKey, getSupabaseUrl } from '@/lib/supabase/env'
 
 export function createAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const url = getSupabaseUrl()
+  const serviceRoleKey = getSupabaseServiceRoleKey()
 
   if (!url || !serviceRoleKey) {
-    throw new Error(
-      'Server auth is not configured. Set SUPABASE_SERVICE_ROLE_KEY (Vercel Environment Variables or local .env.local) and NEXT_PUBLIC_SUPABASE_URL.'
-    )
+    const missing = getServerAuthMissingVars()
+    throw new Error(`Server auth is not configured. Missing: ${missing.join(', ')}`)
   }
 
   return createClient(url, serviceRoleKey, {
