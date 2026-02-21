@@ -221,7 +221,7 @@ export default function LearnerTakeQuizPage() {
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="flex items-center gap-2 text-slate-500 py-12">
           <Loader2 className="h-5 w-5 animate-spin" />
-          {loading ? 'Loadingâ€¦' : error || 'Quiz not found.'}
+          {loading ? 'Loading…' : error || 'Quiz not found.'}
         </div>
         {!loading && (
           <Button variant="outline" asChild>

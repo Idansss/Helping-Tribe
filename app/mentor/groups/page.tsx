@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Users, UserPlus, Trash2, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/hooks/use-toast'
 import {
   Dialog,
   DialogContent,
@@ -41,8 +42,10 @@ type CircleMember = {
 
 export default function MentorGroupsPage() {
   const supabase = createClient()
+  const { toast } = useToast()
   const [circles, setCircles] = useState<PeerCircleRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [deletingGroupId, setDeletingGroupId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [groupName, setGroupName] = useState('')
   const [groupDescription, setGroupDescription] = useState('')
@@ -122,7 +125,7 @@ export default function MentorGroupsPage() {
       await loadCircles()
     } catch (e) {
       console.error('Error creating group:', e)
-      alert('Failed to create group. Please try again.')
+      toast({ title: 'Failed to create group. Please try again.', variant: 'destructive' })
     } finally {
       setSaving(false)
     }
@@ -153,23 +156,29 @@ export default function MentorGroupsPage() {
       await loadCircles()
     } catch (e) {
       console.error('Error updating group:', e)
-      alert('Failed to update group.')
+      toast({ title: 'Failed to update group.', variant: 'destructive' })
     } finally {
       setSavingEdit(false)
     }
   }
 
-  async function deleteGroup(id: string) {
-    if (!confirm('Delete this group? Learners will no longer see it.')) return
+  function deleteGroup(id: string) {
+    setDeletingGroupId(id)
+  }
+
+  async function confirmDeleteGroup() {
+    if (!deletingGroupId) return
     try {
-      const { error } = await supabase.from('peer_circles').delete().eq('id', id)
+      const { error } = await supabase.from('peer_circles').delete().eq('id', deletingGroupId)
       if (error) throw error
-      if (editingId === id) cancelEdit()
-      if (membersDialogCircleId === id) setMembersDialogCircleId(null)
+      if (editingId === deletingGroupId) cancelEdit()
+      if (membersDialogCircleId === deletingGroupId) setMembersDialogCircleId(null)
       await loadCircles()
     } catch (e) {
       console.error('Error deleting group:', e)
-      alert('Failed to delete group.')
+      toast({ title: 'Failed to delete group.', variant: 'destructive' })
+    } finally {
+      setDeletingGroupId(null)
     }
   }
 
@@ -239,7 +248,7 @@ export default function MentorGroupsPage() {
       await loadCircles()
     } catch (e) {
       console.error('Error adding members:', e)
-      alert('Failed to add learners.')
+      toast({ title: 'Failed to add learners.', variant: 'destructive' })
     } finally {
       setAddingMembers(false)
     }
@@ -253,7 +262,7 @@ export default function MentorGroupsPage() {
       await loadCircles()
     } catch (e) {
       console.error('Error removing member:', e)
-      alert('Failed to remove learner.')
+      toast({ title: 'Failed to remove learner.', variant: 'destructive' })
     }
   }
 
@@ -528,6 +537,22 @@ export default function MentorGroupsPage() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete group confirmation */}
+      <Dialog open={!!deletingGroupId} onOpenChange={(open) => { if (!open) setDeletingGroupId(null) }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete this group?</DialogTitle>
+            <DialogDescription>
+              Learners will no longer see this group. All memberships will be removed. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setDeletingGroupId(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDeleteGroup}>Delete</Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

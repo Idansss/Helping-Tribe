@@ -5,6 +5,21 @@ type Bucket = {
 
 const buckets = new Map<string, Bucket>()
 
+// Purge expired buckets every 10 minutes to prevent unbounded memory growth.
+// Uses unref() so this timer does not keep the Node.js process alive.
+if (typeof setInterval !== 'undefined') {
+  const handle = setInterval(() => {
+    const now = Date.now()
+    for (const [key, bucket] of buckets) {
+      if (bucket.resetAt <= now) buckets.delete(key)
+    }
+  }, 10 * 60 * 1000)
+  // unref is available in Node.js but not in edge runtimes
+  if (typeof handle === 'object' && 'unref' in handle) {
+    (handle as { unref(): void }).unref()
+  }
+}
+
 type RateLimitInput = {
   key: string
   limit: number

@@ -8,6 +8,13 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Mail, Plus, Edit2, Trash2, Send, Calendar } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 interface NewsletterIssue {
   id: string
@@ -41,6 +48,8 @@ export default function AdminNewsletterPage() {
   const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>([])
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [sendingId, setSendingId] = useState<string | null>(null)
   const [subject, setSubject] = useState('')
   const [content, setContent] = useState('')
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
@@ -140,24 +149,28 @@ export default function AdminNewsletterPage() {
     setShowForm(false)
   }
 
-  const handleDeleteIssue = (id: string) => {
-    if (confirm('Are you sure you want to delete this newsletter issue?')) {
-      setIssues(issues.filter((issue) => issue.id !== id))
-      setSaveMessage('Newsletter issue deleted.')
-      setTimeout(() => setSaveMessage(null), 2500)
-    }
+  const handleDeleteIssue = (id: string) => setDeletingId(id)
+
+  const confirmDeleteIssue = () => {
+    if (!deletingId) return
+    setIssues(issues.filter((issue) => issue.id !== deletingId))
+    setSaveMessage('Newsletter issue deleted.')
+    setTimeout(() => setSaveMessage(null), 2500)
+    setDeletingId(null)
   }
 
-  const handleSendIssue = (id: string) => {
-    if (confirm('Send this newsletter to all subscribers?')) {
-      setIssues(
-        issues.map((issue) =>
-          issue.id === id ? { ...issue, sentAt: new Date().toISOString() } : issue
-        )
+  const handleSendIssue = (id: string) => setSendingId(id)
+
+  const confirmSendIssue = () => {
+    if (!sendingId) return
+    setIssues(
+      issues.map((issue) =>
+        issue.id === sendingId ? { ...issue, sentAt: new Date().toISOString() } : issue
       )
-      setSaveMessage('Newsletter sent successfully.')
-      setTimeout(() => setSaveMessage(null), 2500)
-    }
+    )
+    setSaveMessage('Newsletter sent successfully.')
+    setTimeout(() => setSaveMessage(null), 2500)
+    setSendingId(null)
   }
 
   const formatDate = (dateString: string) => {
@@ -408,6 +421,32 @@ export default function AdminNewsletterPage() {
           </div>
         )}
       </Card>
+
+      <Dialog open={!!deletingId} onOpenChange={(open) => { if (!open) setDeletingId(null) }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete this newsletter issue?</DialogTitle>
+            <DialogDescription>This issue will be permanently removed and cannot be recovered.</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setDeletingId(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDeleteIssue}>Delete</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!sendingId} onOpenChange={(open) => { if (!open) setSendingId(null) }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Send this newsletter?</DialogTitle>
+            <DialogDescription>This issue will be sent to all active subscribers. This action cannot be undone.</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setSendingId(null)}>Cancel</Button>
+            <Button className="bg-purple-600 hover:bg-purple-700 text-white" onClick={confirmSendIssue}>Send Now</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

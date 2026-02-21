@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/hooks/use-toast'
 import {
   BookOpen,
   Clock,
@@ -63,7 +64,10 @@ const COURSES_STORAGE_KEY = 'ht-mentor-courses'
 
 export default function MentorCoursesPage() {
   const supabase = createClient()
+  const { toast } = useToast()
   const [modules, setModules] = useState<ModuleRow[]>([])
+  const [deletingCourseId, setDeletingCourseId] = useState<string | null>(null)
+  const [bulkDeletePending, setBulkDeletePending] = useState(false)
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
   const [showCreateDialog, setShowCreateDialog] = useState(false)
@@ -188,14 +192,19 @@ export default function MentorCoursesPage() {
   }
 
   function deleteCourse(courseId: string) {
-    if (!confirm('Delete this course?')) return
-    setModules((prev) => prev.filter((m) => m.id !== courseId))
+    setDeletingCourseId(courseId)
+  }
+
+  function confirmDeleteCourse() {
+    if (!deletingCourseId) return
+    setModules((prev) => prev.filter((m) => m.id !== deletingCourseId))
     setSelectedIds((prev) => {
       const next = { ...prev }
-      delete next[courseId]
+      delete next[deletingCourseId]
       return next
     })
-    if (selectedCourseId === courseId) setSelectedCourseId(null)
+    if (selectedCourseId === deletingCourseId) setSelectedCourseId(null)
+    setDeletingCourseId(null)
   }
 
   function duplicateCourse(course: ModuleRow) {
@@ -216,9 +225,16 @@ export default function MentorCoursesPage() {
       .filter(([, v]) => v)
       .map(([k]) => k)
     if (ids.length === 0) return
-    if (!confirm(`Delete ${ids.length} selected course(s)?`)) return
+    setBulkDeletePending(true)
+  }
+
+  function confirmBulkDelete() {
+    const ids = Object.entries(selectedIds)
+      .filter(([, v]) => v)
+      .map(([k]) => k)
     setModules((prev) => prev.filter((m) => !ids.includes(m.id)))
     setSelectedIds({})
+    setBulkDeletePending(false)
   }
 
   function toggleSelectAll(currentIds: string[], checked: boolean) {
@@ -1441,6 +1457,34 @@ export default function MentorCoursesPage() {
             </div>
           </Card>
         )}
+
+      <Dialog open={!!deletingCourseId} onOpenChange={(open) => { if (!open) setDeletingCourseId(null) }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete this course?</DialogTitle>
+            <DialogDescription>This course will be removed from your list. This action cannot be undone.</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setDeletingCourseId(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDeleteCourse}>Delete</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={bulkDeletePending} onOpenChange={(open) => { if (!open) setBulkDeletePending(false) }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete selected courses?</DialogTitle>
+            <DialogDescription>
+              {Object.values(selectedIds).filter(Boolean).length} course(s) will be permanently removed. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setBulkDeletePending(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmBulkDelete}>Delete All</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

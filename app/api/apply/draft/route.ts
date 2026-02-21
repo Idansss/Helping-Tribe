@@ -18,6 +18,20 @@ const DraftQuerySchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
+    // Rate-limit GET to prevent UUID enumeration / brute-force
+    const ip = getRequestIp(request.headers)
+    const limit = checkRateLimit({
+      key: `apply-draft-get:${ip}`,
+      limit: 30,
+      windowMs: 15 * 60 * 1000,
+    })
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please wait and try again.' },
+        { status: 429 }
+      )
+    }
+
     const query = DraftQuerySchema.parse({
       id: request.nextUrl.searchParams.get('id'),
     })

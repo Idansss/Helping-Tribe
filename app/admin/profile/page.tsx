@@ -6,10 +6,11 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { UserCircle2 } from 'lucide-react'
+import { UserCircle2, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/hooks/use-toast'
 
-const PROFILE_STORAGE_KEY = 'ht-admin-profile'
+const PROFILE_EXTRA_KEY = 'ht-admin-profile-extra'
 
 type AdminProfile = {
   name: string
@@ -17,7 +18,7 @@ type AdminProfile = {
   role: string
   timezone: string
   bio: string
-  avatar?: string
+  avatarUrl: string | null
 }
 
 const DEFAULT_PROFILE: AdminProfile = {
@@ -26,126 +27,146 @@ const DEFAULT_PROFILE: AdminProfile = {
   role: 'Counseling LMS administrator',
   timezone: 'Africa/Lagos',
   bio: 'Lead coordinator for the HELP Foundations counseling program.',
+  avatarUrl: null,
 }
 
 export default function AdminProfilePage() {
-  const [profile, setProfile] = useState<AdminProfile>(DEFAULT_PROFILE)
-  const [message, setMessage] = useState<string | null>(null)
-  const [isSavingAvatar, setIsSavingAvatar] = useState(false)
   const supabase = createClient()
+  const { toast } = useToast()
+  const [profile, setProfile] = useState<AdminProfile>(DEFAULT_PROFILE)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
 
+  // ── Load profile from Supabase on mount ──────────────────────────────────
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    try {
-      const raw = window.localStorage.getItem(PROFILE_STORAGE_KEY)
-      if (!raw) return
-      const parsed = JSON.parse(raw) as Partial<AdminProfile>
-      setProfile(prev => ({ ...prev, ...parsed }))
-    } catch {
-      // ignore parse errors
+    async function load() {
+      setLoading(true)
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        setUserId(user.id)
+
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('full_name, avatar_url')
+          .eq('id', user.id)
+          .single()
+
+        if (error && error.code !== 'PGRST116') throw error
+
+        // Load extra fields from localStorage (bio, timezone, role label)
+        let extra: Partial<AdminProfile> = {}
+        try {
+          const raw = localStorage.getItem(PROFILE_EXTRA_KEY)
+          if (raw) extra = JSON.parse(raw)
+        } catch { /* ignore */ }
+
+        setProfile({
+          ...DEFAULT_PROFILE,
+          ...extra,
+          name: data?.full_name ?? extra.name ?? '',
+          email: user.email ?? '',
+          avatarUrl: data?.avatar_url ?? null,
+        })
+      } catch (e) {
+        console.error(e)
+        toast({ title: 'Failed to load profile.', variant: 'destructive' })
+      } finally {
+        setLoading(false)
+      }
     }
+    load()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Hydrate email from Supabase auth user so it always matches login email
-  useEffect(() => {
-    async function loadAuthEmail() {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
-        if (user?.email) {
-          setProfile(prev => {
-            if (prev.email === user.email) return prev
-            const next = { ...prev, email: user.email as string }
-            // Persist updated email
-            if (typeof window !== 'undefined') {
-              try {
-                window.localStorage.setItem(
-                  PROFILE_STORAGE_KEY,
-                  JSON.stringify(next),
-                )
-              } catch {
-                // ignore storage errors
-              }
-            }
-            return next
-          })
-        }
-      } catch {
-        // ignore auth errors
-      }
-    }
-
-    loadAuthEmail()
-  }, [supabase])
-
   const handleChange =
-    (field: keyof AdminProfile) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const value = e.target.value
-      setProfile(prev => ({ ...prev, [field]: value }))
+    (field: keyof AdminProfile) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setProfile(prev => ({ ...prev, [field]: e.target.value }))
     }
 
-  const handleSave = (e: React.FormEvent) => {
+  // ── Save to profiles table + localStorage extras ──────────────────────────
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (typeof window !== 'undefined') {
+    if (!userId) return
+    setSaving(true)
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ full_name: profile.name.trim() || null, updated_at: new Date().toISOString() })
+        .eq('id', userId)
+      if (error) throw error
+
+      // Persist display-only extras locally
       try {
-        window.localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile))
-      } catch {
-        // ignore storage errors
-      }
+        localStorage.setItem(
+          PROFILE_EXTRA_KEY,
+          JSON.stringify({ role: profile.role, timezone: profile.timezone, bio: profile.bio }),
+        )
+      } catch { /* ignore */ }
+
+      toast({ title: 'Profile updated successfully.' })
+    } catch (e) {
+      console.error(e)
+      toast({ title: 'Failed to save profile.', variant: 'destructive' })
+    } finally {
+      setSaving(false)
     }
-    setMessage('Profile updated.')
-    setTimeout(() => setMessage(null), 2500)
   }
 
-  const handleReset = () => {
-    setProfile(DEFAULT_PROFILE)
-    if (typeof window !== 'undefined') {
-      try {
-        window.localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(DEFAULT_PROFILE))
-      } catch {
-        // ignore
-      }
-    }
-    setMessage('Profile reset to defaults.')
-    setTimeout(() => setMessage(null), 2500)
-  }
-
-  const handleAvatarChange = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  // ── Upload avatar to Supabase Storage, then update profiles row ───────────
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (!file) return
+    if (!file || !userId) return
 
     if (!file.type.startsWith('image/')) {
-      setMessage('Please choose an image file.')
-      setTimeout(() => setMessage(null), 2500)
+      toast({ title: 'Please choose an image file (JPG or PNG).', variant: 'destructive' })
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: 'Image must be under 2 MB.', variant: 'destructive' })
       return
     }
 
-    setIsSavingAvatar(true)
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      const result = reader.result
-      if (typeof result === 'string') {
-        setProfile(prev => ({ ...prev, avatar: result }))
-        if (typeof window !== 'undefined') {
-          try {
-            const stored = { ...profile, avatar: result }
-            window.localStorage.setItem(
-              PROFILE_STORAGE_KEY,
-              JSON.stringify(stored),
-            )
-          } catch {
-            // ignore storage errors
-          }
-        }
-        setMessage('Profile photo updated.')
-        setTimeout(() => setMessage(null), 2500)
-      }
-      setIsSavingAvatar(false)
+    setUploadingAvatar(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `${userId}/avatar.${ext}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true, contentType: file.type })
+
+      if (uploadError) throw uploadError
+
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
+      const publicUrl = urlData.publicUrl
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', userId)
+      if (updateError) throw updateError
+
+      setProfile(prev => ({ ...prev, avatarUrl: publicUrl }))
+      toast({ title: 'Profile photo updated.' })
+    } catch (e) {
+      console.error(e)
+      toast({ title: 'Failed to upload photo.', variant: 'destructive' })
+    } finally {
+      setUploadingAvatar(false)
     }
-    reader.readAsDataURL(file)
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 py-10 text-slate-500">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        <span className="text-sm">Loading profile…</span>
+      </div>
+    )
   }
 
   return (
@@ -153,27 +174,27 @@ export default function AdminProfilePage() {
       <div>
         <h1 className="text-lg font-semibold text-slate-900">Admin profile</h1>
         <p className="text-xs text-slate-500">
-          Manage your personal details that appear across the counseling portal.
+          Manage your personal details. Name and photo are saved to the database.
         </p>
       </div>
 
       <Card className="p-4 space-y-4">
         <div className="flex items-center gap-3">
-          {profile.avatar ? (
+          {profile.avatarUrl ? (
             <div className="h-10 w-10 rounded-full overflow-hidden border border-slate-200 bg-slate-100">
               <img
-                src={profile.avatar}
+                src={profile.avatarUrl}
                 alt="Admin avatar"
                 className="h-full w-full object-cover"
               />
             </div>
           ) : (
-            <div className="h-10 w-10 rounded-full bg-[var(--talent-primary)]/10 flex items-center justify-center">
-              <UserCircle2 className="h-6 w-6 text-[var(--talent-primary)]" />
+            <div className="h-10 w-10 rounded-full bg-purple-50 flex items-center justify-center">
+              <UserCircle2 className="h-6 w-6 text-purple-600" />
             </div>
           )}
           <div className="text-xs">
-            <p className="font-semibold text-slate-900">Admin</p>
+            <p className="font-semibold text-slate-900">{profile.name || 'Admin'}</p>
             <p className="text-slate-500">{profile.role}</p>
           </div>
         </div>
@@ -181,18 +202,17 @@ export default function AdminProfilePage() {
         <div className="text-[11px] text-slate-600">
           <label className="inline-flex items-center gap-2 cursor-pointer">
             <span className="px-3 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100">
-              {isSavingAvatar ? 'Uploading…' : 'Change photo'}
+              {uploadingAvatar ? 'Uploading…' : 'Change photo'}
             </span>
             <input
               type="file"
               accept="image/*"
               className="hidden"
               onChange={handleAvatarChange}
+              disabled={uploadingAvatar}
             />
           </label>
-          <span className="ml-2 text-[10px] text-slate-400">
-            JPG or PNG, up to ~2MB.
-          </span>
+          <span className="ml-2 text-[10px] text-slate-400">JPG or PNG, up to 2 MB.</span>
         </div>
 
         <form onSubmit={handleSave} className="grid gap-3 text-xs md:grid-cols-2">
@@ -213,14 +233,15 @@ export default function AdminProfilePage() {
               type="email"
               value={profile.email}
               readOnly
-              className="text-xs"
+              aria-readonly="true"
+              className="text-xs bg-slate-50 cursor-not-allowed"
             />
             <p className="text-[10px] text-slate-500">
               This matches the email you use to sign in.
             </p>
           </div>
           <div className="space-y-1">
-            <Label htmlFor="role">Role</Label>
+            <Label htmlFor="role">Role title</Label>
             <Input
               id="role"
               value={profile.role}
@@ -249,28 +270,16 @@ export default function AdminProfilePage() {
           </div>
           <div className="md:col-span-2 flex items-center justify-end gap-2 pt-1">
             <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              className="text-[11px] text-slate-600"
-              onClick={handleReset}
-            >
-              Reset profile
-            </Button>
-            <Button
               type="submit"
               size="sm"
-              className="text-[11px] bg-[var(--talent-primary)] hover:bg-[var(--talent-primary-dark)] text-white"
+              disabled={saving}
+              className="text-[11px] bg-purple-600 hover:bg-purple-700 text-white"
             >
-              Save profile
+              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save profile'}
             </Button>
-            {message && (
-              <span className="text-[10px] text-slate-500">{message}</span>
-            )}
           </div>
         </form>
       </Card>
     </div>
   )
 }
-

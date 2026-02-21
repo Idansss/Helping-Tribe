@@ -50,7 +50,7 @@ export function LearnerLayout({ children }: LearnerLayoutProps) {
         <LearnerHeader
           onMenuClick={!isDesktop ? () => setMobileMenuOpen(true) : undefined}
         />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-white">
+        <main id="main-content" className="flex-1 overflow-y-auto p-4 sm:p-6 bg-white">
           {children}
         </main>
       </div>

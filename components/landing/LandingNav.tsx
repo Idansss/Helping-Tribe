@@ -83,7 +83,7 @@ export function LandingNav() {
               <>
                 {isLoggedIn ? (
                   <Button className="bg-[#4c1d95] hover:bg-[#5b21b6] text-white" asChild>
-                    <Link href="/">Go to Dashboard</Link>
+                    <Link href="/learner/dashboard">Go to Dashboard</Link>
                   </Button>
                 ) : (
                   <>
@@ -150,7 +150,7 @@ export function LandingNav() {
                   <>
                     {isLoggedIn ? (
                       <Button className="bg-[#4c1d95] hover:bg-[#5b21b6] text-white w-full" asChild>
-                        <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
+                        <Link href="/learner/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
                           Go to Dashboard
                         </Link>
                       </Button>

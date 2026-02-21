@@ -107,7 +107,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: tokenErr.message || 'Failed to generate setup link' }, { status: 500 })
     }
 
-    const setPasswordUrl = `/student/set-password?token=${encodeURIComponent(token)}`
+    const relativeUrl = `/student/set-password?token=${encodeURIComponent(token)}`
+    const baseUrl = (process.env.BASE_URL || '').replace(/\/$/, '')
+    const setPasswordUrl = baseUrl ? `${baseUrl}${relativeUrl}` : relativeUrl
 
     await admin.from('email_outbox').insert({
       recipient_email: applicant.email || `student+${student.id}@helpingtribe.local`,

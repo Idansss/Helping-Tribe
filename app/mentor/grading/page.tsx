@@ -32,7 +32,10 @@ import {
   Video,
   GraduationCap,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { Loader2 } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 
 type GradingType =
   | 'assignments'
@@ -94,15 +97,136 @@ function formatDateTime(iso: string) {
 }
 
 export default function MentorGradingHubPage() {
+  const supabase = createClient()
+  const { toast } = useToast()
   const [activeTab, setActiveTab] = useState<GradingType>('assignments')
   const [items, setItems] = useState<GradingItem[]>([])
+  const [loadingItems, setLoadingItems] = useState(false)
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | GradingStatus>('all')
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [reviewOpen, setReviewOpen] = useState(false)
-  const [score, setScore] = useState<string>('') // keep as string for input
+  const [score, setScore] = useState<string>('')
   const [feedback, setFeedback] = useState<string>('')
+  const [saving, setSaving] = useState(false)
+
+  // ── Load items from DB whenever the active tab changes ────────────────────
+  useEffect(() => {
+    loadItems(activeTab)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab])
+
+  async function loadItems(tab: GradingType) {
+    setLoadingItems(true)
+    setItems([])
+    try {
+      if (tab === 'assignments') {
+        const { data, error } = await supabase
+          .from('assignment_submissions')
+          .select('id, submitted_at, graded, grade, feedback, file_url, file_name, user_id, assignment_id, assignments(title, assignment_type), profiles(full_name)')
+          .order('submitted_at', { ascending: false })
+          .limit(100)
+        if (error) throw error
+        setItems(
+          (data ?? []).map((row: any) => ({
+            id: row.id,
+            type: 'assignments',
+            title: row.file_name ?? row.assignments?.title ?? 'Assignment Submission',
+            learnerName: row.profiles?.full_name ?? 'Unknown Learner',
+            courseTitle: row.assignments?.title ?? '—',
+            submittedAt: row.submitted_at ?? row.created_at,
+            status: row.graded ? 'reviewed' : 'pending',
+            score: row.grade ?? undefined,
+            feedback: row.feedback ?? undefined,
+          }))
+        )
+      } else if (tab === 'learning-journals') {
+        const { data, error } = await supabase
+          .from('learning_journals')
+          .select('id, content, updated_at, created_at, user_id, module_id, modules(title), profiles(full_name)')
+          .order('updated_at', { ascending: false })
+          .limit(100)
+        if (error) throw error
+        setItems(
+          (data ?? []).map((row: any) => ({
+            id: row.id,
+            type: 'learning-journals',
+            title: `Journal — ${row.modules?.title ?? 'Module'}`,
+            learnerName: row.profiles?.full_name ?? 'Unknown Learner',
+            courseTitle: row.modules?.title ?? '—',
+            submittedAt: row.updated_at ?? row.created_at,
+            status: 'pending',
+          }))
+        )
+      } else if (tab === 'final-projects') {
+        const { data, error } = await supabase
+          .from('final_exam_submissions')
+          .select('id, file_url, file_name, submitted_at, graded, grade, feedback, user_id, profiles(full_name)')
+          .order('submitted_at', { ascending: false })
+          .limit(100)
+        if (error) throw error
+        setItems(
+          (data ?? []).map((row: any) => ({
+            id: row.id,
+            type: 'final-projects',
+            title: row.file_name ?? 'Final Project',
+            learnerName: row.profiles?.full_name ?? 'Unknown Learner',
+            courseTitle: 'Final Project',
+            submittedAt: row.submitted_at,
+            status: row.graded ? 'reviewed' : 'pending',
+            score: row.grade ?? undefined,
+            feedback: row.feedback ?? undefined,
+          }))
+        )
+      } else if (tab === 'ethics-quizzes') {
+        const { data, error } = await supabase
+          .from('quiz_attempts')
+          .select('id, score, passed, completed_at, user_id, quiz_id, quizzes(title), profiles(full_name)')
+          .order('completed_at', { ascending: false })
+          .limit(100)
+        if (error) throw error
+        setItems(
+          (data ?? []).map((row: any) => ({
+            id: row.id,
+            type: 'ethics-quizzes',
+            title: row.quizzes?.title ?? 'Quiz Attempt',
+            learnerName: row.profiles?.full_name ?? 'Unknown Learner',
+            courseTitle: row.quizzes?.title ?? '—',
+            submittedAt: row.completed_at,
+            status: 'reviewed',
+            score: row.score ?? undefined,
+          }))
+        )
+      } else {
+        // ilt-sessions, case-studies, practice-recordings — show empty for now
+        setItems([])
+      }
+    } catch (e) {
+      console.error(e)
+      toast({ title: 'Failed to load submissions.', variant: 'destructive' })
+    } finally {
+      setLoadingItems(false)
+    }
+  }
+
+  // ── Persist grade + feedback to the correct table ─────────────────────────
+  async function persistReview(item: GradingItem, newScore: number | undefined, newFeedback: string) {
+    if (item.type === 'assignments') {
+      const { error } = await supabase
+        .from('assignment_submissions')
+        .update({ graded: true, grade: newScore ?? null, feedback: newFeedback || null })
+        .eq('id', item.id)
+      if (error) throw error
+    } else if (item.type === 'final-projects') {
+      const { error } = await supabase
+        .from('final_exam_submissions')
+        .update({ graded: true, grade: newScore ?? null, feedback: newFeedback || null })
+        .eq('id', item.id)
+      if (error) throw error
+    }
+    // journal / quiz / ilt / case-study — no dedicated grade column yet; optimistic only
+  }
 
   const countsByType = useMemo(() => {
     const counts: Record<GradingType, { total: number; pending: number }> = {
@@ -149,23 +273,31 @@ export default function MentorGradingHubPage() {
     )
   }
 
-  function markReviewed() {
+  async function markReviewed() {
     if (!selectedId) return
     const parsedScore =
       score.trim().length === 0 ? undefined : Math.max(0, Math.min(100, Number(score)))
-    setItems((prev) =>
-      prev.map((p) =>
-        p.id === selectedId
-          ? {
-              ...p,
-              status: 'reviewed',
-              score: Number.isFinite(parsedScore as number) ? (parsedScore as number) : undefined,
-              feedback: feedback.trim(),
-            }
-          : p
+    const finalScore = Number.isFinite(parsedScore as number) ? (parsedScore as number) : undefined
+    const finalFeedback = feedback.trim()
+    const item = items.find((i) => i.id === selectedId)
+    setSaving(true)
+    try {
+      if (item) await persistReview(item, finalScore, finalFeedback)
+      setItems((prev) =>
+        prev.map((p) =>
+          p.id === selectedId
+            ? { ...p, status: 'reviewed', score: finalScore, feedback: finalFeedback }
+            : p
+        )
       )
-    )
-    setReviewOpen(false)
+      setReviewOpen(false)
+      toast({ title: 'Submission marked as reviewed.' })
+    } catch (e) {
+      console.error(e)
+      toast({ title: 'Failed to save review.', variant: 'destructive' })
+    } finally {
+      setSaving(false)
+    }
   }
 
   function resetFilters() {
@@ -241,7 +373,12 @@ export default function MentorGradingHubPage() {
             </div>
 
             <TabsContent value={activeTab} className="pt-4">
-              {filtered.length === 0 ? (
+              {loadingItems ? (
+                <div className="flex items-center justify-center py-12 text-slate-500 gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span className="text-sm">Loading submissions…</span>
+                </div>
+              ) : filtered.length === 0 ? (
                 <EmptyState
                   title="Nothing available to grade yet"
                   description="When learners submit work, it will appear here for your review and grading."
@@ -406,8 +543,9 @@ export default function MentorGradingHubPage() {
                     type="button"
                     className="bg-purple-600 hover:bg-purple-800 text-white"
                     onClick={markReviewed}
+                    disabled={saving}
                   >
-                    Mark reviewed
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Mark reviewed'}
                   </Button>
                 </div>
               </div>

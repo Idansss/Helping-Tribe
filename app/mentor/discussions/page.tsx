@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select'
 import { createClient } from '@/lib/supabase/client'
 import { DiscussionForum } from '@/components/lms/DiscussionForum'
+import { useToast } from '@/hooks/use-toast'
 import {
   MessageSquare,
   Plus,
@@ -53,10 +54,12 @@ type PromptQueryRow = Omit<PromptRow, 'module' | 'sort_order'> & {
 
 export default function MentorDiscussionsPage() {
   const supabase = createClient()
+  const { toast } = useToast()
   const [modules, setModules] = useState<ModuleOption[]>([])
   const [prompts, setPrompts] = useState<PromptRow[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [formModuleId, setFormModuleId] = useState<string>('')
@@ -152,7 +155,7 @@ export default function MentorDiscussionsPage() {
     if (!formPromptText.trim()) return
     const moduleId = formModuleId || modules[0]?.id
     if (!moduleId) {
-      alert('Select a module.')
+      toast({ title: 'Select a module before saving.', variant: 'destructive' })
       return
     }
     setSaving(true)
@@ -174,21 +177,25 @@ export default function MentorDiscussionsPage() {
       loadPrompts()
     } catch (e) {
       console.error(e)
-      alert('Failed to save. Run supabase/scripts/create_discussion_prompts_admin_policies.sql if you see a policy error.')
+      toast({ title: 'Failed to save discussion prompt.', description: 'If you see a policy error, run supabase/scripts/create_discussion_prompts_admin_policies.sql.', variant: 'destructive' })
     } finally {
       setSaving(false)
     }
   }
 
-  const remove = async (id: string) => {
-    if (!confirm('Delete this discussion prompt? All replies will be deleted.')) return
+  const remove = (id: string) => setDeletingId(id)
+
+  const confirmDelete = async () => {
+    if (!deletingId) return
     try {
-      const { error } = await supabase.from('discussion_prompts').delete().eq('id', id)
+      const { error } = await supabase.from('discussion_prompts').delete().eq('id', deletingId)
       if (error) throw error
+      setDeletingId(null)
       loadPrompts()
     } catch (e) {
       console.error(e)
-      alert('Failed to delete.')
+      toast({ title: 'Failed to delete discussion prompt.', variant: 'destructive' })
+      setDeletingId(null)
     }
   }
 
@@ -299,8 +306,8 @@ export default function MentorDiscussionsPage() {
                       </td>
                       <td className="py-3 pr-4 text-slate-600">{row.response_count ?? 0}</td>
                       <td className="py-3 pr-4 flex items-center gap-2">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEdit(row)}>
-                          <Pencil className="h-4 w-4" />
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEdit(row)} aria-label="Edit">
+                          <Pencil className="h-4 w-4" aria-hidden="true" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -389,6 +396,19 @@ export default function MentorDiscussionsPage() {
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deletingId} onOpenChange={(open) => { if (!open) setDeletingId(null) }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete this discussion prompt?</DialogTitle>
+            <DialogDescription>All learner replies to this prompt will also be deleted. This cannot be undone.</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setDeletingId(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
           </div>
         </DialogContent>
       </Dialog>

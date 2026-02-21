@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/select'
 import { Download, MessageCircle, Pencil, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/hooks/use-toast'
 import { format } from 'date-fns'
 
 type ProfileRole = 'student' | 'mentor' | 'admin' | 'faculty'
@@ -52,6 +53,7 @@ function roleToLabel(role: string): string {
 
 export default function AdminUsersPage() {
   const supabase = createClient()
+  const { toast } = useToast()
   const [profiles, setProfiles] = useState<ProfileRow[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -158,7 +160,7 @@ export default function AdminUsersPage() {
       loadProfiles()
     } catch (e) {
       console.error(e)
-      alert('Failed to update user.')
+      toast({ title: 'Failed to update user.', variant: 'destructive' })
     } finally {
       setSaving(false)
     }

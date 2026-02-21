@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/select'
 import { createClient } from '@/lib/supabase/client'
 import { CalendarDays, Plus, Pencil, Trash2, ArrowLeft, Loader2 } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 import { format } from 'date-fns'
 
 type EventRow = {
@@ -51,10 +52,12 @@ const EVENT_TYPES = [
 
 export default function AdminCalendarPage() {
   const supabase = createClient()
+  const { toast } = useToast()
   const [list, setList] = useState<EventRow[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [formTitle, setFormTitle] = useState('')
   const [formType, setFormType] = useState<string>('facilitator_session')
@@ -129,21 +132,25 @@ export default function AdminCalendarPage() {
       load()
     } catch (e) {
       console.error(e)
-      alert('Failed to save.')
+      toast({ title: 'Failed to save event.', variant: 'destructive' })
     } finally {
       setSaving(false)
     }
   }
 
-  const remove = async (id: string) => {
-    if (!confirm('Delete this event?')) return
+  const remove = (id: string) => setDeletingId(id)
+
+  const confirmDelete = async () => {
+    if (!deletingId) return
     try {
-      const { error } = await supabase.from('weekly_events').delete().eq('id', id)
+      const { error } = await supabase.from('weekly_events').delete().eq('id', deletingId)
       if (error) throw error
       load()
     } catch (e) {
       console.error(e)
-      alert('Failed to delete.')
+      toast({ title: 'Failed to delete event.', variant: 'destructive' })
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -204,11 +211,11 @@ export default function AdminCalendarPage() {
                     </td>
                     <td className="py-3 pr-4 text-slate-600">{row.week_number != null ? row.week_number : '—'}</td>
                     <td className="py-3 pr-4 flex items-center gap-2">
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEdit(row)}>
-                        <Pencil className="h-4 w-4" />
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEdit(row)} aria-label="Edit">
+                        <Pencil className="h-4 w-4" aria-hidden="true" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700" onClick={() => remove(row.id)}>
-                        <Trash2 className="h-4 w-4" />
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700" onClick={() => remove(row.id)} aria-label="Delete">
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
                       </Button>
                     </td>
                   </tr>
@@ -267,6 +274,19 @@ export default function AdminCalendarPage() {
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deletingId} onOpenChange={(open) => { if (!open) setDeletingId(null) }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete this event?</DialogTitle>
+            <DialogDescription>This calendar event will be permanently removed.</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setDeletingId(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
           </div>
         </DialogContent>
       </Dialog>

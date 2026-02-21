@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/select'
 import { createClient } from '@/lib/supabase/client'
 import { Briefcase, Plus, Pencil, Trash2, ArrowLeft, Loader2 } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 
 type CaseStudyRow = {
   id: string
@@ -52,10 +53,12 @@ function questionsToText(qs: { id: string; question: string; hint?: string }[]):
 
 export default function AdminCaseStudiesPage() {
   const supabase = createClient()
+  const { toast } = useToast()
   const [list, setList] = useState<CaseStudyRow[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [formTitle, setFormTitle] = useState('')
   const [formScenario, setFormScenario] = useState('')
@@ -113,7 +116,7 @@ export default function AdminCaseStudiesPage() {
     try {
       const questions = questionsFromText(formQuestions)
       if (questions.length === 0) {
-        alert('Add at least one question (one per line).')
+        toast({ title: 'Add at least one question (one per line).', variant: 'destructive' })
         setSaving(false)
         return
       }
@@ -136,21 +139,25 @@ export default function AdminCaseStudiesPage() {
       load()
     } catch (e) {
       console.error(e)
-      alert('Failed to save. Check the console.')
+      toast({ title: 'Failed to save case study.', variant: 'destructive' })
     } finally {
       setSaving(false)
     }
   }
 
-  const remove = async (id: string) => {
-    if (!confirm('Delete this case study? Learner responses will be deleted too.')) return
+  const remove = (id: string) => setDeletingId(id)
+
+  const confirmDelete = async () => {
+    if (!deletingId) return
     try {
-      const { error } = await supabase.from('case_studies').delete().eq('id', id)
+      const { error } = await supabase.from('case_studies').delete().eq('id', deletingId)
       if (error) throw error
       load()
     } catch (e) {
       console.error(e)
-      alert('Failed to delete.')
+      toast({ title: 'Failed to delete case study.', variant: 'destructive' })
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -209,11 +216,11 @@ export default function AdminCaseStudiesPage() {
                       {(row.questions?.length ?? 0)} questions
                     </td>
                     <td className="py-3 pr-4 flex items-center gap-2">
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEdit(row)}>
-                        <Pencil className="h-4 w-4" />
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEdit(row)} aria-label="Edit">
+                        <Pencil className="h-4 w-4" aria-hidden="true" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700" onClick={() => remove(row.id)}>
-                        <Trash2 className="h-4 w-4" />
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700" onClick={() => remove(row.id)} aria-label="Delete">
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
                       </Button>
                     </td>
                   </tr>
@@ -272,6 +279,19 @@ export default function AdminCaseStudiesPage() {
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deletingId} onOpenChange={(open) => { if (!open) setDeletingId(null) }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete this case study?</DialogTitle>
+            <DialogDescription>All learner responses linked to this case study will also be deleted. This cannot be undone.</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setDeletingId(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
           </div>
         </DialogContent>
       </Dialog>

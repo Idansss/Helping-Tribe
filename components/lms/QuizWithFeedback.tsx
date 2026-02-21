@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -31,6 +32,7 @@ interface QuizWithFeedbackProps {
 }
 
 export function QuizWithFeedback({ moduleId, moduleTitle, questions, onComplete }: QuizWithFeedbackProps) {
+  const router = useRouter()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
   const [showFeedback, setShowFeedback] = useState(false)
@@ -49,7 +51,7 @@ export function QuizWithFeedback({ moduleId, moduleTitle, questions, onComplete 
   const handleSubmitAnswer = () => {
     if (selectedAnswer === null) return
     setShowFeedback(true)
-    setAnswers({ ...answers, [currentQuestion.id]: selectedAnswer })
+    setAnswers(prev => ({ ...prev, [currentQuestion.id]: selectedAnswer }))
   }
 
   const handleNextQuestion = () => {
@@ -58,28 +60,30 @@ export function QuizWithFeedback({ moduleId, moduleTitle, questions, onComplete 
       setSelectedAnswer(null)
       setShowFeedback(false)
     } else {
-      completeQuiz()
+      // Build final answers map including the current question
+      const finalAnswers =
+        selectedAnswer !== null
+          ? { ...answers, [currentQuestion.id]: selectedAnswer }
+          : answers
+      completeQuiz(finalAnswers)
     }
   }
 
-  function completeQuiz() {
-    setIsComplete(true)
-    const correctCount = Object.entries(answers).filter(([questionId, answer]) => {
-      const question = questions.find(q => q.id === questionId)
-      return question && answer === question.correctAnswer
-    }).length
-
-    const score = Math.round((correctCount / questions.length) * 100)
-    onComplete?.(score)
-  }
-
-  const calculateFinalScore = () => {
-    const correctCount = Object.entries(answers).filter(([questionId, answer]) => {
+  function scoreAnswers(answersMap: Record<string, number>) {
+    const correctCount = Object.entries(answersMap).filter(([questionId, answer]) => {
       const question = questions.find(q => q.id === questionId)
       return question && answer === question.correctAnswer
     }).length
     return Math.round((correctCount / questions.length) * 100)
   }
+
+  function completeQuiz(finalAnswers: Record<string, number> = answers) {
+    setIsComplete(true)
+    const score = scoreAnswers(finalAnswers)
+    onComplete?.(score)
+  }
+
+  const calculateFinalScore = () => scoreAnswers(answers)
 
   if (isComplete) {
     const finalScore = calculateFinalScore()
@@ -124,13 +128,19 @@ export function QuizWithFeedback({ moduleId, moduleTitle, questions, onComplete 
           <div className="flex flex-col gap-3">
             <Button
               className="bg-[#4c1d95] hover:bg-[#5b21b6]"
-              onClick={() => window.location.reload()}
+              onClick={() => {
+                setCurrentQuestionIndex(0)
+                setSelectedAnswer(null)
+                setShowFeedback(false)
+                setAnswers({})
+                setIsComplete(false)
+              }}
             >
               Retake Quiz
             </Button>
             <Button
               variant="outline"
-              onClick={() => window.location.href = '/dashboard'}
+              onClick={() => router.push('/learner/dashboard')}
             >
               Back to Dashboard
             </Button>

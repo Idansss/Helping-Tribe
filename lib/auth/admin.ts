@@ -1,4 +1,5 @@
-export const PRIMARY_ADMIN_EMAIL = 'jesselingard990@gmail.com'
+export const PRIMARY_ADMIN_EMAIL =
+  (process.env.ADMIN_EMAIL ?? 'jesselingard990@gmail.com').trim().toLowerCase()
 
 function normalizeRole(role: unknown) {
   return String(role ?? '').trim().toLowerCase()

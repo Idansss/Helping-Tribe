@@ -199,6 +199,7 @@ export function MentorLayout({ children }: MentorLayoutProps) {
       </aside>
 
       <main
+        id="main-content"
         className={cn(
           'min-h-screen w-full min-w-0 flex-1 transition-all duration-300',
           isDesktop && sidebarOpen ? 'ml-56' : 'ml-0'

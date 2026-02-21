@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/select'
 import { createClient } from '@/lib/supabase/client'
 import { FolderOpen, Plus, Pencil, Trash2, ArrowLeft, Loader2 } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 
 type ResourceRow = {
   id: string
@@ -49,10 +50,12 @@ const CATEGORIES = [
 
 export default function AdminResourcesPage() {
   const supabase = createClient()
+  const { toast } = useToast()
   const [list, setList] = useState<ResourceRow[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [formCategory, setFormCategory] = useState<string>('mental_health')
   const [formTitle, setFormTitle] = useState('')
@@ -147,21 +150,25 @@ export default function AdminResourcesPage() {
       load()
     } catch (e) {
       console.error(e)
-      alert('Failed to save.')
+      toast({ title: 'Failed to save resource.', variant: 'destructive' })
     } finally {
       setSaving(false)
     }
   }
 
-  const remove = async (id: string) => {
-    if (!confirm('Delete this resource?')) return
+  const remove = (id: string) => setDeletingId(id)
+
+  const confirmDelete = async () => {
+    if (!deletingId) return
     try {
-      const { error } = await supabase.from('resources').delete().eq('id', id)
+      const { error } = await supabase.from('resources').delete().eq('id', deletingId)
       if (error) throw error
       load()
     } catch (e) {
       console.error(e)
-      alert('Failed to delete.')
+      toast({ title: 'Failed to delete resource.', variant: 'destructive' })
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -218,11 +225,11 @@ export default function AdminResourcesPage() {
                     </td>
                     <td className="py-3 pr-4 text-slate-600">{row.location || '—'}</td>
                     <td className="py-3 pr-4 flex items-center gap-2">
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEdit(row)}>
-                        <Pencil className="h-4 w-4" />
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEdit(row)} aria-label="Edit">
+                        <Pencil className="h-4 w-4" aria-hidden="true" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700" onClick={() => remove(row.id)}>
-                        <Trash2 className="h-4 w-4" />
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700" onClick={() => remove(row.id)} aria-label="Delete">
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
                       </Button>
                     </td>
                   </tr>
@@ -299,6 +306,19 @@ export default function AdminResourcesPage() {
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deletingId} onOpenChange={(open) => { if (!open) setDeletingId(null) }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete this resource?</DialogTitle>
+            <DialogDescription>This resource will be permanently removed from the directory.</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setDeletingId(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
           </div>
         </DialogContent>
       </Dialog>

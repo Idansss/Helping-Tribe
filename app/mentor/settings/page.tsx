@@ -6,10 +6,11 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { UserCircle2 } from 'lucide-react'
+import { UserCircle2, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/hooks/use-toast'
 
-const MENTOR_PROFILE_STORAGE_KEY = 'ht-mentor-profile'
+const MENTOR_EXTRA_KEY = 'ht-mentor-profile-extra'
 
 type MentorProfile = {
   name: string
@@ -17,7 +18,7 @@ type MentorProfile = {
   role: string
   timezone: string
   bio: string
-  avatar?: string
+  avatarUrl: string | null
 }
 
 const DEFAULT_PROFILE: MentorProfile = {
@@ -26,262 +27,256 @@ const DEFAULT_PROFILE: MentorProfile = {
   role: 'Counselor / Mentor',
   timezone: 'Africa/Lagos',
   bio: 'Mentor on the HELP Foundations counseling program.',
+  avatarUrl: null,
 }
 
 export default function MentorSettingsPage() {
-  const [profile, setProfile] = useState<MentorProfile>(DEFAULT_PROFILE)
-  const [message, setMessage] = useState<string | null>(null)
-  const [isSavingAvatar, setIsSavingAvatar] = useState(false)
   const supabase = createClient()
+  const { toast } = useToast()
+  const [profile, setProfile] = useState<MentorProfile>(DEFAULT_PROFILE)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
 
-  // Load saved profile from localStorage on mount
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    try {
-      const raw = window.localStorage.getItem(MENTOR_PROFILE_STORAGE_KEY)
-      if (!raw) return
-      const parsed = JSON.parse(raw) as Partial<MentorProfile>
-      setProfile(prev => ({ ...prev, ...parsed }))
-    } catch {
-      // ignore parse errors
-    }
-  }, [])
-
-  // Hydrate email from Supabase auth user so it always matches login email
-  useEffect(() => {
-    async function loadAuthEmail() {
+    async function load() {
+      setLoading(true)
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
-        if (user?.email) {
-          setProfile(prev => {
-            if (prev.email === user.email) return prev
-            const next = { ...prev, email: user.email as string }
-            if (typeof window !== 'undefined') {
-              try {
-                window.localStorage.setItem(
-                  MENTOR_PROFILE_STORAGE_KEY,
-                  JSON.stringify(next),
-                )
-              } catch {
-                // ignore storage errors
-              }
-            }
-            return next
-          })
-        }
-      } catch {
-        // ignore auth errors
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        setUserId(user.id)
+
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('full_name, avatar_url')
+          .eq('id', user.id)
+          .single()
+
+        if (error && error.code !== 'PGRST116') throw error
+
+        let extra: Partial<MentorProfile> = {}
+        try {
+          const raw = localStorage.getItem(MENTOR_EXTRA_KEY)
+          if (raw) extra = JSON.parse(raw)
+        } catch { /* ignore */ }
+
+        setProfile({
+          ...DEFAULT_PROFILE,
+          ...extra,
+          name: data?.full_name ?? extra.name ?? '',
+          email: user.email ?? '',
+          avatarUrl: data?.avatar_url ?? null,
+        })
+      } catch (e) {
+        console.error(e)
+        toast({ title: 'Failed to load profile.', variant: 'destructive' })
+      } finally {
+        setLoading(false)
       }
     }
-
-    loadAuthEmail()
-  }, [supabase])
+    load()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleChange =
     (field: keyof MentorProfile) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const value = e.target.value
-      setProfile(prev => ({ ...prev, [field]: value }))
+      setProfile(prev => ({ ...prev, [field]: e.target.value }))
     }
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (typeof window !== 'undefined') {
+    if (!userId) return
+    setSaving(true)
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ full_name: profile.name.trim() || null, updated_at: new Date().toISOString() })
+        .eq('id', userId)
+      if (error) throw error
+
       try {
-        window.localStorage.setItem(
-          MENTOR_PROFILE_STORAGE_KEY,
-          JSON.stringify(profile),
+        localStorage.setItem(
+          MENTOR_EXTRA_KEY,
+          JSON.stringify({ role: profile.role, timezone: profile.timezone, bio: profile.bio }),
         )
-      } catch {
-        // ignore storage errors
-      }
+      } catch { /* ignore */ }
+
+      toast({ title: 'Profile updated successfully.' })
+    } catch (e) {
+      console.error(e)
+      toast({ title: 'Failed to save profile.', variant: 'destructive' })
+    } finally {
+      setSaving(false)
     }
-    setMessage('Profile updated.')
-    setTimeout(() => setMessage(null), 2500)
   }
 
-  const handleReset = () => {
-    setProfile(DEFAULT_PROFILE)
-    if (typeof window !== 'undefined') {
-      try {
-        window.localStorage.setItem(
-          MENTOR_PROFILE_STORAGE_KEY,
-          JSON.stringify(DEFAULT_PROFILE),
-        )
-      } catch {
-        // ignore
-      }
-    }
-    setMessage('Profile reset to defaults.')
-    setTimeout(() => setMessage(null), 2500)
-  }
-
-  const handleAvatarChange = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (!file) return
+    if (!file || !userId) return
 
     if (!file.type.startsWith('image/')) {
-      setMessage('Please choose an image file.')
-      setTimeout(() => setMessage(null), 2500)
+      toast({ title: 'Please choose an image file (JPG or PNG).', variant: 'destructive' })
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: 'Image must be under 2 MB.', variant: 'destructive' })
       return
     }
 
-    setIsSavingAvatar(true)
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      const result = reader.result
-      if (typeof result === 'string') {
-        setProfile(prev => ({ ...prev, avatar: result }))
-        if (typeof window !== 'undefined') {
-          try {
-            const stored = { ...profile, avatar: result }
-            window.localStorage.setItem(
-              MENTOR_PROFILE_STORAGE_KEY,
-              JSON.stringify(stored),
-            )
-          } catch {
-            // ignore storage errors
-          }
-        }
-        setMessage('Profile photo updated.')
-        setTimeout(() => setMessage(null), 2500)
-      }
-      setIsSavingAvatar(false)
+    setUploadingAvatar(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `${userId}/avatar.${ext}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true, contentType: file.type })
+      if (uploadError) throw uploadError
+
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
+      const publicUrl = urlData.publicUrl
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', userId)
+      if (updateError) throw updateError
+
+      setProfile(prev => ({ ...prev, avatarUrl: publicUrl }))
+      toast({ title: 'Profile photo updated.' })
+    } catch (e) {
+      console.error(e)
+      toast({ title: 'Failed to upload photo.', variant: 'destructive' })
+    } finally {
+      setUploadingAvatar(false)
     }
-    reader.readAsDataURL(file)
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 py-10 text-slate-500">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        <span className="text-sm">Loading profile…</span>
+      </div>
+    )
   }
 
   return (
     <div className="space-y-4 max-w-3xl">
-        <div>
-          <h1 className="text-lg font-semibold text-slate-900">Mentor profile</h1>
-          <p className="text-xs text-slate-500">
-            Manage your personal details that appear across the counseling portal.
-          </p>
+      <div>
+        <h1 className="text-lg font-semibold text-slate-900">Mentor profile</h1>
+        <p className="text-xs text-slate-500">
+          Manage your personal details. Name and photo are saved to the database.
+        </p>
+      </div>
+
+      <Card className="p-4 space-y-4">
+        <div className="flex items-center gap-3">
+          {profile.avatarUrl ? (
+            <div className="h-10 w-10 rounded-full overflow-hidden border border-slate-200 bg-slate-100">
+              <img
+                src={profile.avatarUrl}
+                alt="Mentor avatar"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="h-10 w-10 rounded-full bg-purple-50 flex items-center justify-center">
+              <UserCircle2 className="h-6 w-6 text-purple-600" />
+            </div>
+          )}
+          <div className="text-xs">
+            <p className="font-semibold text-slate-900">{profile.name || 'Mentor'}</p>
+            <p className="text-slate-500">{profile.role}</p>
+          </div>
         </div>
 
-        <Card className="p-4 space-y-4">
-          <div className="flex items-center gap-3">
-            {profile.avatar ? (
-              <div className="h-10 w-10 rounded-full overflow-hidden border border-slate-200 bg-slate-100">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={profile.avatar}
-                  alt="Mentor avatar"
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            ) : (
-              <div className="h-10 w-10 rounded-full bg-[var(--talent-primary)]/10 flex items-center justify-center">
-                <UserCircle2 className="h-6 w-6 text-[var(--talent-primary)]" />
-              </div>
-            )}
-            <div className="text-xs">
-              <p className="font-semibold text-slate-900">Mentor</p>
-              <p className="text-slate-500">{profile.role}</p>
-            </div>
-          </div>
-
-          <div className="text-[11px] text-slate-600">
-            <label className="inline-flex items-center gap-2 cursor-pointer">
-              <span className="px-3 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100">
-                {isSavingAvatar ? 'Uploading…' : 'Change photo'}
-              </span>
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleAvatarChange}
-              />
-            </label>
-            <span className="ml-2 text-[10px] text-slate-400">
-              JPG or PNG, up to ~2MB.
+        <div className="text-[11px] text-slate-600">
+          <label className="inline-flex items-center gap-2 cursor-pointer">
+            <span className="px-3 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100">
+              {uploadingAvatar ? 'Uploading…' : 'Change photo'}
             </span>
-          </div>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarChange}
+              disabled={uploadingAvatar}
+            />
+          </label>
+          <span className="ml-2 text-[10px] text-slate-400">JPG or PNG, up to 2 MB.</span>
+        </div>
 
-          <form onSubmit={handleSave} className="grid gap-3 text-xs md:grid-cols-2">
-            <div className="space-y-1">
-              <Label htmlFor="name">Full name</Label>
-              <Input
-                id="name"
-                value={profile.name}
-                onChange={handleChange('name')}
-                placeholder="e.g. Abass Ibrahim"
-                className="text-xs"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={profile.email}
-                readOnly
-                className="text-xs bg-slate-50"
-              />
-              <p className="text-[10px] text-slate-500">
-                This matches the email you use to sign in.
-              </p>
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="role">Role</Label>
-              <Input
-                id="role"
-                value={profile.role}
-                onChange={handleChange('role')}
-                className="text-xs"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="timezone">Timezone</Label>
-              <Input
-                id="timezone"
-                value={profile.timezone}
-                onChange={handleChange('timezone')}
-                className="text-xs"
-              />
-            </div>
-            <div className="space-y-1 md:col-span-2">
-              <Label htmlFor="bio">Short bio</Label>
-              <Textarea
-                id="bio"
-                value={profile.bio}
-                onChange={handleChange('bio')}
-                rows={3}
-                className="text-xs"
-              />
-              <p className="text-[10px] text-slate-500">
-                This appears on learner‑facing pages where your profile is shown.
-              </p>
-            </div>
-            <div className="md:col-span-2 flex items-center justify-end gap-2 pt-1">
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className="text-[11px] text-slate-600"
-                onClick={handleReset}
-              >
-                Reset profile
-              </Button>
-              <Button
-                type="submit"
-                size="sm"
-                className="text-[11px] bg-[var(--talent-primary)] hover:bg-[var(--talent-primary)]/90 text-white"
-              >
-                Save changes
-              </Button>
-              {message && (
-                <span className="text-[11px] text-slate-500 ml-2">{message}</span>
-              )}
-            </div>
-          </form>
-        </Card>
-      </div>
+        <form onSubmit={handleSave} className="grid gap-3 text-xs md:grid-cols-2">
+          <div className="space-y-1">
+            <Label htmlFor="name">Full name</Label>
+            <Input
+              id="name"
+              value={profile.name}
+              onChange={handleChange('name')}
+              placeholder="e.g. Amaka Osei"
+              className="text-xs"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={profile.email}
+              readOnly
+              aria-readonly="true"
+              className="text-xs bg-slate-50 cursor-not-allowed"
+            />
+            <p className="text-[10px] text-slate-500">
+              This matches the email you use to sign in.
+            </p>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="role">Role title</Label>
+            <Input
+              id="role"
+              value={profile.role}
+              onChange={handleChange('role')}
+              className="text-xs"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="timezone">Timezone</Label>
+            <Input
+              id="timezone"
+              value={profile.timezone}
+              onChange={handleChange('timezone')}
+              className="text-xs"
+            />
+          </div>
+          <div className="space-y-1 md:col-span-2">
+            <Label htmlFor="bio">Short bio</Label>
+            <Textarea
+              id="bio"
+              value={profile.bio}
+              onChange={handleChange('bio')}
+              rows={3}
+              className="text-xs"
+            />
+            <p className="text-[10px] text-slate-500">
+              Appears on learner-facing pages where your profile is shown.
+            </p>
+          </div>
+          <div className="md:col-span-2 flex items-center justify-end gap-2 pt-1">
+            <Button
+              type="submit"
+              size="sm"
+              disabled={saving}
+              className="text-[11px] bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save changes'}
+            </Button>
+          </div>
+        </form>
+      </Card>
+    </div>
   )
 }
-

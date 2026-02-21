@@ -359,11 +359,11 @@ export function LearnerHeader({ onMenuClick }: LearnerHeaderProps) {
                 type="button"
                 className="w-full text-left px-3 py-2 hover:bg-slate-50"
                 onClick={() => {
-                  router.push('/profile')
+                  router.push('/learner/settings')
                   setProfileOpen(false)
                 }}
               >
-                Profile
+                Settings
               </button>
               <button
                 type="button"

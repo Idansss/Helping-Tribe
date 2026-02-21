@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/select'
 import { createClient } from '@/lib/supabase/client'
 import { ArrowLeft, Plus, Pencil, Trash2, ListChecks, Loader2 } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 
 type QuizRow = {
   id: string
@@ -56,10 +57,13 @@ function optionLetter(index: number) {
 
 export default function MentorQuizzesPage() {
   const supabase = createClient()
+  const { toast } = useToast()
   const [quizzes, setQuizzes] = useState<QuizRow[]>([])
   const [loading, setLoading] = useState(true)
   const [quizDialogOpen, setQuizDialogOpen] = useState(false)
   const [questionsDialogOpen, setQuestionsDialogOpen] = useState(false)
+  const [deletingQuizId, setDeletingQuizId] = useState<string | null>(null)
+  const [deletingQuestionId, setDeletingQuestionId] = useState<string | null>(null)
   const [editingQuizId, setEditingQuizId] = useState<string | null>(null)
   const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null)
   const [quizTitle, setQuizTitle] = useState('')
@@ -144,22 +148,26 @@ export default function MentorQuizzesPage() {
       loadQuizzes()
     } catch (e) {
       console.error(e)
-      alert('Failed to save quiz.')
+      toast({ title: 'Failed to save quiz.', variant: 'destructive' })
     } finally {
       setSavingQuiz(false)
     }
   }
 
-  const deleteQuiz = async (id: string) => {
-    if (!confirm('Delete this quiz? All questions and learner attempts will be removed.')) return
+  const deleteQuiz = (id: string) => setDeletingQuizId(id)
+
+  const confirmDeleteQuiz = async () => {
+    if (!deletingQuizId) return
     try {
-      const { error } = await supabase.from('quizzes').delete().eq('id', id)
+      const { error } = await supabase.from('quizzes').delete().eq('id', deletingQuizId)
       if (error) throw error
       loadQuizzes()
-      if (selectedQuizId === id) setQuestionsDialogOpen(false)
+      if (selectedQuizId === deletingQuizId) setQuestionsDialogOpen(false)
     } catch (e) {
       console.error(e)
-      alert('Failed to delete.')
+      toast({ title: 'Failed to delete quiz.', variant: 'destructive' })
+    } finally {
+      setDeletingQuizId(null)
     }
   }
 
@@ -204,7 +212,7 @@ export default function MentorQuizzesPage() {
     if (!selectedQuizId || !qText.trim()) return
     const opts = qParsedOptions
     if (opts.length < 2) {
-      alert('Add at least 2 options (one per line).')
+      toast({ title: 'Add at least 2 options (one per line).', variant: 'destructive' })
       return
     }
     const idx = Math.min(qCorrectIndex, opts.length - 1)
@@ -228,21 +236,25 @@ export default function MentorQuizzesPage() {
       if (selectedQuizId) openQuestions(selectedQuizId)
     } catch (e) {
       console.error(e)
-      alert('Failed to save question.')
+      toast({ title: 'Failed to save question.', variant: 'destructive' })
     } finally {
       setSavingQuestion(false)
     }
   }
 
-  const deleteQuestion = async (id: string) => {
-    if (!confirm('Remove this question?')) return
+  const deleteQuestion = (id: string) => setDeletingQuestionId(id)
+
+  const confirmDeleteQuestion = async () => {
+    if (!deletingQuestionId) return
     try {
-      const { error } = await supabase.from('quiz_questions').delete().eq('id', id)
+      const { error } = await supabase.from('quiz_questions').delete().eq('id', deletingQuestionId)
       if (error) throw error
       if (selectedQuizId) openQuestions(selectedQuizId)
     } catch (e) {
       console.error(e)
-      alert('Failed to delete.')
+      toast({ title: 'Failed to delete question.', variant: 'destructive' })
+    } finally {
+      setDeletingQuestionId(null)
     }
   }
 
@@ -306,11 +318,11 @@ export default function MentorQuizzesPage() {
                         <ListChecks className="h-4 w-4 mr-1" />
                         Questions
                       </Button>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEditQuiz(row)}>
-                        <Pencil className="h-4 w-4" />
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEditQuiz(row)} aria-label="Edit quiz">
+                        <Pencil className="h-4 w-4" aria-hidden="true" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700" onClick={() => deleteQuiz(row.id)}>
-                        <Trash2 className="h-4 w-4" />
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700" onClick={() => deleteQuiz(row.id)} aria-label="Delete quiz">
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
                       </Button>
                       </div>
                     </td>
@@ -452,6 +464,32 @@ export default function MentorQuizzesPage() {
                 {savingQuestion ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deletingQuizId} onOpenChange={(open) => { if (!open) setDeletingQuizId(null) }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete this quiz?</DialogTitle>
+            <DialogDescription>All questions and learner attempts will be permanently removed.</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setDeletingQuizId(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDeleteQuiz}>Delete</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deletingQuestionId} onOpenChange={(open) => { if (!open) setDeletingQuestionId(null) }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Remove this question?</DialogTitle>
+            <DialogDescription>This will permanently remove the question and any recorded answers.</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setDeletingQuestionId(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDeleteQuestion}>Remove</Button>
           </div>
         </DialogContent>
       </Dialog>

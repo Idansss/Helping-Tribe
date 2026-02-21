@@ -456,6 +456,9 @@ export function AdminHeader({
           <Button
             variant="outline"
             size="sm"
+            aria-label="Profile menu"
+            aria-expanded={isProfileOpen}
+            aria-haspopup="menu"
             className="flex items-center gap-2 rounded-full border-slate-200 pl-1 pr-3"
             onClick={() => {
               setIsProfileOpen(open => !open)

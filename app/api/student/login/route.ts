@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createRouteClient } from '@/lib/supabase/route'
 import { matricToAuthEmail } from '@/lib/auth/constants'
+import { checkRateLimit, getRequestIp } from '@/lib/server/rate-limit'
 
 const StudentLoginSchema = z.object({
   matricNumber: z.string().min(4),
@@ -10,6 +11,20 @@ const StudentLoginSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    // Brute-force protection: 10 attempts per IP per 15 minutes
+    const ip = getRequestIp(request.headers)
+    const limit = checkRateLimit({
+      key: `student-login:${ip}`,
+      limit: 10,
+      windowMs: 15 * 60 * 1000,
+    })
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many login attempts. Please wait 15 minutes and try again.' },
+        { status: 429 }
+      )
+    }
+
     const body = StudentLoginSchema.parse(await request.json())
     const { supabase, cookiesToSet } = createRouteClient(request)
 

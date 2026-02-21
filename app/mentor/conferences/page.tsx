@@ -111,6 +111,8 @@ const getConferenceStatus = (date: string, time: string): 'upcoming' | 'past' | 
 
 export default function MentorConferencesPage() {
   const [conferences, setConferences] = useState<Conference[]>([])
+  const [deletingConferenceId, setDeletingConferenceId] = useState<string | null>(null)
+  const [bulkDeletePending, setBulkDeletePending] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [query, setQuery] = useState('')
   const [dateFrom, setDateFrom] = useState('')
@@ -313,15 +315,17 @@ export default function MentorConferencesPage() {
     resetForm()
   }
 
-  const deleteConference = (id: string) => {
-    if (confirm('Are you sure you want to delete this conference?')) {
-      setConferences((prev) => prev.filter((c) => c.id !== id))
-      setSelectedIds((prev) => {
-        const next = { ...prev }
-        delete next[id]
-        return next
-      })
-    }
+  const deleteConference = (id: string) => setDeletingConferenceId(id)
+
+  const confirmDeleteConference = () => {
+    if (!deletingConferenceId) return
+    setConferences((prev) => prev.filter((c) => c.id !== deletingConferenceId))
+    setSelectedIds((prev) => {
+      const next = { ...prev }
+      delete next[deletingConferenceId]
+      return next
+    })
+    setDeletingConferenceId(null)
   }
 
   const duplicateConference = (conf: Conference) => {
@@ -337,10 +341,14 @@ export default function MentorConferencesPage() {
   const bulkDelete = () => {
     const ids = Object.keys(selectedIds).filter((id) => selectedIds[id])
     if (ids.length === 0) return
-    if (confirm(`Delete ${ids.length} conference(s)?`)) {
-      setConferences((prev) => prev.filter((c) => !ids.includes(c.id)))
-      setSelectedIds({})
-    }
+    setBulkDeletePending(true)
+  }
+
+  const confirmBulkDelete = () => {
+    const ids = Object.keys(selectedIds).filter((id) => selectedIds[id])
+    setConferences((prev) => prev.filter((c) => !ids.includes(c.id)))
+    setSelectedIds({})
+    setBulkDeletePending(false)
   }
 
   const toggleSelectAll = () => {
@@ -1157,6 +1165,34 @@ export default function MentorConferencesPage() {
                 <Users className="h-3.5 w-3.5 mr-2" />
                 Invite Attendees
               </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={!!deletingConferenceId} onOpenChange={(open) => { if (!open) setDeletingConferenceId(null) }}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Delete this conference?</DialogTitle>
+              <DialogDescription>This conference will be permanently removed. This cannot be undone.</DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setDeletingConferenceId(null)}>Cancel</Button>
+              <Button variant="destructive" onClick={confirmDeleteConference}>Delete</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={bulkDeletePending} onOpenChange={(open) => { if (!open) setBulkDeletePending(false) }}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Delete selected conferences?</DialogTitle>
+              <DialogDescription>
+                {Object.values(selectedIds).filter(Boolean).length} conference(s) will be permanently removed.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setBulkDeletePending(false)}>Cancel</Button>
+              <Button variant="destructive" onClick={confirmBulkDelete}>Delete All</Button>
             </div>
           </DialogContent>
         </Dialog>

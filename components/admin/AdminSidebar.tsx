@@ -120,7 +120,7 @@ export function AdminSidebar({
             const Icon = item.icon
             const active =
               pathname === item.href ||
-              (item.href !== '/admin' && pathname.startsWith(item.href))
+              (item.href !== '/admin' && pathname.startsWith(item.href + '/'))
 
             return (
               <li key={item.href}>

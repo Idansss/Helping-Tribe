@@ -7,10 +7,7 @@ import { cn } from '@/lib/utils/cn'
 import {
   User,
   LogOut,
-  Play,
-  ArrowRight,
   ChevronDown,
-  Mail,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -95,6 +92,9 @@ export function UserMenuDropdown({
       {/* User Profile Trigger */}
       <button
         onClick={() => setIsOpen(!isOpen)}
+        aria-label={`${displayName} — user menu`}
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
         className={cn(
           'flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200',
           isOpen ? 'bg-purple-50' : 'hover:bg-gray-50'
@@ -209,26 +209,6 @@ export function UserMenuDropdown({
               <User className="h-4 w-4 text-slate-500" />
               <span className="font-medium">My profile</span>
             </Link>
-
-            <div className="border-t border-gray-100 my-1" />
-
-            <button
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors w-full text-left"
-            >
-              <ArrowRight className="h-4 w-4 text-slate-500" />
-              <span className="font-medium">Go to legacy interface</span>
-            </button>
-
-            <div className="border-t border-gray-100 my-1" />
-
-            <button
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors w-full text-left"
-            >
-              <Play className="h-4 w-4 text-slate-500" />
-              <span className="font-medium">Watch walkthrough</span>
-            </button>
 
             <div className="border-t border-gray-100 my-1" />
 
