@@ -1,6 +1,6 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import {
-  GraduationCap,
   BookOpen,
   Award,
   Users,
@@ -18,8 +18,8 @@ function MarketingPanel() {
       </div>
 
       <div className="relative z-10 mx-auto max-w-md">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm">
-          <GraduationCap className="h-7 w-7 text-white" />
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm overflow-hidden">
+          <Image src="/logo.png" alt="The Helping Tribe" width={56} height={56} className="object-contain" />
         </div>
 
         <h1 className="mt-8 font-display text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl text-balance">
