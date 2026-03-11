@@ -30,11 +30,9 @@ export function isMentorLikeRole(role: unknown) {
 }
 
 export function resolvePortalRole(role: unknown, email: string | null | undefined): 'admin' | 'mentor' | 'learner' {
-  if (isAllowedAdmin(role, email)) return 'admin'
-
   const normalized = normalizeRole(role)
-  if (isMentorLikeRole(normalized) || normalized === 'admin') return 'mentor'
-
+  if (normalized === 'admin') return 'admin'
+  if (isMentorLikeRole(normalized)) return 'mentor'
   return 'learner'
 }
 

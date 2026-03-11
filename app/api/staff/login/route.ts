@@ -58,11 +58,12 @@ export async function POST(request: NextRequest) {
     }
 
     const portalRole = resolvePortalRole((profile as any)?.role, user.email)
-    const redirectTo = isAllowedAdmin((profile as any)?.role, user.email)
-      ? '/admin/applicants'
-      : portalRole === 'mentor'
-        ? '/mentor'
-        : '/learner/dashboard'
+    const redirectTo =
+      portalRole === 'admin'
+        ? '/admin'
+        : portalRole === 'mentor'
+          ? '/mentor'
+          : '/learner/dashboard'
 
     const response = NextResponse.json({ ok: true, redirectTo })
     cookiesToSet.forEach((c) => response.cookies.set(c.name, c.value, c.options))

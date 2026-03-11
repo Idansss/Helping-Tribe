@@ -29,12 +29,13 @@ async function MentorGate({ children }: { children: ReactNode }) {
     .eq('id', user.id)
     .maybeSingle()
 
-  // Allow faculty to use mentor portal (legacy schema uses 'faculty' for mentors).
-  if (
-    profile?.role !== 'mentor' &&
-    profile?.role !== 'faculty' &&
-    profile?.role !== 'admin'
-  ) {
+  // Admins get their own portal — redirect them away from mentor.
+  if (profile?.role === 'admin') {
+    redirect('/admin')
+  }
+
+  // Allow mentor and faculty (legacy schema uses 'faculty' for mentors).
+  if (profile?.role !== 'mentor' && profile?.role !== 'faculty') {
     redirect('/')
   }
 
