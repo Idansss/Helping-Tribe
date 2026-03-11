@@ -434,13 +434,13 @@ export default function MentorConferencesPage() {
         {/* Stats Cards */}
         {conferences.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="p-4 border-purple-200">
+            <Card className="p-4 border-teal-200">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-slate-600 mb-1">Total Conferences</p>
                   <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
                 </div>
-                <CalendarDays className="h-8 w-8 text-purple-600" />
+                <CalendarDays className="h-8 w-8 text-teal-600" />
               </div>
             </Card>
             <Card className="p-4 border-emerald-200">
@@ -744,7 +744,7 @@ export default function MentorConferencesPage() {
           <div className="flex items-center justify-between pt-4">
             <div></div>
             <Button
-              className="bg-purple-600 hover:bg-purple-700 text-white text-xs"
+              className="bg-teal-600 hover:bg-teal-700 text-white text-xs"
               onClick={openForm}
             >
               Add conference
@@ -872,7 +872,7 @@ export default function MentorConferencesPage() {
                 <Button
                   type="submit"
                   size="sm"
-                  className="bg-purple-600 hover:bg-purple-700 text-white text-xs"
+                  className="bg-teal-600 hover:bg-teal-700 text-white text-xs"
                 >
                   Create conference
                 </Button>
@@ -1121,7 +1121,7 @@ export default function MentorConferencesPage() {
                   <Button
                     type="submit"
                     size="sm"
-                    className="bg-purple-600 hover:bg-purple-700 text-white text-xs"
+                    className="bg-teal-600 hover:bg-teal-700 text-white text-xs"
                   >
                     Save changes
                   </Button>

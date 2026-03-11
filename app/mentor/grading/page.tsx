@@ -330,7 +330,7 @@ export default function MentorGradingHubPage() {
                 >
                   <span className="mr-2">{TYPE_LABELS[key]}</span>
                   {countsByType[key].pending > 0 && (
-                    <span className="inline-flex items-center justify-center rounded-full bg-purple-600 text-white text-[10px] h-5 min-w-5 px-1">
+                    <span className="inline-flex items-center justify-center rounded-full bg-teal-600 text-white text-[10px] h-5 min-w-5 px-1">
                       {countsByType[key].pending}
                     </span>
                   )}
@@ -407,8 +407,8 @@ export default function MentorGradingHubPage() {
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-start gap-3 min-w-0">
-                            <div className="h-10 w-10 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
-                              <Icon className="h-5 w-5 text-purple-600" />
+                            <div className="h-10 w-10 rounded-lg bg-teal-50 flex items-center justify-center shrink-0">
+                              <Icon className="h-5 w-5 text-teal-600" />
                             </div>
                             <div className="min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
@@ -541,7 +541,7 @@ export default function MentorGradingHubPage() {
                   </Button>
                   <Button
                     type="button"
-                    className="bg-purple-600 hover:bg-purple-800 text-white"
+                    className="bg-teal-600 hover:bg-teal-800 text-white"
                     onClick={markReviewed}
                     disabled={saving}
                   >

@@ -443,7 +443,7 @@ export default function AdminNewsletterPage() {
           </DialogHeader>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => setSendingId(null)}>Cancel</Button>
-            <Button className="bg-purple-600 hover:bg-purple-700 text-white" onClick={confirmSendIssue}>Send Now</Button>
+            <Button className="bg-teal-600 hover:bg-teal-700 text-white" onClick={confirmSendIssue}>Send Now</Button>
           </div>
         </DialogContent>
       </Dialog>

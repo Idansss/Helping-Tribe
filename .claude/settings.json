@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find 'c:\\\\Users\\\\Admin\\\\Desktop\\\\Helping Tribe' -name favicon* -o -name icon*)",
+      "Bash(grep -r \"logo\\\\|icon\\\\.svg\" '/c/Users/Admin/Desktop/Helping Tribe/app' --include=*.tsx --include=*.ts)",
+      "Bash(find 'c:/Users/Admin/Desktop/Helping Tribe/app/api' -name *.ts -o -name *.tsx)",
+      "Bash(grep \"\\\\.tsx$\")",
+      "Bash(for f:*)",
+      "Bash(do)",
+      "Bash(sed -i 's/bg-purple-600 hover:bg-purple-700/bg-teal-600 hover:bg-teal-700/g' \"$f\")",
+      "Bash(echo \"Processed: $f\")",
+      "Bash(done)",
+      "Bash(grep -v \"//.*purple\")"
+    ]
+  }
+}

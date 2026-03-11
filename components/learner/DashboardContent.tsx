@@ -155,7 +155,7 @@ export function DashboardContent() {
         </Card>
         <Card className="p-4 border-slate-200 bg-white">
           <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center">
+            <div className="h-9 w-9 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center">
               <Target className="h-4 w-4" />
             </div>
             <div>

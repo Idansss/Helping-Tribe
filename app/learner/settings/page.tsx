@@ -230,8 +230,8 @@ export default function LearnerSettingsPage() {
               <img src={profile.avatarUrl} alt="Your avatar" className="h-full w-full object-cover" />
             </div>
           ) : (
-            <div className="h-14 w-14 rounded-full bg-purple-50 flex items-center justify-center shrink-0">
-              <UserCircle2 className="h-8 w-8 text-purple-600" />
+            <div className="h-14 w-14 rounded-full bg-teal-50 flex items-center justify-center shrink-0">
+              <UserCircle2 className="h-8 w-8 text-teal-600" />
             </div>
           )}
           <div className="space-y-1">
@@ -280,7 +280,7 @@ export default function LearnerSettingsPage() {
             />
             <p className="text-[10px] text-slate-500">Your email cannot be changed here.</p>
           </div>
-          <Button type="submit" size="sm" disabled={saving} className="bg-purple-600 hover:bg-purple-700 text-white">
+          <Button type="submit" size="sm" disabled={saving} className="bg-teal-600 hover:bg-teal-700 text-white">
             {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save profile'}
           </Button>
         </form>
@@ -353,7 +353,7 @@ export default function LearnerSettingsPage() {
                 type="checkbox"
                 checked={notif[key]}
                 onChange={(e) => saveNotif({ ...notif, [key]: e.target.checked })}
-                className="h-4 w-4 accent-purple-600 rounded shrink-0"
+                className="h-4 w-4 accent-teal-600 rounded shrink-0"
               />
             </label>
           ))}

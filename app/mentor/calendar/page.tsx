@@ -169,7 +169,7 @@ export default function MentorCalendarPage() {
       case 'conference':
         return 'bg-blue-100 text-blue-700 border-blue-200'
       case 'grading':
-        return 'bg-purple-100 text-purple-700 border-purple-200'
+        return 'bg-teal-100 text-teal-700 border-teal-200'
       case 'peer-circle':
         return 'bg-green-100 text-green-700 border-green-200'
       case 'supervision':
@@ -269,7 +269,7 @@ export default function MentorCalendarPage() {
               <DialogTrigger asChild>
                 <Button 
                   size="sm" 
-                  className="bg-purple-600 hover:bg-purple-700 text-white text-xs"
+                  className="bg-teal-600 hover:bg-teal-700 text-white text-xs"
                   onClick={() => {
                     setEventForm(prev => ({
                       ...prev,
@@ -380,7 +380,7 @@ export default function MentorCalendarPage() {
                   >
                     Cancel
                   </Button>
-                  <Button onClick={handleAddEvent} className="bg-purple-600 hover:bg-purple-700">
+                  <Button onClick={handleAddEvent} className="bg-teal-600 hover:bg-teal-700">
                     Add Event
                   </Button>
                 </DialogFooter>
@@ -423,12 +423,12 @@ export default function MentorCalendarPage() {
                         <td
                           key={dayIdx}
                           onClick={() => handleDateClick(day)}
-                          className={`border border-dashed border-[#e2e8f0] h-20 align-top p-2 text-[11px] cursor-pointer hover:bg-purple-50 transition-colors ${
+                          className={`border border-dashed border-[#e2e8f0] h-20 align-top p-2 text-[11px] cursor-pointer hover:bg-teal-50 transition-colors ${
                             isCurrentMonth ? 'text-slate-700' : 'text-slate-400'
-                          } ${isTodayDate ? 'bg-purple-50 font-semibold' : ''}`}
+                          } ${isTodayDate ? 'bg-teal-50 font-semibold' : ''}`}
                         >
                           <div className="flex flex-col gap-1">
-                            <span className={`${isTodayDate ? 'text-purple-600' : ''}`}>
+                            <span className={`${isTodayDate ? 'text-teal-600' : ''}`}>
                               {format(day, 'd')}
                             </span>
                             <div className="flex flex-col gap-0.5 mt-1">

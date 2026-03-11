@@ -183,8 +183,8 @@ export default function MentorSettingsPage() {
               />
             </div>
           ) : (
-            <div className="h-10 w-10 rounded-full bg-purple-50 flex items-center justify-center">
-              <UserCircle2 className="h-6 w-6 text-purple-600" />
+            <div className="h-10 w-10 rounded-full bg-teal-50 flex items-center justify-center">
+              <UserCircle2 className="h-6 w-6 text-teal-600" />
             </div>
           )}
           <div className="text-xs">
@@ -270,7 +270,7 @@ export default function MentorSettingsPage() {
               type="submit"
               size="sm"
               disabled={saving}
-              className="text-[11px] bg-purple-600 hover:bg-purple-700 text-white"
+              className="text-[11px] bg-teal-600 hover:bg-teal-700 text-white"
             >
               {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save changes'}
             </Button>

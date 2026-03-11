@@ -189,7 +189,7 @@ export default function AdminResourcesPage() {
             Add and edit referral contacts (emergency, mental health, hospitals, NGOs). Learners and mentors see them on their Resources page.
           </p>
         </div>
-        <Button onClick={openCreate} className="bg-purple-600 hover:bg-purple-700 text-white">
+        <Button onClick={openCreate} className="bg-teal-600 hover:bg-teal-700 text-white">
           <Plus className="h-4 w-4 mr-2" />
           Add resource
         </Button>

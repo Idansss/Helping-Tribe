@@ -384,7 +384,7 @@ export default function MentorCoursesPage() {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className="bg-purple-600 hover:bg-purple-700 text-white text-xs">
+              <Button className="bg-teal-600 hover:bg-teal-700 text-white text-xs">
                 <Plus className="h-3 w-3 mr-1" />
                 Add course
               </Button>
@@ -497,7 +497,7 @@ export default function MentorCoursesPage() {
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" className="bg-purple-600 hover:bg-purple-700 text-white">
+                  <Button type="submit" className="bg-teal-600 hover:bg-teal-700 text-white">
                     Create Course
                   </Button>
                 </div>
@@ -574,7 +574,7 @@ export default function MentorCoursesPage() {
                   </Button>
                   <Button
                     type="button"
-                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                    className="bg-teal-600 hover:bg-teal-700 text-white"
                     disabled={!selectedFile}
                     onClick={() => {
                       if (selectedFile) {
@@ -672,7 +672,7 @@ export default function MentorCoursesPage() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Card
-                    className="p-4 border-2 border-slate-200 hover:border-purple-400 cursor-pointer transition-colors"
+                    className="p-4 border-2 border-slate-200 hover:border-teal-400 cursor-pointer transition-colors"
                     onClick={() => {
                       const templateCourse = {
                         id: `course-template-${Date.now()}`,
@@ -686,8 +686,8 @@ export default function MentorCoursesPage() {
                     }}
                   >
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
-                        <BookOpen className="h-5 w-5 text-purple-600" />
+                      <div className="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center">
+                        <BookOpen className="h-5 w-5 text-teal-600" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-slate-900 mb-1">
@@ -700,15 +700,15 @@ export default function MentorCoursesPage() {
                     </div>
                   </Card>
                   <Card
-                    className="p-4 border-2 border-slate-200 hover:border-purple-400 cursor-pointer transition-colors"
+                    className="p-4 border-2 border-slate-200 hover:border-teal-400 cursor-pointer transition-colors"
                     onClick={() => {
                       alert('Creating course from "Foundations" template...')
                       setShowTemplateDialog(false)
                     }}
                   >
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
-                        <BookOpen className="h-5 w-5 text-purple-600" />
+                      <div className="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center">
+                        <BookOpen className="h-5 w-5 text-teal-600" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-slate-900 mb-1">
@@ -721,7 +721,7 @@ export default function MentorCoursesPage() {
                     </div>
                   </Card>
                   <Card
-                    className="p-4 border-2 border-slate-200 hover:border-purple-400 cursor-pointer transition-colors"
+                    className="p-4 border-2 border-slate-200 hover:border-teal-400 cursor-pointer transition-colors"
                     onClick={() => {
                       const templateCourse = {
                         id: `course-template-${Date.now()}`,
@@ -735,8 +735,8 @@ export default function MentorCoursesPage() {
                     }}
                   >
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
-                        <BookOpen className="h-5 w-5 text-purple-600" />
+                      <div className="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center">
+                        <BookOpen className="h-5 w-5 text-teal-600" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-slate-900 mb-1">
@@ -749,7 +749,7 @@ export default function MentorCoursesPage() {
                     </div>
                   </Card>
                   <Card
-                    className="p-4 border-2 border-slate-200 hover:border-purple-400 cursor-pointer transition-colors"
+                    className="p-4 border-2 border-slate-200 hover:border-teal-400 cursor-pointer transition-colors"
                     onClick={() => {
                       const templateCourse = {
                         id: `course-template-${Date.now()}`,
@@ -763,8 +763,8 @@ export default function MentorCoursesPage() {
                     }}
                   >
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
-                        <BookOpen className="h-5 w-5 text-purple-600" />
+                      <div className="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center">
+                        <BookOpen className="h-5 w-5 text-teal-600" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-slate-900 mb-1">
@@ -919,7 +919,7 @@ export default function MentorCoursesPage() {
                     </Button>
                     <Button
                       type="button"
-                      className="bg-purple-600 hover:bg-purple-700 text-white"
+                      className="bg-teal-600 hover:bg-teal-700 text-white"
                       onClick={() => setShowDetailsDialog(false)}
                     >
                       Close
@@ -968,7 +968,7 @@ export default function MentorCoursesPage() {
                     <div className="mt-3 flex justify-center">
                       <Button
                         type="button"
-                        className="bg-purple-600 hover:bg-purple-700 text-white text-xs"
+                        className="bg-teal-600 hover:bg-teal-700 text-white text-xs"
                         onClick={() => alert('Assign learners flow is not configured yet.')}
                       >
                         Assign learners
@@ -1081,7 +1081,7 @@ export default function MentorCoursesPage() {
                   </Button>
                   <Button
                     type="submit"
-                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                    className="bg-teal-600 hover:bg-teal-700 text-white"
                   >
                     Save changes
                   </Button>
@@ -1101,8 +1101,8 @@ export default function MentorCoursesPage() {
                   {totalCourses}
                 </p>
               </div>
-              <div className="h-10 w-10 rounded-full bg-purple-50 flex items-center justify-center">
-                <BookOpen className="h-5 w-5 text-purple-600" />
+              <div className="h-10 w-10 rounded-full bg-teal-50 flex items-center justify-center">
+                <BookOpen className="h-5 w-5 text-teal-600" />
               </div>
             </div>
           </Card>
@@ -1175,7 +1175,7 @@ export default function MentorCoursesPage() {
                 <Filter className="h-3 w-3 mr-1" />
                 Filter
                 {(filterWeek !== 'all' || filterCategory !== 'all') && (
-                  <span className="ml-1 h-2 w-2 rounded-full bg-purple-600" />
+                  <span className="ml-1 h-2 w-2 rounded-full bg-teal-600" />
                 )}
               </Button>
             </div>
@@ -1264,7 +1264,7 @@ export default function MentorCoursesPage() {
                 </Button>
                 <Button
                   type="button"
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  className="bg-teal-600 hover:bg-teal-700 text-white"
                   onClick={() => setShowFilterDialog(false)}
                 >
                   Apply Filters
@@ -1304,7 +1304,7 @@ export default function MentorCoursesPage() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <Badge className="mb-2 bg-purple-50 text-purple-700 hover:bg-purple-50 border border-purple-100">
+                      <Badge className="mb-2 bg-teal-50 text-teal-700 hover:bg-teal-50 border border-teal-100">
                         Week {m.week_number}
                       </Badge>
                       <h2 className="font-semibold text-slate-900">
@@ -1317,8 +1317,8 @@ export default function MentorCoursesPage() {
                           : `WEEK-${String(m.week_number).padStart(2, '0')}`}
                       </p>
                     </div>
-                    <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center">
-                      <BookOpen className="h-5 w-5 text-purple-600" />
+                    <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center">
+                      <BookOpen className="h-5 w-5 text-teal-600" />
                     </div>
                   </div>
 

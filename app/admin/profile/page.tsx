@@ -132,14 +132,34 @@ export default function AdminProfilePage() {
 
     setUploadingAvatar(true)
     try {
-      const ext = file.name.split('.').pop()
+      const ext = file.name.split('.').pop() ?? 'jpg'
       const path = `${userId}/avatar.${ext}`
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(path, file, { upsert: true, contentType: file.type })
 
-      if (uploadError) throw uploadError
+      if (uploadError) {
+        // Bucket not found → guide the admin to run the setup script
+        const msg = uploadError.message ?? ''
+        if (
+          msg.toLowerCase().includes('bucket') ||
+          msg.toLowerCase().includes('not found') ||
+          (uploadError as any).statusCode === 404 ||
+          (uploadError as any).error === 'Bucket not found'
+        ) {
+          toast({
+            title: 'Storage bucket missing',
+            description:
+              'The "avatars" bucket does not exist in Supabase Storage. ' +
+              'Run supabase/scripts/create_avatars_bucket.sql in the Supabase SQL Editor, ' +
+              'or create a public bucket named "avatars" in Storage → New bucket.',
+            variant: 'destructive',
+          })
+          return
+        }
+        throw uploadError
+      }
 
       const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
       const publicUrl = urlData.publicUrl
@@ -189,8 +209,8 @@ export default function AdminProfilePage() {
               />
             </div>
           ) : (
-            <div className="h-10 w-10 rounded-full bg-purple-50 flex items-center justify-center">
-              <UserCircle2 className="h-6 w-6 text-purple-600" />
+            <div className="h-10 w-10 rounded-full bg-teal-50 flex items-center justify-center">
+              <UserCircle2 className="h-6 w-6 text-teal-600" />
             </div>
           )}
           <div className="text-xs">
@@ -273,7 +293,7 @@ export default function AdminProfilePage() {
               type="submit"
               size="sm"
               disabled={saving}
-              className="text-[11px] bg-purple-600 hover:bg-purple-700 text-white"
+              className="text-[11px] bg-teal-600 hover:bg-teal-700 text-white"
             >
               {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save profile'}
             </Button>

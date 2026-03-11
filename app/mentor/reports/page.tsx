@@ -462,7 +462,7 @@ export default function MentorReportsPage() {
               handleGlobalExport(value)
             }}
           >
-            <SelectTrigger className="h-9 w-40 text-xs border-[#e2e8f0] bg-purple-600 text-white hover:bg-purple-700">
+            <SelectTrigger className="h-9 w-40 text-xs border-[#e2e8f0] bg-teal-600 text-white hover:bg-teal-700">
               <Download className="h-3 w-3 mr-1" />
               <SelectValue />
             </SelectTrigger>
@@ -486,13 +486,13 @@ export default function MentorReportsPage() {
               <p className="text-sm text-slate-500 py-4">Loading report data…</p>
             ) : null}
             <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              <Card className="p-5 flex flex-col gap-3 hover:shadow-md transition-shadow border-l-4 border-l-purple-500">
+              <Card className="p-5 flex flex-col gap-3 hover:shadow-md transition-shadow border-l-4 border-l-teal-500">
                 <div className="flex items-center justify-between">
-                  <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                    <BookOpen className="h-5 w-5 text-purple-600" />
+                  <div className="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center">
+                    <BookOpen className="h-5 w-5 text-teal-600" />
                   </div>
                   {metrics.courses > 0 && (
-                    <Badge variant="secondary" className="bg-purple-50 text-purple-700 border-purple-200">
+                    <Badge variant="secondary" className="bg-teal-50 text-teal-700 border-teal-200">
                       Active
                     </Badge>
                   )}
@@ -629,8 +629,8 @@ export default function MentorReportsPage() {
                       Empathy development, ethics compliance, case study performance and peer support metrics.
                     </p>
                   </div>
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center">
-                    <Sparkles className="h-6 w-6 text-purple-600" />
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-teal-100 to-teal-50 flex items-center justify-center">
+                    <Sparkles className="h-6 w-6 text-teal-600" />
                   </div>
                 </div>
 
@@ -639,7 +639,7 @@ export default function MentorReportsPage() {
                     {quizCompletionByQuiz.length > 0 && (
                       <div>
                         <h3 className="text-sm font-medium text-slate-700 mb-3 flex items-center gap-2">
-                          <Shield className="h-4 w-4 text-purple-500" />
+                          <Shield className="h-4 w-4 text-teal-500" />
                           Quiz completions by quiz
                         </h3>
                         <ResponsiveContainer width="100%" height={150}>
@@ -656,7 +656,7 @@ export default function MentorReportsPage() {
 
                     <div>
                       <h3 className="text-sm font-medium text-slate-700 mb-3 flex items-center gap-2">
-                        <Shield className="h-4 w-4 text-purple-500" />
+                        <Shield className="h-4 w-4 text-teal-500" />
                         Quiz attempt status
                       </h3>
                       <ResponsiveContainer width="100%" height={150}>
@@ -745,8 +745,8 @@ export default function MentorReportsPage() {
                         onClick={() => handleExportReport(report)}
                       >
                         <div className="flex items-center gap-3 flex-1">
-                          <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center group-hover:bg-purple-100 transition-colors">
-                            <IconComponent className="h-5 w-5 text-purple-600" />
+                          <div className="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center group-hover:bg-teal-100 transition-colors">
+                            <IconComponent className="h-5 w-5 text-teal-600" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
@@ -778,7 +778,7 @@ export default function MentorReportsPage() {
                 <div className="pt-3 border-t border-[#e2e8f0]">
                   <Button
                     variant="outline"
-                    className="w-full border-purple-200 text-purple-700 hover:bg-purple-50"
+                    className="w-full border-teal-200 text-teal-700 hover:bg-teal-50"
                     onClick={handleExportAll}
                     disabled={isExporting}
                   >
@@ -938,9 +938,9 @@ export default function MentorReportsPage() {
                       <div key={event.id} className="flex items-start gap-3 p-3 border border-[#e2e8f0] rounded-md hover:bg-slate-50">
                         <div className="mt-0.5">
                           {event.type === 'quiz' ? (
-                            <FileText className="h-4 w-4 text-purple-600" />
+                            <FileText className="h-4 w-4 text-teal-600" />
                           ) : (
-                            <Plus className="h-4 w-4 text-purple-600" />
+                            <Plus className="h-4 w-4 text-teal-600" />
                           )}
                         </div>
                         <div className="flex-1">

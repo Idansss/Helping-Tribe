@@ -76,7 +76,7 @@ export default function MentorLearningPathsPage() {
             </p>
           </div>
           <Button
-            className="bg-purple-600 hover:bg-purple-800 text-white text-xs"
+            className="bg-teal-600 hover:bg-teal-800 text-white text-xs"
             onClick={openForm}
           >
             Add learning path
@@ -174,7 +174,7 @@ export default function MentorLearningPathsPage() {
                 <Button
                   type="submit"
                   size="sm"
-                  className="bg-purple-600 hover:bg-purple-800 text-white text-xs"
+                  className="bg-teal-600 hover:bg-teal-800 text-white text-xs"
                 >
                   Create learning path
                 </Button>

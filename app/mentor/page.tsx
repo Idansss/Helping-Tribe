@@ -167,7 +167,7 @@ export default function MentorDashboardPage() {
     <div className="space-y-6">
         {/* Welcome */}
         <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-bold text-purple-800">
+          <h1 className="text-3xl font-bold text-teal-800">
             Welcome, {mentorName}!
           </h1>
           <p className="text-slate-600 max-w-2xl text-sm">
@@ -178,38 +178,38 @@ export default function MentorDashboardPage() {
 
         {/* Counseling-centered stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          <Card className="p-4 flex flex-col gap-1 border-purple-200">
+          <Card className="p-4 flex flex-col gap-1 border-teal-200">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Ethics compliance
               </span>
-              <div className="h-8 w-8 rounded-full bg-purple-50 flex items-center justify-center">
-                <CheckCircle2 className="h-4 w-4 text-purple-600" />
+              <div className="h-8 w-8 rounded-full bg-teal-50 flex items-center justify-center">
+                <CheckCircle2 className="h-4 w-4 text-teal-600" />
               </div>
             </div>
-            <span className="text-2xl font-bold text-purple-800">{ethicsCompliancePct}%</span>
+            <span className="text-2xl font-bold text-teal-800">{ethicsCompliancePct}%</span>
           </Card>
-          <Card className="p-4 flex flex-col gap-1 border-purple-200">
+          <Card className="p-4 flex flex-col gap-1 border-teal-200">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Peer circle participation
               </span>
-              <div className="h-8 w-8 rounded-full bg-purple-50 flex items-center justify-center">
-                <HeartHandshake className="h-4 w-4 text-purple-600" />
+              <div className="h-8 w-8 rounded-full bg-teal-50 flex items-center justify-center">
+                <HeartHandshake className="h-4 w-4 text-teal-600" />
               </div>
             </div>
-            <span className="text-2xl font-bold text-purple-800">{peerCircleParticipationPct}%</span>
+            <span className="text-2xl font-bold text-teal-800">{peerCircleParticipationPct}%</span>
           </Card>
-          <Card className="p-4 flex flex-col gap-1 border-purple-200">
+          <Card className="p-4 flex flex-col gap-1 border-teal-200">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Supervision hours
               </span>
-              <div className="h-8 w-8 rounded-full bg-purple-50 flex items-center justify-center">
-                <Clock className="h-4 w-4 text-purple-600" />
+              <div className="h-8 w-8 rounded-full bg-teal-50 flex items-center justify-center">
+                <Clock className="h-4 w-4 text-teal-600" />
               </div>
             </div>
-            <span className="text-2xl font-bold text-purple-800">{supervisionHours}h</span>
+            <span className="text-2xl font-bold text-teal-800">{supervisionHours}h</span>
           </Card>
         </div>
 
@@ -218,8 +218,8 @@ export default function MentorDashboardPage() {
           <h2 className="text-lg font-semibold text-slate-900 mb-4">Overview</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-purple-50 flex items-center justify-center">
-                <BookOpen className="h-5 w-5 text-purple-600" />
+              <div className="h-10 w-10 rounded-lg bg-teal-50 flex items-center justify-center">
+                <BookOpen className="h-5 w-5 text-teal-600" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-slate-900">{coursesCount}</p>
@@ -227,8 +227,8 @@ export default function MentorDashboardPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-purple-50 flex items-center justify-center">
-                <Users className="h-5 w-5 text-purple-600" />
+              <div className="h-10 w-10 rounded-lg bg-teal-50 flex items-center justify-center">
+                <Users className="h-5 w-5 text-teal-600" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-slate-900">{assignedLearnersCount}</p>
@@ -236,8 +236,8 @@ export default function MentorDashboardPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-purple-50 flex items-center justify-center">
-                <TrendingUp className="h-5 w-5 text-purple-600" />
+              <div className="h-10 w-10 rounded-lg bg-teal-50 flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-teal-600" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-slate-900">{completionRate.toFixed(2)}%</p>
@@ -245,8 +245,8 @@ export default function MentorDashboardPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-purple-50 flex items-center justify-center">
-                <Clock className="h-5 w-5 text-purple-600" />
+              <div className="h-10 w-10 rounded-lg bg-teal-50 flex items-center justify-center">
+                <Clock className="h-5 w-5 text-teal-600" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-slate-900">{supervisionHours}h 0m</p>
@@ -262,12 +262,12 @@ export default function MentorDashboardPage() {
           <Card className="p-5 lg:col-span-2 space-y-4 border-[#e2e8f0]">
             <div className="flex items-center justify-between">
               <Link href="/mentor/courses" className="flex items-center gap-2 group">
-                <h2 className="text-lg font-semibold text-slate-900 group-hover:text-purple-700 transition-colors">
+                <h2 className="text-lg font-semibold text-slate-900 group-hover:text-teal-700 transition-colors">
                   Recent course activity
                 </h2>
-                <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-purple-600 transition-colors" />
+                <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-600 transition-colors" />
               </Link>
-              <Badge className="bg-purple-50 text-purple-700 hover:bg-purple-50 border border-purple-200 flex items-center gap-1">
+              <Badge className="bg-teal-50 text-teal-700 hover:bg-teal-50 border border-teal-200 flex items-center gap-1">
                 <BookOpen className="h-3 w-3" />
                 Teaching
               </Badge>
@@ -288,8 +288,8 @@ export default function MentorDashboardPage() {
                         </p>
                         <p className="text-xs text-slate-500">Module</p>
                       </div>
-                      <div className="h-9 w-9 rounded-full bg-purple-50 flex items-center justify-center">
-                        <BookOpen className="h-4 w-4 text-purple-600" />
+                      <div className="h-9 w-9 rounded-full bg-teal-50 flex items-center justify-center">
+                        <BookOpen className="h-4 w-4 text-teal-600" />
                       </div>
                     </div>
                     <div className="space-y-1">
@@ -307,15 +307,15 @@ export default function MentorDashboardPage() {
 
           {/* Quick actions */}
           <div className="space-y-4">
-            <Card className="p-5 bg-purple-50 border-purple-200">
-              <h2 className="text-sm font-semibold text-purple-800 mb-3">
+            <Card className="p-5 bg-teal-50 border-teal-200">
+              <h2 className="text-sm font-semibold text-teal-800 mb-3">
                 Quick actions
               </h2>
               <div className="flex flex-col gap-2">
                 <Link href="/mentor/courses">
                   <Button
                     size="sm"
-                    className="w-full justify-start gap-2 bg-white text-purple-800 hover:bg-purple-100"
+                    className="w-full justify-start gap-2 bg-white text-teal-800 hover:bg-teal-100"
                   >
                     <Plus className="h-4 w-4" />
                     Add course
@@ -324,7 +324,7 @@ export default function MentorDashboardPage() {
                 <Link href="/mentor/groups">
                   <Button
                     size="sm"
-                    className="w-full justify-start gap-2 bg-white text-purple-800 hover:bg-purple-100"
+                    className="w-full justify-start gap-2 bg-white text-teal-800 hover:bg-teal-100"
                   >
                     <Users className="h-4 w-4" />
                     Add group
@@ -333,7 +333,7 @@ export default function MentorDashboardPage() {
                 <Link href="/mentor/conferences">
                   <Button
                     size="sm"
-                    className="w-full justify-start gap-2 bg-white text-purple-800 hover:bg-purple-100"
+                    className="w-full justify-start gap-2 bg-white text-teal-800 hover:bg-teal-100"
                   >
                     <CalendarDays className="h-4 w-4" />
                     Add conference
@@ -342,7 +342,7 @@ export default function MentorDashboardPage() {
                 <Link href="/mentor/learning-paths">
                   <Button
                     size="sm"
-                    className="w-full justify-start gap-2 bg-white text-purple-800 hover:bg-purple-100"
+                    className="w-full justify-start gap-2 bg-white text-teal-800 hover:bg-teal-100"
                   >
                     <Layers3 className="h-4 w-4" />
                     Training matrix
@@ -359,7 +359,7 @@ export default function MentorDashboardPage() {
               <ul className="space-y-2 text-xs text-slate-600">
                 <li>
                   You have no items pending grading.{' '}
-                  <Link href="/mentor/grading" className="text-purple-700 font-medium cursor-pointer hover:underline">
+                  <Link href="/mentor/grading" className="text-teal-700 font-medium cursor-pointer hover:underline">
                     Go to Grading Hub
                   </Link>
                 </li>
@@ -384,12 +384,12 @@ export default function MentorDashboardPage() {
                   </h2>
                   <Link 
                     href="/mentor/calendar" 
-                    className="text-[11px] text-slate-500 hover:text-purple-600 cursor-pointer transition-colors"
+                    className="text-[11px] text-slate-500 hover:text-teal-600 cursor-pointer transition-colors"
                   >
                     {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
                   </Link>
                 </div>
-                <CalendarDays className="h-4 w-4 text-purple-600" />
+                <CalendarDays className="h-4 w-4 text-teal-600" />
               </div>
               <div className="border border-dashed border-[#e2e8f0] rounded-md py-4 text-center text-xs text-slate-500">
                 Nothing happening today
@@ -405,10 +405,10 @@ export default function MentorDashboardPage() {
               href="/mentor/courses"
               className="flex items-center justify-between group"
             >
-              <h2 className="text-sm font-semibold text-slate-900 group-hover:text-purple-700 transition-colors">
+              <h2 className="text-sm font-semibold text-slate-900 group-hover:text-teal-700 transition-colors">
                 Courses&apos; progress status
               </h2>
-              <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-purple-600 transition-colors" />
+              <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-600 transition-colors" />
             </Link>
             <div className="mt-4 text-center py-6">
               <BookOpen className="h-12 w-12 text-slate-300 mx-auto mb-2" />
@@ -429,10 +429,10 @@ export default function MentorDashboardPage() {
               href="/mentor/reports"
               className="flex items-center justify-between group"
             >
-              <h2 className="text-sm font-semibold text-slate-900 group-hover:text-purple-700 transition-colors">
+              <h2 className="text-sm font-semibold text-slate-900 group-hover:text-teal-700 transition-colors">
                 Courses&apos; completion rate
               </h2>
-              <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-purple-600 transition-colors" />
+              <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-600 transition-colors" />
             </Link>
             <div className="mt-4 text-center py-6">
               <Activity className="h-12 w-12 text-slate-300 mx-auto mb-2" />

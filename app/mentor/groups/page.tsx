@@ -282,7 +282,7 @@ export default function MentorGroupsPage() {
           </p>
         </div>
         <Button
-          className="bg-purple-600 hover:bg-purple-800 text-white text-xs"
+          className="bg-teal-600 hover:bg-teal-800 text-white text-xs"
           onClick={() => setShowForm(true)}
         >
           Add group
@@ -358,7 +358,7 @@ export default function MentorGroupsPage() {
                           <Button
                             type="button"
                             size="sm"
-                            className="h-7 px-3 text-[11px] bg-purple-600 hover:bg-purple-800 text-white"
+                            className="h-7 px-3 text-[11px] bg-teal-600 hover:bg-teal-800 text-white"
                             onClick={saveEdit}
                             disabled={savingEdit}
                           >
@@ -443,7 +443,7 @@ export default function MentorGroupsPage() {
               <Button
                 type="submit"
                 size="sm"
-                className="bg-purple-600 hover:bg-purple-800 text-white text-xs"
+                className="bg-teal-600 hover:bg-teal-800 text-white text-xs"
                 disabled={saving}
               >
                 {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Create group'}
@@ -527,7 +527,7 @@ export default function MentorGroupsPage() {
                   <Button
                     type="button"
                     size="sm"
-                    className="mt-2 bg-purple-600 hover:bg-purple-800 text-white"
+                    className="mt-2 bg-teal-600 hover:bg-teal-800 text-white"
                     onClick={addSelectedMembers}
                     disabled={addingMembers}
                   >

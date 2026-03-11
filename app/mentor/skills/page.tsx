@@ -121,7 +121,7 @@ const defaultSkills: Skill[] = [
 const proficiencyColors = {
   beginner: 'bg-slate-100 text-slate-700 border-slate-300',
   intermediate: 'bg-blue-100 text-blue-700 border-blue-300',
-  advanced: 'bg-purple-100 text-purple-700 border-purple-300',
+  advanced: 'bg-teal-100 text-teal-700 border-teal-300',
   expert: 'bg-green-100 text-green-700 border-green-300',
 }
 
@@ -227,7 +227,7 @@ export default function MentorSkillsPage() {
     return (
       <Card
         key={skill.id}
-        className="p-4 hover:shadow-md transition-all cursor-pointer group border-l-4 border-l-purple-500"
+        className="p-4 hover:shadow-md transition-all cursor-pointer group border-l-4 border-l-teal-500"
         onClick={() => {
           setEditingSkill(skill)
           setIsDialogOpen(true)
@@ -235,8 +235,8 @@ export default function MentorSkillsPage() {
       >
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2 flex-1">
-            <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
-              <IconComponent className="h-4 w-4 text-purple-600" />
+            <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center">
+              <IconComponent className="h-4 w-4 text-teal-600" />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-slate-900 text-sm">{skill.name}</h3>
@@ -327,7 +327,7 @@ export default function MentorSkillsPage() {
               {coreSkills.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Heart className="h-4 w-4 text-purple-600" />
+                    <Heart className="h-4 w-4 text-teal-600" />
                     <h2 className="text-base font-semibold text-slate-900">
                       Core Counseling Skills
                     </h2>
@@ -341,7 +341,7 @@ export default function MentorSkillsPage() {
               {ethicalSkills.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-purple-600" />
+                    <Shield className="h-4 w-4 text-teal-600" />
                     <h2 className="text-base font-semibold text-slate-900">
                       Ethical Competencies
                     </h2>
@@ -355,7 +355,7 @@ export default function MentorSkillsPage() {
               {clinicalSkills.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <BookOpen className="h-4 w-4 text-purple-600" />
+                    <BookOpen className="h-4 w-4 text-teal-600" />
                     <h2 className="text-base font-semibold text-slate-900">
                       Clinical Skills
                     </h2>
@@ -369,7 +369,7 @@ export default function MentorSkillsPage() {
               {communicationSkills.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-purple-600" />
+                    <Users className="h-4 w-4 text-teal-600" />
                     <h2 className="text-base font-semibold text-slate-900">
                       Communication Skills
                     </h2>
@@ -391,7 +391,7 @@ export default function MentorSkillsPage() {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Card className="p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <Target className="h-4 w-4 text-purple-600" />
+                    <Target className="h-4 w-4 text-teal-600" />
                     <span className="text-xs text-slate-500">Total Skills</span>
                   </div>
                   <div className="text-2xl font-bold text-slate-900">{mySkillsStats.total}</div>
@@ -439,8 +439,8 @@ export default function MentorSkillsPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-slate-500 bg-purple-50 p-3 rounded-lg">
-                <Sparkles className="h-4 w-4 text-purple-600" />
+              <div className="flex items-center gap-2 text-xs text-slate-500 bg-teal-50 p-3 rounded-lg">
+                <Sparkles className="h-4 w-4 text-teal-600" />
                 <span>
                   AI‑powered suggestions: Focus on improving "Trauma-Informed Care" based on recent case study performance.
                 </span>
@@ -482,7 +482,7 @@ export default function MentorSkillsPage() {
                         </div>
                       </div>
                       <div className="text-right ml-4">
-                        <div className="text-2xl font-bold text-purple-600">{path.match}%</div>
+                        <div className="text-2xl font-bold text-teal-600">{path.match}%</div>
                         <div className="text-xs text-slate-500">Match</div>
                       </div>
                     </div>
@@ -564,7 +564,7 @@ export default function MentorSkillsPage() {
               </Button>
               <Button
                 onClick={() => editingSkill && handleUpdateSkill(editingSkill)}
-                className="bg-purple-600 hover:bg-purple-700"
+                className="bg-teal-600 hover:bg-teal-700"
               >
                 Save Changes
               </Button>
