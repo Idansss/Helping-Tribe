@@ -97,32 +97,32 @@ export function PublicHome() {
           <CardContent className="p-6 md:p-8">
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <div className="lg:col-span-2">
-                <h2 className="text-lg font-semibold text-slate-900">How it works</h2>
-                <ol className="mt-3 grid grid-cols-1 gap-3 text-sm text-slate-700 sm:grid-cols-3">
-                  <li className="rounded-xl border bg-white p-4 shadow-sm">
-                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-teal-700">
-                      <BookOpenCheck className="h-4 w-4" />
-                      Step 1
+                <h2 className="text-2xl font-bold text-slate-900">How it works</h2>
+                <ol className="mt-4 grid grid-cols-1 gap-4 text-sm sm:grid-cols-3">
+                  <li className="rounded-2xl bg-blue-50 p-5 shadow-sm">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 text-white text-xl font-bold shadow-md">
+                      1
                     </div>
-                    <div className="mt-2 font-semibold text-slate-900">Apply</div>
+                    <div className="mt-4 text-xs font-bold uppercase tracking-widest text-blue-600">Step 1</div>
+                    <div className="mt-1 text-lg font-bold text-slate-900">Apply</div>
                     <div className="mt-1 text-slate-600">Submit your application below.</div>
                   </li>
 
-                  <li className="rounded-xl border bg-white p-4 shadow-sm">
-                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-teal-700">
-                      <ShieldCheck className="h-4 w-4" />
-                      Step 2
+                  <li className="rounded-2xl bg-purple-50 p-5 shadow-sm">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-400 to-purple-600 text-white text-xl font-bold shadow-md">
+                      2
                     </div>
-                    <div className="mt-2 font-semibold text-slate-900">Get approved</div>
+                    <div className="mt-4 text-xs font-bold uppercase tracking-widest text-purple-600">Step 2</div>
+                    <div className="mt-1 text-lg font-bold text-slate-900">Get approved</div>
                     <div className="mt-1 text-slate-600">An admin reviews and approves applicants.</div>
                   </li>
 
-                  <li className="rounded-xl border bg-white p-4 shadow-sm">
-                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-teal-700">
-                      <KeyRound className="h-4 w-4" />
-                      Step 3
+                  <li className="rounded-2xl bg-emerald-50 p-5 shadow-sm">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-white text-xl font-bold shadow-md">
+                      3
                     </div>
-                    <div className="mt-2 font-semibold text-slate-900">Set password</div>
+                    <div className="mt-4 text-xs font-bold uppercase tracking-widest text-emerald-600">Step 3</div>
+                    <div className="mt-1 text-lg font-bold text-slate-900">Set password</div>
                     <div className="mt-1 text-slate-600">Use your one-time link to set a password.</div>
                   </li>
                 </ol>
