@@ -104,7 +104,9 @@ export default function StudentLoginPage() {
 
             <StudentLoginForm />
 
-            <InfoAlert />
+            <div className="mt-4">
+              <InfoAlert />
+            </div>
 
             <div className="mt-8 flex flex-col items-center gap-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-4">
