@@ -45,11 +45,12 @@ export function StaffLoginForm() {
       router.push(getSafeRedirectPath(json?.redirectTo || redirectTo))
       router.refresh()
     } catch (err: any) {
-      toast({
+      const { dismiss } = toast({
         variant: 'destructive',
         title: 'Login failed',
         description: err?.message || 'Invalid credentials',
       })
+      setTimeout(dismiss, 3000)
     } finally {
       setLoading(false)
     }

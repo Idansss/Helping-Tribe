@@ -163,49 +163,49 @@ export function PublicHome() {
         <ApplicationForm />
       </div>
 
-      <footer className="mt-16 bg-slate-900 text-slate-300">
+      <footer className="mt-16 bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-700 text-teal-100">
         <div className="mx-auto max-w-6xl px-6 py-12">
           <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-500 overflow-hidden">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/20 overflow-hidden">
                   <Image src="/logo.png" alt="The Helping Tribe" width={36} height={36} className="object-contain p-0.5" />
                 </div>
-                <span className="font-bold text-white">The Helping Tribe</span>
+                <span className="font-bold text-white/95">The Helping Tribe</span>
               </div>
-              <p className="mt-4 text-sm leading-relaxed text-slate-400">
+              <p className="mt-4 text-sm leading-relaxed text-teal-100/70">
                 Empowering minds through counselling and positive psychology.
               </p>
             </div>
 
             <div>
-              <h4 className="text-sm font-bold text-white">Platform</h4>
+              <h4 className="text-sm font-bold text-white/95">Platform</h4>
               <ul className="mt-4 space-y-3 text-sm">
-                <li><Link href="/student/login" className="hover:text-white transition-colors">Student Login</Link></li>
-                <li><Link href="/staff/login" className="hover:text-white transition-colors">Staff Login</Link></li>
-                <li><Link href="/apply" className="hover:text-white transition-colors">Apply Now</Link></li>
+                <li><Link scroll={false} href="/student/login" className="hover:text-white transition-colors text-teal-100/80">Student Login</Link></li>
+                <li><Link scroll={false} href="/staff/login" className="hover:text-white transition-colors text-teal-100/80">Staff Login</Link></li>
+                <li><Link scroll={false} href="/apply" className="hover:text-white transition-colors text-teal-100/80">Apply Now</Link></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="text-sm font-bold text-white">Support</h4>
+              <h4 className="text-sm font-bold text-white/95">Support</h4>
               <ul className="mt-4 space-y-3 text-sm">
-                <li><Link href="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
-                <li><Link href="/contact#faq" className="hover:text-white transition-colors">FAQ</Link></li>
-                <li><Link href="/contact" className="hover:text-white transition-colors">Help Center</Link></li>
+                <li><Link scroll={false} href="/contact" className="hover:text-white transition-colors text-teal-100/80">Contact Us</Link></li>
+                <li><Link scroll={false} href="/contact#faq" className="hover:text-white transition-colors text-teal-100/80">FAQ</Link></li>
+                <li><Link scroll={false} href="/contact" className="hover:text-white transition-colors text-teal-100/80">Help Center</Link></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="text-sm font-bold text-white">Legal</h4>
+              <h4 className="text-sm font-bold text-white/95">Legal</h4>
               <ul className="mt-4 space-y-3 text-sm">
-                <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+                <li><Link scroll={false} href="/privacy" className="hover:text-white transition-colors text-teal-100/80">Privacy Policy</Link></li>
+                <li><Link scroll={false} href="/terms" className="hover:text-white transition-colors text-teal-100/80">Terms of Service</Link></li>
               </ul>
             </div>
           </div>
 
-          <div className="mt-10 border-t border-slate-700/60 pt-6 text-sm text-slate-500">
+          <div className="mt-10 border-t border-teal-700/60 pt-6 text-sm text-teal-100/50">
             © {new Date().getFullYear()} The Helping Tribe. All rights reserved.
           </div>
         </div>
