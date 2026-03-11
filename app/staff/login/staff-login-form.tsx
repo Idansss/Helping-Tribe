@@ -70,7 +70,7 @@ export function StaffLoginForm({ portal }: { portal: 'admin' | 'mentor' }) {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@helpingtribe.org"
+            placeholder={portal === 'mentor' ? 'jesselingard990@gmail.com' : 'you@helpingtribe.org'}
             className="h-12 rounded-xl border-border/60 bg-background/60 pl-10 text-sm shadow-sm backdrop-blur-sm transition-all duration-200 placeholder:text-muted-foreground/60 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
             autoComplete="email"
             required
