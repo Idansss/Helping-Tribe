@@ -57,9 +57,6 @@ export function DatePicker({
             return false
           }}
           defaultMonth={validSelected}
-          captionLayout="dropdown"
-          fromYear={1940}
-          toYear={new Date().getFullYear() + 5}
         />
       </PopoverContent>
     </Popover>
