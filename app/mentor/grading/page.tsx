@@ -203,18 +203,9 @@ export default function MentorGradingHubPage() {
         setItems([])
       }
     } catch (e: any) {
-      // Silently fall back to empty list if table doesn't exist or RLS blocks access
-      const code = e?.code ?? e?.message ?? ''
-      const isTableMissing =
-        code === '42P01' ||
-        String(code).includes('does not exist') ||
-        String(code).includes('relation') ||
-        e?.status === 404 ||
-        e?.status === 400
-      if (!isTableMissing) {
-        console.error('Grading load error:', e)
-        toast({ title: 'Failed to load submissions.', variant: 'destructive' })
-      }
+      // Silently fall back to empty list for any load error
+      // (missing tables, RLS blocks, FK hint mismatches all show empty state)
+      console.error('Grading load error:', e)
       setItems([])
     } finally {
       setLoadingItems(false)
