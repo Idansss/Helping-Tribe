@@ -13,22 +13,22 @@ export function TopNav() {
             The Helping Tribe
           </span>
         </Link>
-        <nav className="flex items-center gap-6">
+        <nav className="flex items-center gap-2">
           <Link
             href="/student/login"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            className="px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
             Student Login
           </Link>
           <Link
             href="/staff/login"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            className="px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
             Staff Login
           </Link>
           <Link
             href="/contact"
-            className="rounded-lg border-2 border-teal-500 px-4 py-1.5 text-sm font-bold text-teal-600 transition-colors hover:bg-teal-50"
+            className="rounded-lg border-2 border-teal-500 px-4 py-2 text-sm font-bold text-teal-600 transition-colors hover:bg-teal-50"
           >
             Contact
           </Link>

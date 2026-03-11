@@ -12,7 +12,7 @@ export function PublicHome() {
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,#d9f7f1_0%,#edf7f6_35%,#f8fbfb_65%,#ffffff_100%)] text-slate-900">
       <TopNav />
-      <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 md:py-10">
+      <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 md:py-10 pb-0">
         <Card className="overflow-hidden rounded-2xl border-teal-100/80 shadow-[0_10px_30px_rgba(15,118,110,0.12)]">
           <div className="relative overflow-hidden bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-700 px-6 py-7 text-white md:px-10 md:py-10">
             <div className="pointer-events-none absolute -left-24 -top-16 h-52 w-52 rounded-full bg-white/10 blur-2xl" />
@@ -162,6 +162,54 @@ export function PublicHome() {
 
         <ApplicationForm />
       </div>
+
+      <footer className="mt-16 bg-slate-900 text-slate-300">
+        <div className="mx-auto max-w-6xl px-6 py-12">
+          <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-500 overflow-hidden">
+                  <Image src="/logo.png" alt="The Helping Tribe" width={36} height={36} className="object-contain p-0.5" />
+                </div>
+                <span className="font-bold text-white">The Helping Tribe</span>
+              </div>
+              <p className="mt-4 text-sm leading-relaxed text-slate-400">
+                Empowering minds through counselling and positive psychology.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-bold text-white">Platform</h4>
+              <ul className="mt-4 space-y-3 text-sm">
+                <li><Link href="/student/login" className="hover:text-white transition-colors">Student Login</Link></li>
+                <li><Link href="/staff/login" className="hover:text-white transition-colors">Staff Login</Link></li>
+                <li><Link href="/apply" className="hover:text-white transition-colors">Apply Now</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-bold text-white">Support</h4>
+              <ul className="mt-4 space-y-3 text-sm">
+                <li><Link href="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
+                <li><Link href="/contact#faq" className="hover:text-white transition-colors">FAQ</Link></li>
+                <li><Link href="/contact" className="hover:text-white transition-colors">Help Center</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-bold text-white">Legal</h4>
+              <ul className="mt-4 space-y-3 text-sm">
+                <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-10 border-t border-slate-700/60 pt-6 text-sm text-slate-500">
+            © {new Date().getFullYear()} The Helping Tribe. All rights reserved.
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
