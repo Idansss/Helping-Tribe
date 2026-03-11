@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, BookOpenCheck, KeyRound, ShieldCheck, UserRoundCheck } from 'lucide-react'
+import { ArrowRight, BookOpenCheck, KeyRound, ShieldCheck, UserRoundCheck, Sparkles, CheckCircle } from 'lucide-react'
 import { ApplicationForm } from '@/components/public/ApplicationForm'
 import { TopNav } from '@/components/top-nav'
 import { Button } from '@/components/ui/button'
@@ -128,19 +128,29 @@ export function PublicHome() {
                 </ol>
               </div>
 
-              <div className="rounded-xl border bg-slate-50 p-4">
-                <div className="text-sm font-semibold text-slate-900">Important</div>
-                <ul className="mt-3 space-y-2 text-sm text-slate-700">
-                  <li className="leading-relaxed">
-                    Students <span className="font-medium">do not</span> sign up publicly and <span className="font-medium">do not</span> use email to log in.
+              <div className="rounded-2xl border-2 border-amber-300 bg-amber-50 p-5">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-white shadow-sm flex-shrink-0">
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <span className="text-base font-bold text-slate-900">Important</span>
+                </div>
+                <ul className="mt-4 space-y-3 text-sm text-slate-700">
+                  <li className="flex items-start gap-2.5 leading-relaxed">
+                    <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
+                    <span>Students <span className="font-medium">do not</span> sign up publicly and <span className="font-medium">do not</span> use email to log in.</span>
                   </li>
-                  <li className="leading-relaxed">
-                    Your email on this form is for <span className="font-medium">approval updates only</span>.
-                  </li>
-                  <li className="leading-relaxed text-teal-800">
-                    Already approved? Use <Link className="font-medium text-teal-700 hover:underline" href="/student/login">Student Login</Link>.
+                  <li className="flex items-start gap-2.5 leading-relaxed">
+                    <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
+                    <span>Your email on this form is for <span className="font-bold">approval updates only</span>.</span>
                   </li>
                 </ul>
+                <div className="mt-4 border-t border-amber-200 pt-4 text-sm text-slate-600">
+                  Already approved?{' '}
+                  <Link className="font-bold text-teal-700 hover:underline" href="/student/login">
+                    Use Student Login
+                  </Link>
+                </div>
               </div>
             </div>
           </CardContent>
