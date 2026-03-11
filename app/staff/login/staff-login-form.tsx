@@ -43,7 +43,7 @@ export function StaffLoginForm({ portal }: { portal: 'admin' | 'mentor' }) {
       const json = await res.json()
       if (!res.ok) throw new Error(json?.error || 'Login failed')
 
-      router.push(getSafeRedirectPath(json?.redirectTo || redirectTo))
+      router.push(getSafeRedirectPath(json?.redirectTo ?? null, redirectTo))
       router.refresh()
     } catch (err: any) {
       const { dismiss } = toast({
