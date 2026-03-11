@@ -17,6 +17,14 @@ export function Calendar({ className, classNames, showOutsideDays = true, ...pro
         caption: 'flex items-center justify-center relative h-8',
         month_caption: 'flex items-center justify-center gap-2',
         caption_label: 'text-sm font-semibold text-slate-800',
+        dropdowns: 'flex items-center gap-2',
+        dropdown: cn(
+          'appearance-none rounded-lg border border-slate-200 bg-white px-3 py-1.5',
+          'text-sm font-semibold text-slate-800 shadow-sm cursor-pointer',
+          'hover:border-teal-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-200',
+          'transition-colors'
+        ),
+        dropdown_root: 'relative',
         nav: 'flex items-center gap-1',
         button_previous: cn(
           'absolute left-0 h-7 w-7 flex items-center justify-center rounded-lg',
