@@ -1,12 +1,12 @@
 export const PRIMARY_ADMIN_EMAIL =
-  (process.env.ADMIN_EMAIL ?? 'jesselingard990@gmail.com').trim().toLowerCase()
+  (process.env.ADMIN_EMAIL ?? '').trim().toLowerCase()
 
 const EXTRA_ADMIN_EMAILS: string[] = (process.env.ADMIN_EMAILS ?? '')
   .split(',')
   .map((e) => e.trim().toLowerCase())
   .filter(Boolean)
 
-const ALL_ADMIN_EMAILS = Array.from(new Set([PRIMARY_ADMIN_EMAIL, ...EXTRA_ADMIN_EMAILS]))
+const ALL_ADMIN_EMAILS = Array.from(new Set([PRIMARY_ADMIN_EMAIL, ...EXTRA_ADMIN_EMAILS])).filter(Boolean)
 
 function normalizeRole(role: unknown) {
   return String(role ?? '').trim().toLowerCase()
