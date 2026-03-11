@@ -18,42 +18,42 @@ export function PublicHome() {
             <div className="pointer-events-none absolute -left-24 -top-16 h-52 w-52 rounded-full bg-white/10 blur-2xl" />
             <div className="pointer-events-none absolute -bottom-16 -right-16 h-56 w-56 rounded-full bg-emerald-300/20 blur-3xl" />
 
-            <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
+            <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
               <div>
                 <div className="flex items-center gap-3">
-                  <span className="relative h-10 w-10 overflow-hidden rounded-full bg-white/95 ring-1 ring-white/30">
+                  <span className="relative h-12 w-12 overflow-hidden rounded-full bg-white/95 ring-1 ring-white/30">
                     <Image
                       src="/logo.png"
                       alt="The Helping Tribe"
                       fill
-                      sizes="40px"
+                      sizes="48px"
                       className="object-contain p-1"
                       priority
                     />
                   </span>
-                  <span className="text-xs font-semibold tracking-[0.18em] text-white/90">THE HELPING TRIBE</span>
+                  <span className="text-sm font-semibold tracking-[0.18em] text-white/90">THE HELPING TRIBE</span>
                 </div>
 
-                <h1 className="mt-3 text-3xl font-bold leading-tight tracking-tight md:text-4xl">
+                <h1 className="mt-5 text-4xl font-bold leading-tight tracking-tight md:text-5xl">
                   The Helping Tribe School of Counselling &amp; Positive Psychology
                 </h1>
 
-                <p className="mt-3 max-w-2xl text-sm text-white/90 md:text-base">
+                <p className="mt-4 max-w-2xl text-base text-white/90 md:text-lg">
                   Start with the application form below. Once approved, use the correct portal to sign in.
                 </p>
 
-                <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
-                  <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                    <p className="text-xs font-medium text-slate-500">Students</p>
-                    <p className="mt-1 flex items-center gap-2 font-bold text-slate-800">
-                      <span className="h-2 w-2 rounded-full bg-teal-500" />
+                <div className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
+                  <div className="rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+                    <p className="text-sm font-medium text-slate-500">Students</p>
+                    <p className="mt-1.5 flex items-center gap-2 text-base font-bold text-slate-800">
+                      <span className="h-2.5 w-2.5 rounded-full bg-teal-500" />
                       Matric + Password
                     </p>
                   </div>
-                  <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                    <p className="text-xs font-medium text-slate-500">Staff</p>
-                    <p className="mt-1 flex items-center gap-2 font-bold text-slate-800">
-                      <span className="h-2 w-2 rounded-full bg-teal-500" />
+                  <div className="rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+                    <p className="text-sm font-medium text-slate-500">Staff</p>
+                    <p className="mt-1.5 flex items-center gap-2 text-base font-bold text-slate-800">
+                      <span className="h-2.5 w-2.5 rounded-full bg-teal-500" />
                       Email + Password
                     </p>
                   </div>
