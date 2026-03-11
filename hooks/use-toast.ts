@@ -9,6 +9,7 @@ type ToasterToast = {
 
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 3000
+const TOAST_AUTO_DISMISS_MS = 5000
 
 type State = {
   toasts: ToasterToast[]
@@ -144,6 +145,8 @@ function toast({ ...props }: Omit<ToasterToast, "id">) {
       id,
     },
   })
+
+  setTimeout(dismiss, TOAST_AUTO_DISMISS_MS)
 
   return {
     id: id,
