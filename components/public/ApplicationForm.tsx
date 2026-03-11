@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Progress } from '@/components/ui/progress'
+import { DatePicker } from '@/components/ui/date-picker'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils/cn'
 import { APPLICATION_HONEYPOT_FIELD } from '@/lib/applications/schema'
@@ -448,7 +449,11 @@ export function ApplicationForm() {
         }),
       })
       const json = await res.json()
-      if (!res.ok) throw new Error(json?.error || 'Failed to save draft')
+      if (!res.ok) {
+        // Silently ignore rate-limit errors on background saves
+        if (res.status === 429 && mode === 'silent') return true
+        throw new Error(json?.error || 'Failed to save draft')
+      }
 
       if (json?.draftId) {
         setDraftId(json.draftId)
@@ -478,7 +483,7 @@ export function ApplicationForm() {
     if (loadingDraft || isSubmitting) return
     const timeout = setTimeout(() => {
       void saveDraft('silent')
-    }, 2500)
+    }, 30_000)
     return () => clearTimeout(timeout)
   }, [watchedValues, currentStep, loadingDraft, isSubmitting])
 
@@ -623,7 +628,18 @@ export function ApplicationForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>3. Date of Birth *</Label>
-                <Input type="date" {...register('dob')} />
+                <Controller
+                  control={control}
+                  name="dob"
+                  render={({ field }) => (
+                    <DatePicker
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Select date of birth"
+                      maxDate={new Date()}
+                    />
+                  )}
+                />
                 <FieldError message={errors.dob?.message} />
               </div>
               <div className="space-y-1.5">
@@ -1036,7 +1052,17 @@ export function ApplicationForm() {
               </div>
               <div className="space-y-1.5">
                 <Label>26. Date *</Label>
-                <Input type="date" {...register('signatureDate')} />
+                <Controller
+                  control={control}
+                  name="signatureDate"
+                  render={({ field }) => (
+                    <DatePicker
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Select date"
+                    />
+                  )}
+                />
                 <FieldError message={errors.signatureDate?.message} />
               </div>
             </div>

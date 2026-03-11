@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, Menu, ChevronDown } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import Image from 'next/image'
 
 export function Header() {
   const [open, setOpen] = useState(false)
@@ -41,8 +42,8 @@ export function Header() {
           <Menu className="h-6 w-6 text-gray-600" />
         </button>
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg flex items-center justify-center text-white font-semibold text-sm bg-gradient-to-br from-purple-600 to-purple-700 shadow-sm">
-            HT
+          <div className="h-8 w-8 rounded-lg overflow-hidden flex-shrink-0">
+            <Image src="/logo.png" alt="The Helping Tribe" width={32} height={32} className="object-contain" />
           </div>
           <span className="text-base font-semibold text-purple-700 tracking-tight hidden md:block">
             Helping Tribe
