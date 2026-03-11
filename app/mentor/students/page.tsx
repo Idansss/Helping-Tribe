@@ -8,7 +8,6 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Users, Search, MessageCircle } from 'lucide-react'
-import { MentorLayout } from '@/components/lms/MentorLayout'
 
 interface StudentRow {
   id: string
@@ -119,8 +118,7 @@ export default function MentorStudentsPage() {
   }
 
   return (
-    <MentorLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">
@@ -230,7 +228,6 @@ export default function MentorStudentsPage() {
           </div>
         </Card>
       </div>
-    </MentorLayout>
   )
 }
 

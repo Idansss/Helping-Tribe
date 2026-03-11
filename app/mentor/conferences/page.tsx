@@ -23,7 +23,6 @@ import {
   XCircle,
   AlertCircle,
 } from 'lucide-react'
-import { MentorLayout } from '@/components/lms/MentorLayout'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
@@ -417,8 +416,7 @@ export default function MentorConferencesPage() {
   const selectedCount = Object.values(selectedIds).filter(Boolean).length
 
   return (
-    <MentorLayout>
-      <div className="space-y-4">
+    <div className="space-y-4">
         <div className="flex items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">
@@ -1197,6 +1195,5 @@ export default function MentorConferencesPage() {
           </DialogContent>
         </Dialog>
       </div>
-    </MentorLayout>
   )
 }

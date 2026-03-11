@@ -438,7 +438,7 @@ export default function AdminDashboardPage() {
             onClick={() => setShowCustomize((v) => !v)}
             className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50"
           >
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#7c3aed]" />
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-teal-600" />
             Customize dashboard widgets
           </button>
           {showCustomize && (
@@ -459,7 +459,7 @@ export default function AdminDashboardPage() {
                     onChange={(e) =>
                       setWidgets((prev) => ({ ...prev, [key]: e.target.checked }))
                     }
-                    className="h-3.5 w-3.5 accent-[#7c3aed]"
+                    className="h-3.5 w-3.5 accent-teal-600"
                   />
                   <span>{label}</span>
                 </label>
@@ -540,7 +540,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <div className="relative h-2 rounded-full bg-slate-100 overflow-hidden">
                   <div
-                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#7c3aed] to-[#4c1d95]"
+                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-teal-500 to-teal-700"
                     style={{ width: `${Math.min(100, (activityStats.logins || 0) * 2)}%` }}
                   />
                 </div>
@@ -595,7 +595,7 @@ export default function AdminDashboardPage() {
                     onClick={() => setEventFilter(value)}
                     className={
                       value === eventFilter
-                        ? 'rounded-full bg-[#7c3aed] px-3 py-1 text-[11px] font-medium text-white'
+                        ? 'rounded-full bg-teal-600 px-3 py-1 text-[11px] font-medium text-white'
                         : 'rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] text-slate-600 hover:bg-slate-50'
                     }
                   >
@@ -610,7 +610,7 @@ export default function AdminDashboardPage() {
                     key={item.id}
                     className="flex items-start gap-3 text-xs text-slate-600"
                   >
-                    <div className="mt-0.5 h-2 w-2 rounded-full bg-[#7c3aed]" />
+                    <div className="mt-0.5 h-2 w-2 rounded-full bg-teal-600" />
                     <div className="flex-1 space-y-0.5">
                       <div className="font-medium text-slate-900">
                         {item.label}
@@ -644,7 +644,7 @@ export default function AdminDashboardPage() {
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <ListChecks className="h-4 w-4 text-[#7c3aed]" />
+                  <ListChecks className="h-4 w-4 text-teal-600" />
                   <h2 className="text-sm font-semibold text-slate-900 truncate">
                     Admin build checklist
                   </h2>
@@ -723,7 +723,7 @@ export default function AdminDashboardPage() {
                 for (const item of allChecklistItems) next[item.id] = true
                 setChecked(next)
               }}
-              className="text-xs font-medium text-[#4c1d95] hover:underline underline-offset-4"
+              className="text-xs font-medium text-teal-700 hover:underline underline-offset-4"
             >
               Mark all complete
             </button>
@@ -761,7 +761,7 @@ export default function AdminDashboardPage() {
                           {section.href && (
                             <Link
                               href={section.href}
-                              className="text-xs font-medium text-[#4c1d95] hover:underline underline-offset-4"
+                              className="text-xs font-medium text-teal-700 hover:underline underline-offset-4"
                               onClick={(e) => e.stopPropagation()}
                             >
                               Open
@@ -792,7 +792,7 @@ export default function AdminDashboardPage() {
                                   [item.id]: e.target.checked,
                                 }))
                               }
-                              className="mt-0.5 h-4 w-4 accent-[#7c3aed]"
+                              className="mt-0.5 h-4 w-4 accent-teal-600"
                             />
                             <label
                               htmlFor={item.id}

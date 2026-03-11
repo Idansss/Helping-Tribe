@@ -201,7 +201,7 @@ export default function AdminUsersPage() {
                 onClick={() => setFilterRole(r === 'All' ? 'All' : r)}
                 className={`px-2 py-1 rounded-full border text-[11px] ${
                   filterRole === r
-                    ? 'bg-[#7c3aed] text-white border-[#7c3aed]'
+                    ? 'bg-teal-600 text-white border-teal-600'
                     : 'border-slate-200 text-slate-600 hover:bg-slate-100'
                 }`}
               >

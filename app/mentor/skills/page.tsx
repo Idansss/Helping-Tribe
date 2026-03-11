@@ -42,7 +42,6 @@ import {
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { Toaster } from '@/components/ui/toaster'
-import { MentorLayout } from '@/components/lms/MentorLayout'
 
 type ProficiencyLevel = 'beginner' | 'intermediate' | 'advanced' | 'expert'
 type SkillCategory = 'core-counseling' | 'ethical' | 'clinical' | 'communication'
@@ -276,7 +275,7 @@ export default function MentorSkillsPage() {
   }
 
   return (
-    <MentorLayout>
+    <>
       <Toaster />
       <div className="space-y-6">
         <div className="flex items-center justify-between gap-3">
@@ -572,7 +571,7 @@ export default function MentorSkillsPage() {
           </DialogContent>
         </Dialog>
       </div>
-    </MentorLayout>
+    </>
   )
 }
 
