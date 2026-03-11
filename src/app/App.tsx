@@ -1,7 +1,8 @@
 import { Shield, KeyRound, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
-import { Button } from './components/ui/button';
-import { Card } from './components/ui/card';
-import logo from '/logo.png';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+
+const logo = '/logo.png';
 
 export default function App() {
   return (
