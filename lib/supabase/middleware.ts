@@ -15,7 +15,7 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   const isApiRoute = pathname.startsWith('/api/')
   const isPublic = isPublicPath(pathname)
-  const isAnyLoginPage = pathname === '/student/login' || pathname === '/staff/login'
+  const isAnyLoginPage = pathname === '/student/login' || pathname === '/staff/login' || pathname === '/mentor-login'
 
   const urlToApply = () => {
     const url = request.nextUrl.clone()

@@ -9,6 +9,7 @@ export const PUBLIC_PAGES = new Set([
   '/contact',
   '/student/login',
   '/staff/login',
+  '/mentor-login',
   '/set-password',
   '/student/set-password',
 ])
