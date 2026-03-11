@@ -9,26 +9,27 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 
-function getSafeRedirectPath(redirectTo: string | null) {
-  if (!redirectTo) return '/mentor'
-  if (!redirectTo.startsWith('/')) return '/apply'
-  if (redirectTo.startsWith('//')) return '/apply'
+function getSafeRedirectPath(redirectTo: string | null, fallback: string) {
+  if (!redirectTo) return fallback
+  if (!redirectTo.startsWith('/')) return fallback
+  if (redirectTo.startsWith('//')) return fallback
   return redirectTo
 }
 
-export function StaffLoginForm() {
+export function StaffLoginForm({ portal }: { portal: 'admin' | 'mentor' }) {
   const router = useRouter()
   const { toast } = useToast()
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [redirectTo, setRedirectTo] = useState('/mentor')
+  const fallback = portal === 'admin' ? '/admin' : '/mentor'
+  const [redirectTo, setRedirectTo] = useState(fallback)
 
   useEffect(() => {
     const sp = new URLSearchParams(window.location.search)
-    setRedirectTo(getSafeRedirectPath(sp.get('redirectTo')))
-  }, [])
+    setRedirectTo(getSafeRedirectPath(sp.get('redirectTo'), fallback))
+  }, [fallback])
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -37,7 +38,7 @@ export function StaffLoginForm() {
       const res = await fetch('/api/staff/login', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, portal }),
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json?.error || 'Login failed')

@@ -7,6 +7,7 @@ import { checkRateLimit, getRequestIp } from '@/lib/server/rate-limit'
 const StaffLoginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
+  portal: z.enum(['admin', 'mentor']).optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -54,10 +55,21 @@ export async function POST(request: NextRequest) {
     const role = String((profile as any)?.role ?? '').toLowerCase()
     const isStaff = role === 'admin' || role === 'faculty' || role === 'mentor'
     if (!isStaff) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return NextResponse.json({ error: 'This account does not have staff access.' }, { status: 403 })
     }
 
     const portalRole = resolvePortalRole((profile as any)?.role, user.email)
+
+    // Enforce portal-specific login: reject if the user's role doesn't match
+    if (body.portal === 'admin' && portalRole !== 'admin') {
+      await supabase.auth.signOut()
+      return NextResponse.json({ error: 'This is the Admin login. Mentors should use the Mentor login page.' }, { status: 403 })
+    }
+    if (body.portal === 'mentor' && portalRole !== 'mentor') {
+      await supabase.auth.signOut()
+      return NextResponse.json({ error: 'This is the Mentor login. Admins should use the Admin login page.' }, { status: 403 })
+    }
+
     const redirectTo =
       portalRole === 'admin'
         ? '/admin'
