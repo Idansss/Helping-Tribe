@@ -659,15 +659,14 @@ export default function MentorReportsPage() {
                         <Shield className="h-4 w-4 text-teal-500" />
                         Quiz attempt status
                       </h3>
-                      <ResponsiveContainer width="100%" height={150}>
+                      <ResponsiveContainer width="100%" height={180}>
                         <RechartsPieChart>
                           <Pie
                             data={ethicsData}
                             cx="50%"
-                            cy="50%"
+                            cy="45%"
                             labelLine={false}
-                            label={({ name, value }) => `${name}: ${value}`}
-                            outerRadius={50}
+                            outerRadius={55}
                             fill="#8884d8"
                             dataKey="value"
                           >
@@ -675,7 +674,8 @@ export default function MentorReportsPage() {
                               <Cell key={`cell-${index}`} fill={entry.fill} />
                             ))}
                           </Pie>
-                          <Tooltip />
+                          <Tooltip formatter={(value, name) => [value, name]} />
+                          <Legend verticalAlign="bottom" height={36} iconSize={10} wrapperStyle={{ fontSize: '11px' }} />
                         </RechartsPieChart>
                       </ResponsiveContainer>
                     </div>
@@ -686,22 +686,22 @@ export default function MentorReportsPage() {
                           <UsersRound className="h-4 w-4 text-blue-500" />
                           Journal entries (learners)
                         </h3>
-                        <ResponsiveContainer width="100%" height={150}>
+                        <ResponsiveContainer width="100%" height={180}>
                           <RechartsPieChart>
                             <Pie
                               data={journalEngagementData}
                               cx="50%"
-                              cy="50%"
+                              cy="45%"
                               labelLine={false}
-                              label={({ name, count }) => `${name}: ${count}`}
-                              outerRadius={50}
+                              outerRadius={55}
                               dataKey="count"
                             >
                               {journalEngagementData.map((entry, index) => (
                                 <Cell key={`j-${index}`} fill={(entry as { fill?: string }).fill ?? '#6366f1'} />
                               ))}
                             </Pie>
-                            <Tooltip />
+                            <Tooltip formatter={(value, name) => [value, name]} />
+                            <Legend verticalAlign="bottom" height={36} iconSize={10} wrapperStyle={{ fontSize: '11px' }} />
                           </RechartsPieChart>
                         </ResponsiveContainer>
                       </div>
