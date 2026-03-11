@@ -14,9 +14,9 @@ export function Calendar({ className, classNames, showOutsideDays = true, ...pro
       classNames={{
         months: 'flex flex-col',
         month: 'space-y-3',
-        caption: 'flex items-center justify-center relative h-8',
+        caption: 'flex flex-col items-center gap-1',
         month_caption: 'flex items-center justify-center gap-2',
-        caption_label: 'text-sm font-semibold text-slate-800',
+        caption_label: 'sr-only',
         dropdowns: 'flex items-center gap-2',
         dropdown: cn(
           'appearance-none rounded-lg border border-slate-200 bg-white px-3 py-1.5',
