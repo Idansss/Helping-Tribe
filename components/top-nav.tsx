@@ -28,7 +28,7 @@ export function TopNav() {
           </Link>
           <Link
             href="/contact"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            className="rounded-lg border-2 border-teal-500 px-4 py-1.5 text-sm font-bold text-teal-600 transition-colors hover:bg-teal-50"
           >
             Contact
           </Link>
