@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, BookOpenCheck, KeyRound, ShieldCheck, UserRoundCheck, Sparkles, CheckCircle } from 'lucide-react'
+import { ArrowRight, BookOpenCheck, KeyRound, ShieldCheck, UserRoundCheck, Sparkles, CheckCircle, Mail } from 'lucide-react'
 import { ApplicationForm } from '@/components/public/ApplicationForm'
 import { TopNav } from '@/components/top-nav'
 import { Button } from '@/components/ui/button'
@@ -42,53 +42,57 @@ export function PublicHome() {
                   Start with the application form below. Once approved, use the correct portal to sign in.
                 </p>
 
-                <div className="mt-4 grid gap-2 text-sm text-white/95 sm:grid-cols-2">
-                  <div className="flex items-center gap-2 rounded-lg border border-white/25 bg-white/10 px-3 py-2 backdrop-blur-sm">
-                    <KeyRound className="h-4 w-4 shrink-0" />
-                    <span>Students: Matric Number + Password</span>
+                <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+                  <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                    <p className="text-xs font-medium text-slate-500">Students</p>
+                    <p className="mt-1 flex items-center gap-2 font-bold text-slate-800">
+                      <span className="h-2 w-2 rounded-full bg-teal-500" />
+                      Matric + Password
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2 rounded-lg border border-white/25 bg-white/10 px-3 py-2 backdrop-blur-sm">
-                    <ShieldCheck className="h-4 w-4 shrink-0" />
-                    <span>Mentors/Admin: Email + Password</span>
+                  <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                    <p className="text-xs font-medium text-slate-500">Staff</p>
+                    <p className="mt-1 flex items-center gap-2 font-bold text-slate-800">
+                      <span className="h-2 w-2 rounded-full bg-teal-500" />
+                      Email + Password
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-xl border border-white/30 bg-white/10 p-4 backdrop-blur-sm md:p-5">
-                <p className="text-xs font-semibold tracking-[0.12em] text-emerald-100">CHOOSE YOUR LOGIN PORTAL</p>
-                <div className="mt-3 space-y-3">
-                  <Button
-                    asChild
-                    className="h-auto w-full justify-between rounded-lg border border-white/80 bg-white px-4 py-3 text-left text-teal-900 hover:bg-white/95"
-                  >
-                    <Link href="/student/login">
-                      <span className="flex items-center gap-2">
-                        <UserRoundCheck className="h-5 w-5" />
-                        <span>
-                          <span className="block text-base font-semibold">Student Login</span>
-                          <span className="block text-xs font-medium text-teal-700/90">Login with Matric Number</span>
-                        </span>
-                      </span>
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
+              <div className="rounded-2xl bg-white p-6 shadow-lg">
+                <h3 className="text-xl font-bold text-slate-900">Choose Your Portal</h3>
+                <p className="mt-1 text-sm text-slate-500">Select how you'd like to access your account</p>
 
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="h-auto w-full justify-between rounded-lg border-white/60 bg-white/10 px-4 py-3 text-left text-white hover:bg-white/15 hover:text-white"
-                  >
-                    <Link href="/staff/login">
-                      <span className="flex items-center gap-2">
-                        <ShieldCheck className="h-5 w-5" />
-                        <span>
-                          <span className="block text-base font-semibold">Mentor/Admin Login</span>
-                          <span className="block text-xs font-medium text-white/80">Login with Email Address</span>
-                        </span>
-                      </span>
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
+                <div className="mt-5 space-y-3">
+                  <Link href="/student/login" className="flex items-center gap-4 rounded-2xl border border-slate-200 px-4 py-4 hover:border-teal-300 hover:bg-teal-50/40 transition-colors group">
+                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-teal-50 border border-teal-100">
+                      <UserRoundCheck className="h-6 w-6 text-teal-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-slate-900">Student Login</p>
+                      <p className="text-sm text-slate-500">Login with Matric Number</p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-600 transition-colors" />
+                  </Link>
+
+                  <Link href="/staff/login" className="flex items-center gap-4 rounded-2xl border border-slate-200 px-4 py-4 hover:border-teal-300 hover:bg-teal-50/40 transition-colors group">
+                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-teal-50 border border-teal-100">
+                      <Mail className="h-6 w-6 text-teal-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-slate-900">Mentor/Admin Login</p>
+                      <p className="text-sm text-slate-500">Login with Email Address</p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-600 transition-colors" />
+                  </Link>
+                </div>
+
+                <div className="mt-5 border-t border-slate-100 pt-5">
+                  <Link href="#application-form" className="flex w-full items-center justify-center gap-2 rounded-2xl bg-teal-600 px-6 py-3 font-semibold text-white hover:bg-teal-700 transition-colors">
+                    Start Your Application
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
                 </div>
               </div>
             </div>
