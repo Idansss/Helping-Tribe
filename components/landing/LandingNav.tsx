@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Users, Menu, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 export function LandingNav() {
@@ -46,18 +47,25 @@ export function LandingNav() {
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link 
             href="/" 
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           >
-            <div className="w-10 h-10 rounded-lg bg-[#4c1d95] flex items-center justify-center">
-              <Users className="h-6 w-6 text-white" />
+            <div className="w-11 h-11 rounded-full overflow-hidden shrink-0">
+              <Image
+                src="/logo.png"
+                alt="The Helping Tribe logo"
+                width={44}
+                height={44}
+                className="w-full h-full object-cover"
+                priority
+              />
             </div>
-            <div className="flex flex-col">
-              <span className="text-2xl font-bold font-serif text-[#1e1b4b]">Helping Tribe</span>
-              <span className="text-sm text-gray-500 -mt-1 font-sans">HELP Foundations</span>
+            <div className="flex flex-col leading-tight">
+              <span className="text-3xl font-extrabold tracking-tight text-[#1a5c4a]">The Helping Tribe</span>
+              <span className="text-xs text-gray-500 font-sans">HELP Foundations</span>
             </div>
           </Link>
 
