@@ -124,7 +124,7 @@ export default function MentorGradingHubPage() {
       if (tab === 'assignments') {
         const { data, error } = await supabase
           .from('assignment_submissions')
-          .select('id, submitted_at, graded, grade, feedback, file_url, file_name, user_id, assignment_id, assignments(title, assignment_type), profiles(full_name)')
+          .select('id, submitted_at, graded, grade, feedback, file_url, file_name, user_id, assignment_id, assignments(title), profiles!user_id(full_name)')
           .order('submitted_at', { ascending: false })
           .limit(100)
         if (error) throw error
@@ -144,7 +144,7 @@ export default function MentorGradingHubPage() {
       } else if (tab === 'learning-journals') {
         const { data, error } = await supabase
           .from('learning_journals')
-          .select('id, content, updated_at, created_at, user_id, module_id, modules(title), profiles(full_name)')
+          .select('id, content, updated_at, created_at, user_id, module_id, modules(title), profiles!user_id(full_name)')
           .order('updated_at', { ascending: false })
           .limit(100)
         if (error) throw error
@@ -162,7 +162,7 @@ export default function MentorGradingHubPage() {
       } else if (tab === 'final-projects') {
         const { data, error } = await supabase
           .from('final_exam_submissions')
-          .select('id, file_url, file_name, submitted_at, graded, grade, feedback, user_id, profiles(full_name)')
+          .select('id, file_url, file_name, submitted_at, graded, grade, feedback, user_id, profiles!user_id(full_name)')
           .order('submitted_at', { ascending: false })
           .limit(100)
         if (error) throw error
@@ -182,7 +182,7 @@ export default function MentorGradingHubPage() {
       } else if (tab === 'ethics-quizzes') {
         const { data, error } = await supabase
           .from('quiz_attempts')
-          .select('id, score, passed, completed_at, user_id, quiz_id, quizzes(title), profiles(full_name)')
+          .select('id, score, passed, completed_at, user_id, quiz_id, quizzes(title), profiles!user_id(full_name)')
           .order('completed_at', { ascending: false })
           .limit(100)
         if (error) throw error
@@ -202,9 +202,20 @@ export default function MentorGradingHubPage() {
         // ilt-sessions, case-studies, practice-recordings — show empty for now
         setItems([])
       }
-    } catch (e) {
-      console.error(e)
-      toast({ title: 'Failed to load submissions.', variant: 'destructive' })
+    } catch (e: any) {
+      // Silently fall back to empty list if table doesn't exist or RLS blocks access
+      const code = e?.code ?? e?.message ?? ''
+      const isTableMissing =
+        code === '42P01' ||
+        String(code).includes('does not exist') ||
+        String(code).includes('relation') ||
+        e?.status === 404 ||
+        e?.status === 400
+      if (!isTableMissing) {
+        console.error('Grading load error:', e)
+        toast({ title: 'Failed to load submissions.', variant: 'destructive' })
+      }
+      setItems([])
     } finally {
       setLoadingItems(false)
     }
