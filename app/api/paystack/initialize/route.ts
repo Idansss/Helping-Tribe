@@ -6,6 +6,7 @@ import { resolvePortalRole } from '@/lib/auth/admin'
 import { computeHelpFoundationalCoursePricing, HELP_FOUNDATIONAL_COURSE } from '@/lib/payments/helpFoundationalCourse'
 import { createPaystackReference, paystackInitializeTransaction } from '@/lib/paystack/server'
 import { isMissingColumnError, isMissingRelationError, missingPaymentsSchemaMessage } from '@/lib/supabase/migrations'
+import { getRegistrationWindow, isRegistrationOpen } from '@/lib/settings/registration'
 
 const InitializeSchema = z.object({
   studentId: z.string().uuid().optional(),
@@ -119,13 +120,16 @@ export async function POST(request: NextRequest) {
       applicant = a
     }
 
-    const pricing = computeHelpFoundationalCoursePricing()
-    if (pricing.phase === 'CLOSED') {
+    const registrationWindow = await getRegistrationWindow(admin)
+    const { allowed: registrationOpen, message: registrationMessage } = isRegistrationOpen(registrationWindow)
+    if (!registrationOpen) {
       return NextResponse.json(
-        { error: 'Registration closed 28th February 2026' },
+        { error: registrationMessage ?? 'Registration is closed.' },
         { status: 409 }
       )
     }
+
+    const pricing = computeHelpFoundationalCoursePricing()
 
     const payEmail =
       (applicant?.email && String(applicant.email).trim()) ||
