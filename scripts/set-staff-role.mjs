@@ -34,10 +34,8 @@ function getArg(name) {
 }
 
 const email = getArg('email')
-const password = getArg('password')
-const fullName = getArg('name') ?? 'Admin'
-const roleArg = (getArg('role') ?? 'admin').toLowerCase()
-const role = roleArg === 'mentor' ? 'mentor' : 'admin'
+const roleArg = (getArg('role') ?? 'mentor').toLowerCase()
+const role = roleArg === 'admin' ? 'admin' : 'mentor'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -47,8 +45,8 @@ if (!url || !serviceRoleKey) {
   process.exit(1)
 }
 
-if (!email || !password) {
-  console.error('Usage: node scripts/create-admin.mjs --email user@domain.com --password "StrongPassword123!" [--name "Full Name"] [--role admin|mentor]')
+if (!email) {
+  console.error('Usage: node scripts/set-staff-role.mjs --email user@domain.com [--role mentor|admin]')
   process.exit(1)
 }
 
@@ -56,32 +54,25 @@ const supabase = createClient(url, serviceRoleKey, {
   auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
 })
 
-const { data: created, error: createErr } = await supabase.auth.admin.createUser({
-  email,
-  password,
-  email_confirm: true,
-  user_metadata: { full_name: fullName },
-})
-
-if (createErr || !created?.user) {
-  console.error('Failed to create admin auth user:', createErr?.message ?? 'unknown error')
+const { data } = await supabase.auth.admin.listUsers({ perPage: 1000 })
+const user = data?.users?.find((u) => u.email?.toLowerCase() === email.toLowerCase())
+if (!user) {
+  console.error('No user found with email:', email)
   process.exit(1)
 }
 
-const userId = created.user.id
-
 const { error: profileErr } = await supabase.from('profiles').upsert({
-  id: userId,
+  id: user.id,
   role,
-  full_name: fullName,
-  email,
+  full_name: user.user_metadata?.full_name ?? user.email?.split('@')[0],
+  email: user.email,
 })
 
 if (profileErr) {
-  console.error('User created, but failed to upsert profile:', profileErr.message)
+  console.error('Failed to update profile:', profileErr.message)
   process.exit(1)
 }
 
-console.log(`✅ ${role === 'mentor' ? 'Mentor' : 'Admin'} created`)
-console.log(`- id: ${userId}`)
-console.log(`- email: ${email}`)
+console.log(`✅ Profile updated to role: ${role}`)
+console.log(`- id: ${user.id}`)
+console.log(`- email: ${user.email}`)
