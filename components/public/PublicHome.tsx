@@ -76,15 +76,26 @@ export function PublicHome() {
                     <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-600 transition-colors" />
                   </Link>
 
-                  <Link href="/staff/login" className="flex items-center gap-4 rounded-2xl border border-slate-200 px-4 py-4 hover:border-teal-300 hover:bg-teal-50/40 transition-colors group">
+                  <Link href="/mentor-login" className="flex items-center gap-4 rounded-2xl border border-slate-200 px-4 py-4 hover:border-teal-300 hover:bg-teal-50/40 transition-colors group">
                     <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-teal-50 border border-teal-100">
                       <Mail className="h-6 w-6 text-teal-600" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-bold text-slate-900">Mentor/Admin Login</p>
+                      <p className="font-bold text-slate-900">Mentor Login</p>
                       <p className="text-sm text-slate-500">Login with Email Address</p>
                     </div>
                     <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-600 transition-colors" />
+                  </Link>
+
+                  <Link href="/staff/login" className="flex items-center gap-4 rounded-2xl border border-slate-200 px-4 py-4 hover:border-teal-300 hover:bg-teal-50/40 transition-colors group">
+                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-slate-100 border border-slate-200">
+                      <ShieldCheck className="h-6 w-6 text-slate-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-slate-900">Admin Login</p>
+                      <p className="text-sm text-slate-500">Login with Email Address</p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
                   </Link>
                 </div>
 
@@ -160,7 +171,9 @@ export function PublicHome() {
           </CardContent>
         </Card>
 
-        <ApplicationForm />
+        <div id="application-form">
+          <ApplicationForm />
+        </div>
       </div>
 
       <footer className="mt-16 bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-700 text-teal-100">
