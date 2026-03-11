@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { redirect } from 'next/navigation'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { createClient } from '@/lib/supabase/server'
-import { isAllowedAdmin, resolvePortalRole } from '@/lib/auth/admin'
+import { resolvePortalRole } from '@/lib/auth/admin'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,9 +30,9 @@ async function AdminGate({ children }: { children: ReactNode }) {
     .eq('id', user.id)
     .maybeSingle()
 
-  if (!isAllowedAdmin(profile?.role, user.email)) {
-    const fallbackRole = resolvePortalRole(profile?.role, user.email)
-    if (fallbackRole === 'mentor') redirect('/mentor')
+  const portalRole = resolvePortalRole(profile?.role, user.email)
+  if (portalRole !== 'admin') {
+    if (portalRole === 'mentor') redirect('/mentor')
     redirect('/learner/dashboard')
   }
 
