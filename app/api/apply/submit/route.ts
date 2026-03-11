@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ApplicationSchema, APPLICATION_HONEYPOT_FIELD } from '@/lib/applications/schema'
 import { checkRateLimit, getRequestIp } from '@/lib/server/rate-limit'
+import { getRegistrationWindow, isRegistrationOpen } from '@/lib/settings/registration'
 
 const SubmitSchema = z.object({
   draftId: z.string().uuid().optional(),
@@ -34,6 +35,11 @@ export async function POST(request: NextRequest) {
     }
 
     const admin = createAdminClient()
+    const window = await getRegistrationWindow(admin)
+    const { allowed, message } = isRegistrationOpen(window)
+    if (!allowed) {
+      return NextResponse.json({ error: message ?? 'Registration is closed.' }, { status: 403 })
+    }
 
     const { data: inserted, error } = await admin
       .from('applicants')

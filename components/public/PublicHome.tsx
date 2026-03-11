@@ -1,14 +1,56 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, BookOpenCheck, KeyRound, ShieldCheck, UserRoundCheck, Sparkles, CheckCircle, Mail } from 'lucide-react'
+import { ArrowRight, BookOpenCheck, KeyRound, ShieldCheck, UserRoundCheck, Sparkles, CheckCircle, Mail, CalendarX2 } from 'lucide-react'
 import { ApplicationForm } from '@/components/public/ApplicationForm'
 import { TopNav } from '@/components/top-nav'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
+function formatRegistrationDate(iso: string) {
+  try {
+    return new Date(iso + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+  } catch {
+    return iso
+  }
+}
+
 export function PublicHome() {
+  const [regStatus, setRegStatus] = useState<'loading' | 'open' | 'closed' | 'not_yet'>('loading')
+  const [regMessage, setRegMessage] = useState<string>('')
+
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/settings/registration')
+      .then((res) => res.json())
+      .then((data: { opensAt?: string | null; closesAt?: string | null }) => {
+        if (cancelled) return
+        const today = new Date().toISOString().slice(0, 10)
+        const opensAt = data.opensAt?.trim() || null
+        const closesAt = data.closesAt?.trim() || null
+        if (opensAt && today < opensAt) {
+          setRegStatus('not_yet')
+          setRegMessage(`Registration opens on ${formatRegistrationDate(opensAt)}.`)
+          return
+        }
+        if (closesAt && today > closesAt) {
+          setRegStatus('closed')
+          setRegMessage(`Registration closed on ${formatRegistrationDate(closesAt)}. Check back for the next cohort.`)
+          return
+        }
+        setRegStatus('open')
+        setRegMessage('')
+      })
+      .catch(() => {
+        if (!cancelled) setRegStatus('open')
+      })
+    return () => { cancelled = true }
+  }, [])
+
+  const registrationClosed = regStatus === 'closed' || regStatus === 'not_yet'
+
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,#d9f7f1_0%,#edf7f6_35%,#f8fbfb_65%,#ffffff_100%)] text-slate-900">
       <TopNav />
@@ -100,10 +142,16 @@ export function PublicHome() {
                 </div>
 
                 <div className="mt-5 border-t border-slate-100 pt-5">
-                  <Link href="#application-form" className="flex w-full items-center justify-center gap-2 rounded-2xl bg-teal-600 px-6 py-3 font-semibold text-white hover:bg-teal-700 transition-colors">
-                    Start Your Application
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
+                  {registrationClosed ? (
+                    <div className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-200 px-6 py-3 font-semibold text-slate-600 cursor-not-allowed">
+                      Application not available
+                    </div>
+                  ) : (
+                    <Link href="#application-form" className="flex w-full items-center justify-center gap-2 rounded-2xl bg-teal-600 px-6 py-3 font-semibold text-white hover:bg-teal-700 transition-colors">
+                      Start Your Application
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
@@ -172,7 +220,28 @@ export function PublicHome() {
         </Card>
 
         <div id="application-form">
-          <ApplicationForm />
+          {regStatus === 'loading' && (
+            <Card className="rounded-2xl border-teal-100/80 p-8 text-center text-slate-500">
+              Loading…
+            </Card>
+          )}
+          {regStatus === 'open' && <ApplicationForm />}
+          {registrationClosed && (
+            <Card className="rounded-2xl border-amber-200 bg-amber-50/80 p-8">
+              <div className="flex flex-col items-center justify-center gap-4 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-100">
+                  <CalendarX2 className="h-7 w-7 text-amber-700" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">Registration is not open</h3>
+                  <p className="mt-2 text-sm text-slate-600">{regMessage}</p>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Already approved? <Link href="/student/login" className="font-semibold text-teal-700 hover:underline">Student Login</Link>
+                </p>
+              </div>
+            </Card>
+          )}
         </div>
       </div>
 

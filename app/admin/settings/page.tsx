@@ -3,10 +3,11 @@
 import { useEffect, useState } from 'react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Card } from '@/components/ui/card'
-import { Settings2 } from 'lucide-react'
+import { Settings2, Calendar } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
 
 const PORTAL_SETTINGS_STORAGE_KEY = 'ht-portal-settings'
 
@@ -27,6 +28,13 @@ export default function AdminSettingsPage() {
     DEFAULT_PORTAL_SETTINGS.dashboardAnnouncements,
   )
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
+
+  // Registration window (from API)
+  const [regOpensAt, setRegOpensAt] = useState<string>('')
+  const [regClosesAt, setRegClosesAt] = useState<string>('')
+  const [regLoading, setRegLoading] = useState(true)
+  const [regSaving, setRegSaving] = useState(false)
+  const [regMessage, setRegMessage] = useState<string | null>(null)
 
   // Load saved settings on first mount
   useEffect(() => {
@@ -66,6 +74,48 @@ export default function AdminSettingsPage() {
     }
   }, [portalName, portalDomain, aiFeatures, dashboardAnnouncements])
 
+  // Load registration window from API
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/settings/registration')
+      .then((res) => res.json())
+      .then((data: { opensAt?: string | null; closesAt?: string | null }) => {
+        if (!cancelled) {
+          setRegOpensAt(data.opensAt ?? '')
+          setRegClosesAt(data.closesAt ?? '')
+        }
+      })
+      .catch(() => { if (!cancelled) setRegMessage('Failed to load registration settings.') })
+      .finally(() => { if (!cancelled) setRegLoading(false) })
+    return () => { cancelled = true }
+  }, [])
+
+  const handleSaveRegistration = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setRegSaving(true)
+    setRegMessage(null)
+    try {
+      const res = await fetch('/api/settings/registration', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          opensAt: regOpensAt.trim() || null,
+          closesAt: regClosesAt.trim() || null,
+        }),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error || 'Failed to save')
+      }
+      setRegMessage('Registration window saved.')
+      setTimeout(() => setRegMessage(null), 3000)
+    } catch (err: unknown) {
+      setRegMessage(err instanceof Error ? err.message : 'Failed to save.')
+    } finally {
+      setRegSaving(false)
+    }
+  }
+
   const handleSavePortal = (e: React.FormEvent) => {
     e.preventDefault()
     setSaveMessage('Portal settings saved.')
@@ -100,6 +150,9 @@ export default function AdminSettingsPage() {
           <TabsList className="flex flex-wrap justify-start gap-1 bg-slate-50 rounded-lg p-1">
             <TabsTrigger value="portal" className="text-xs px-3 py-1.5">
               Portal
+            </TabsTrigger>
+            <TabsTrigger value="registration" className="text-xs px-3 py-1.5">
+              Registration
             </TabsTrigger>
             <TabsTrigger value="users" className="text-xs px-3 py-1.5">
               Users
@@ -240,6 +293,71 @@ export default function AdminSettingsPage() {
                 )}
               </div>
             </form>
+          </TabsContent>
+
+          <TabsContent value="registration" className="text-xs text-slate-600 space-y-3">
+            <div className="flex items-center gap-2 text-slate-700">
+              <Calendar className="h-4 w-4 text-[var(--talent-primary)]" />
+              <span className="font-medium text-sm">
+                Registration open / close
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-500">
+              Set when applicants can submit the application form. Leave a date empty for no limit on that side.
+            </p>
+            {regLoading ? (
+              <p className="text-slate-500">Loading…</p>
+            ) : (
+              <form onSubmit={handleSaveRegistration} className="grid gap-3 md:grid-cols-2 max-w-md">
+                <div className="space-y-1">
+                  <Label htmlFor="reg-opens" className="text-[11px] font-medium text-slate-700">
+                    Registration opens (date)
+                  </Label>
+                  <Input
+                    id="reg-opens"
+                    type="date"
+                    value={regOpensAt}
+                    onChange={(e) => setRegOpensAt(e.target.value)}
+                    className="text-xs"
+                  />
+                  <p className="text-[10px] text-slate-500">Optional. Before this date, the form is closed.</p>
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="reg-closes" className="text-[11px] font-medium text-slate-700">
+                    Registration closes (date)
+                  </Label>
+                  <Input
+                    id="reg-closes"
+                    type="date"
+                    value={regClosesAt}
+                    onChange={(e) => setRegClosesAt(e.target.value)}
+                    className="text-xs"
+                  />
+                  <p className="text-[10px] text-slate-500">Optional. After this date, the form is closed.</p>
+                </div>
+                <div className="md:col-span-2">
+                  <p className="text-[10px] text-slate-600">
+                    Current status: {(() => {
+                      const today = new Date().toISOString().slice(0, 10)
+                      if (regOpensAt && today < regOpensAt) return <span className="text-amber-600">Opens on {regOpensAt}</span>
+                      if (regClosesAt && today > regClosesAt) return <span className="text-red-600">Closed (since {regClosesAt})</span>
+                      return <span className="text-emerald-600">Open</span>
+                    })()}
+                  </p>
+                </div>
+                <div className="md:col-span-2 flex items-center gap-2">
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={regSaving}
+                    className="text-[11px] bg-[var(--talent-primary)] hover:bg-[var(--talent-primary-dark)] text-white"
+                  >
+                    {regSaving ? 'Saving…' : 'Save registration window'}
+                  </Button>
+                  {regMessage && <span className="text-[10px] text-slate-500">{regMessage}</span>}
+                </div>
+              </form>
+            )}
           </TabsContent>
 
           <TabsContent value="users" className="text-xs text-slate-600 space-y-1">
