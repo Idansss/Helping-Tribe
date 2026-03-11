@@ -6,10 +6,10 @@ export function TopNav() {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/60 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         <Link href="/apply" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl overflow-hidden">
-            <Image src="/logo.png" alt="The Helping Tribe" width={36} height={36} className="object-contain" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl overflow-hidden">
+            <Image src="/logo.png" alt="The Helping Tribe" width={48} height={48} className="object-contain" />
           </div>
-          <span className="font-display text-sm font-semibold tracking-tight text-foreground">
+          <span className="font-display text-lg font-bold tracking-tight text-foreground">
             The Helping Tribe
           </span>
         </Link>
