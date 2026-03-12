@@ -91,8 +91,8 @@ export default function AdminLoginPage() {
                   Student login
                 </Link>
               </div>
-              <Link href="/contact" className="font-medium transition-colors hover:text-foreground">
-                Contact support
+              <Link href="/forgot-password" className="font-medium transition-colors hover:text-foreground">
+                Forgot password?
               </Link>
             </div>
           </div>
