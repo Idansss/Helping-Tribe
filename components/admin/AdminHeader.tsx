@@ -37,10 +37,10 @@ const ROLE_OPTIONS: RoleOption[] = [
   },
   {
     id: 'mentor',
-    label: 'Mentor',
+    label: 'Facilitator',
     href: '/mentor',
     icon: GraduationCap,
-    description: 'Mentor dashboard',
+    description: 'Facilitator dashboard',
   },
   {
     id: 'learner',
@@ -164,14 +164,14 @@ export function AdminHeader({
   // Get role-specific title and description if not provided
   const getRoleTitle = () => {
     if (title !== 'Admin dashboard') return title
-    if (currentRole === 'mentor') return 'Mentor Dashboard'
+    if (currentRole === 'mentor') return 'Facilitator Dashboard'
     if (currentRole === 'learner') return 'My Training'
     return 'Admin Dashboard'
   }
 
   const getRoleDescription = () => {
     if (description !== 'Monitor your counseling training portal at a glance.') return description
-    if (currentRole === 'mentor') return 'Manage your students, courses, and mentoring sessions.'
+    if (currentRole === 'mentor') return 'Manage your learners, courses, and facilitation sessions.'
     if (currentRole === 'learner') return 'Track your progress through the counseling training program.'
     return 'Monitor your counseling training portal at a glance.'
   }

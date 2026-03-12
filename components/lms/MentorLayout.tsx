@@ -143,7 +143,7 @@ export function MentorLayout({ children }: MentorLayoutProps) {
             {showSidebar && (
               <div className="leading-tight min-w-0">
                 <div className="text-[13px] font-semibold text-white truncate">Helping Tribe</div>
-                <div className="text-[11px] text-white/80 truncate">Mentor • Counseling LMS</div>
+                <div className="text-[11px] text-white/80 truncate">Facilitator • Counseling LMS</div>
               </div>
             )}
           </div>
@@ -207,7 +207,7 @@ export function MentorLayout({ children }: MentorLayoutProps) {
       >
         <AdminHeader
           leftSlot={mentorHeaderLeftSlot}
-          title="Mentor Dashboard"
+          title="Facilitator Dashboard"
           description="Monitor your learners, track course engagement, and quickly see where support is needed."
         />
 

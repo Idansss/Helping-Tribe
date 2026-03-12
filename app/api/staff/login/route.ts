@@ -63,11 +63,11 @@ export async function POST(request: NextRequest) {
     // Enforce portal-specific login: reject if the user's role doesn't match
     if (body.portal === 'admin' && portalRole !== 'admin') {
       await supabase.auth.signOut()
-      return NextResponse.json({ error: 'This is the Admin login. Mentors should use the Mentor login page.' }, { status: 403 })
+      return NextResponse.json({ error: 'This is the Admin login. Facilitators should use the Facilitator login page.' }, { status: 403 })
     }
     if (body.portal === 'mentor' && portalRole !== 'mentor') {
       await supabase.auth.signOut()
-      return NextResponse.json({ error: 'This is the Mentor login. Admins should use the Admin login page.' }, { status: 403 })
+      return NextResponse.json({ error: 'This is the Facilitator login. Admins should use the Admin login page.' }, { status: 403 })
     }
 
     const redirectTo =

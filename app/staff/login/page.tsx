@@ -33,8 +33,8 @@ function MarketingPanel() {
               <div>
                 <p className="text-sm font-semibold text-white">Admin accounts only</p>
                 <p className="mt-1 text-sm leading-relaxed text-slate-300/80">
-                  This login is exclusively for admins. Mentors must use the
-                  Mentor login page.
+                  This login is exclusively for admins. Facilitators must use the
+                  Facilitator login page.
                 </p>
               </div>
             </div>
@@ -84,7 +84,7 @@ export default function AdminLoginPage() {
             <div className="mt-8 flex flex-col items-center gap-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-4">
                 <Link href="/mentor-login" className="font-medium transition-colors hover:text-foreground">
-                  Mentor login
+                  Facilitator login
                 </Link>
                 <span className="text-border">|</span>
                 <Link href="/student/login" className="font-medium transition-colors hover:text-foreground">

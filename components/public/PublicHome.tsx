@@ -123,7 +123,7 @@ export function PublicHome() {
                       <Mail className="h-6 w-6 text-teal-600" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-bold text-slate-900">Mentor Login</p>
+                      <p className="font-bold text-slate-900">Facilitator Login</p>
                       <p className="text-sm text-slate-500">Login with Email Address</p>
                     </div>
                     <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-600 transition-colors" />

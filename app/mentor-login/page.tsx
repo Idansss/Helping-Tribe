@@ -18,7 +18,7 @@ function MarketingPanel() {
         </div>
 
         <h1 className="mt-8 font-display text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl text-balance">
-          Mentor portal sign in
+          Facilitator portal sign in
         </h1>
 
         <p className="mt-5 text-base leading-relaxed text-white/80">
@@ -31,7 +31,7 @@ function MarketingPanel() {
             <div className="flex items-start gap-3.5">
               <Users className="mt-0.5 h-5 w-5 shrink-0 text-teal-200" />
               <div>
-                <p className="text-sm font-semibold text-white">Mentors &amp; Faculty only</p>
+                <p className="text-sm font-semibold text-white">Facilitators &amp; Faculty only</p>
                 <p className="mt-1 text-sm leading-relaxed text-white/70">
                   This login is exclusively for mentors and faculty. Admins must
                   use the Admin login page.
@@ -41,12 +41,12 @@ function MarketingPanel() {
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
-            <div className="flex items-start gap-3.5">
+                  <div className="flex items-start gap-3.5">
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-300" />
               <div>
                 <p className="text-sm font-semibold text-white">Authorised access only</p>
                 <p className="mt-1 text-sm leading-relaxed text-white/70">
-                  Non-mentor accounts will be rejected automatically.
+                  Non-facilitator accounts will be rejected automatically.
                 </p>
               </div>
             </div>
@@ -69,14 +69,14 @@ export default function MentorLoginPage() {
           <div className="w-full max-w-md">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-200/80 bg-teal-50/60 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-teal-700 backdrop-blur-sm">
               <BookOpen className="h-3.5 w-3.5" />
-              Mentor login
+              Facilitator login
             </span>
 
             <h2 className="mt-8 font-display text-3xl font-bold tracking-tight text-foreground">
-              Mentor Login
+              Facilitator Login
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Sign in with your mentor account to access the mentor portal.
+              Sign in with your facilitator account to access the facilitator portal.
             </p>
 
             <StaffLoginForm portal="mentor" />

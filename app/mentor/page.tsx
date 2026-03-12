@@ -26,7 +26,7 @@ import { Progress } from '@/components/ui/progress'
 
 export default function MentorDashboardPage() {
   const supabase = createClient()
-  const [mentorName, setMentorName] = useState<string>('Mentor')
+  const [mentorName, setMentorName] = useState<string>('Facilitator')
   const [coursesCount, setCoursesCount] = useState(0)
   const [assignedLearnersCount, setAssignedLearnersCount] = useState(0)
   const [completionRate, setCompletionRate] = useState(0)
@@ -57,7 +57,7 @@ export default function MentorDashboardPage() {
       if (profile?.full_name) {
         setMentorName(profile.full_name)
       } else {
-        setMentorName(user.email?.split('@')[0] || 'Mentor')
+        setMentorName(user.email?.split('@')[0] || 'Facilitator')
       }
     } catch (error) {
       console.error('Error loading mentor profile', error)
