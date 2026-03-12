@@ -11,6 +11,7 @@ export const PUBLIC_PAGES = new Set([
   '/staff/login',
   '/mentor-login',
   '/forgot-password',
+  '/reset-password',
   '/set-password',
   '/student/set-password',
 ])
