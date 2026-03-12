@@ -1,12 +1,7 @@
-import SetPasswordPage from '../set-password/page'
-
-export default SetPasswordPage
-
 'use client'
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { Eye, EyeOff } from 'lucide-react'
 import { BlurBlobs } from '@/components/blur-blobs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -19,7 +14,6 @@ type State = 'loading' | 'ready' | 'invalid' | 'done'
 
 export default function ResetPasswordPage() {
   const supabase = createClient()
-  const router = useRouter()
   const [state, setState] = useState<State>('loading')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -34,11 +28,7 @@ export default function ResetPasswordPage() {
       return
     }
     supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-      if (error) {
-        setState('invalid')
-      } else {
-        setState('ready')
-      }
+      setState(error ? 'invalid' : 'ready')
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
