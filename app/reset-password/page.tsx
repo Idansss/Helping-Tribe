@@ -1,3 +1,7 @@
+import SetPasswordPage from '../set-password/page'
+
+export default SetPasswordPage
+
 'use client'
 
 import { useEffect, useState } from 'react'
