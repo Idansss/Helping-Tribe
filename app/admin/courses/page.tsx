@@ -15,7 +15,7 @@ import {
   DialogFooter,
   DialogDescription,
 } from '@/components/ui/dialog'
-import { BookOpen, PlusCircle, Loader2, Pencil, FileText } from 'lucide-react'
+import { BookOpen, PlusCircle, Loader2, Pencil, FileText, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 
@@ -45,6 +45,8 @@ export default function AdminCoursesPage() {
   const [notesFile, setNotesFile] = React.useState<File | null>(null)
   const [editLoading, setEditLoading] = React.useState(false)
   const [editSaving, setEditSaving] = React.useState(false)
+  const [deletingModuleId, setDeletingModuleId] = React.useState<string | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = React.useState<string | null>(null)
 
   const loadModules = React.useCallback(async () => {
     setLoading(true)
@@ -130,6 +132,23 @@ export default function AdminCoursesPage() {
   const handleCloseEdit = () => {
     setEditModuleId(null)
     setNotesFile(null)
+  }
+
+  const handleDeleteModule = async () => {
+    if (!deleteConfirmId) return
+    setDeletingModuleId(deleteConfirmId)
+    try {
+      const { error } = await supabase.from('modules').delete().eq('id', deleteConfirmId)
+      if (error) throw error
+      setModules(prev => prev.filter(m => m.id !== deleteConfirmId))
+      toast({ title: 'Module deleted.' })
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to delete module.'
+      toast({ title: 'Could not delete module', description: msg, variant: 'destructive' })
+    } finally {
+      setDeletingModuleId(null)
+      setDeleteConfirmId(null)
+    }
   }
 
   const handleSaveModuleContent = async () => {
@@ -347,16 +366,28 @@ export default function AdminCoursesPage() {
                           Week {m.week}
                         </td>
                         <td className="px-3 py-2 align-middle text-right">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="text-[var(--talent-primary-dark)]"
-                            onClick={() => setEditModuleId(m.id)}
-                          >
-                            <Pencil className="h-3.5 w-3.5 mr-1" />
-                            Edit content
-                          </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="text-[var(--talent-primary-dark)]"
+                              onClick={() => setEditModuleId(m.id)}
+                            >
+                              <Pencil className="h-3.5 w-3.5 mr-1" />
+                              Edit content
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
+                              onClick={() => setDeleteConfirmId(m.id)}
+                              aria-label="Delete module"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -427,6 +458,31 @@ export default function AdminCoursesPage() {
           </form>
         </Card>
       </div>
+
+      <Dialog open={!!deleteConfirmId} onOpenChange={(open) => { if (!open) setDeleteConfirmId(null) }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete this module?</DialogTitle>
+            <DialogDescription>
+              This module will be permanently removed. Learner journal entries linked to it will remain but the module will no longer appear in the course list.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setDeleteConfirmId(null)}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDeleteModule}
+              disabled={!!deletingModuleId}
+            >
+              {deletingModuleId ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!editModuleId} onOpenChange={(open) => !open && handleCloseEdit()}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
