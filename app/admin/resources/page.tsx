@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { createClient } from '@/lib/supabase/client'
-import { FolderOpen, Plus, Pencil, Trash2, ArrowLeft, Loader2 } from 'lucide-react'
+import { FolderOpen, Plus, Pencil, Trash2, ArrowLeft, Loader2, FileText, Upload, BookOpen } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 type ResourceRow = {
@@ -39,6 +39,15 @@ type ResourceRow = {
   created_at: string
 }
 
+type ResourceDoc = {
+  id: string
+  week_number: number
+  title: string
+  description: string | null
+  file_url: string | null
+  file_name: string | null
+}
+
 const CATEGORIES = [
   { value: 'emergency', label: 'Emergency Services' },
   { value: 'mental_health', label: 'Mental Health Hotlines' },
@@ -48,9 +57,14 @@ const CATEGORIES = [
   { value: 'international', label: 'International' },
 ] as const
 
+const WEEKS = Array.from({ length: 9 }, (_, i) => i + 1)
+const DOC_BUCKET = 'final-exams'
+
 export default function AdminResourcesPage() {
   const supabase = createClient()
   const { toast } = useToast()
+
+  // ── Resource Directory state ──────────────────────────────────────────────
   const [list, setList] = useState<ResourceRow[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -68,6 +82,22 @@ export default function AdminResourcesPage() {
   const [formTags, setFormTags] = useState('')
   const [formOrder, setFormOrder] = useState<string>('')
 
+  // ── Weekly Documents state ────────────────────────────────────────────────
+  const [docs, setDocs] = useState<ResourceDoc[]>([])
+  const [docsLoading, setDocsLoading] = useState(true)
+  const [docDialogOpen, setDocDialogOpen] = useState(false)
+  const [docEditingWeek, setDocEditingWeek] = useState<number | null>(null)
+  const [docExistingId, setDocExistingId] = useState<string | null>(null)
+  const [docTitle, setDocTitle] = useState('')
+  const [docDescription, setDocDescription] = useState('')
+  const [docWeek, setDocWeek] = useState<string>('1')
+  const [docFile, setDocFile] = useState<File | null>(null)
+  const [docExistingUrl, setDocExistingUrl] = useState<string | null>(null)
+  const [docExistingName, setDocExistingName] = useState<string | null>(null)
+  const [docSaving, setDocSaving] = useState(false)
+  const [docDeletingId, setDocDeletingId] = useState<string | null>(null)
+
+  // ── Load Resource Directory ───────────────────────────────────────────────
   const load = async () => {
     setLoading(true)
     try {
@@ -86,10 +116,30 @@ export default function AdminResourcesPage() {
     }
   }
 
+  // ── Load Weekly Documents ─────────────────────────────────────────────────
+  const loadDocs = async () => {
+    setDocsLoading(true)
+    try {
+      const { data, error } = await supabase
+        .from('resource_documents')
+        .select('*')
+        .order('week_number', { ascending: true })
+      if (error) throw error
+      setDocs((data ?? []) as ResourceDoc[])
+    } catch (e) {
+      console.error(e)
+      setDocs([])
+    } finally {
+      setDocsLoading(false)
+    }
+  }
+
   useEffect(() => {
     load()
+    loadDocs()
   }, [])
 
+  // ── Resource Directory handlers ───────────────────────────────────────────
   const openCreate = () => {
     setEditingId(null)
     setFormCategory('mental_health')
@@ -172,8 +222,104 @@ export default function AdminResourcesPage() {
     }
   }
 
+  // ── Weekly Documents handlers ─────────────────────────────────────────────
+  const openDocUpload = (weekNumber?: number) => {
+    const existingDoc = weekNumber ? docs.find((d) => d.week_number === weekNumber) : null
+    setDocEditingWeek(weekNumber ?? null)
+    setDocExistingId(existingDoc?.id ?? null)
+    setDocTitle(existingDoc?.title ?? '')
+    setDocDescription(existingDoc?.description ?? '')
+    setDocWeek(weekNumber ? String(weekNumber) : '1')
+    setDocFile(null)
+    setDocExistingUrl(existingDoc?.file_url ?? null)
+    setDocExistingName(existingDoc?.file_name ?? null)
+    setDocDialogOpen(true)
+  }
+
+  const saveDoc = async () => {
+    if (!docTitle.trim()) {
+      toast({ title: 'Title is required.', variant: 'destructive' })
+      return
+    }
+    setDocSaving(true)
+    let fileUrl: string | null = docExistingUrl
+    let fileName: string | null = docExistingName
+    let fileUploadFailed = false
+
+    try {
+      if (docFile) {
+        const ext = (docFile.name.split('.').pop() || 'pdf').toLowerCase().replace(/[^a-z0-9]/g, '')
+        const storagePath = `resource-docs/week-${docWeek}/${Date.now()}.${ext || 'pdf'}`
+        const { error: uploadError } = await supabase.storage
+          .from(DOC_BUCKET)
+          .upload(storagePath, docFile, {
+            upsert: true,
+            contentType: docFile.type || 'application/pdf',
+          })
+        if (uploadError) {
+          fileUploadFailed = true
+          console.warn('Document upload failed:', uploadError)
+        } else {
+          const { data: urlData } = supabase.storage.from(DOC_BUCKET).getPublicUrl(storagePath)
+          fileUrl = urlData.publicUrl
+          fileName = docFile.name
+        }
+      }
+
+      const payload = {
+        week_number: parseInt(docWeek, 10),
+        title: docTitle.trim(),
+        description: docDescription.trim() || null,
+        file_url: fileUrl,
+        file_name: fileName,
+        updated_at: new Date().toISOString(),
+      }
+
+      if (docExistingId) {
+        const { error } = await supabase.from('resource_documents').update(payload).eq('id', docExistingId)
+        if (error) throw error
+      } else {
+        const { error } = await supabase.from('resource_documents').insert(payload)
+        if (error) throw error
+      }
+
+      setDocDialogOpen(false)
+      loadDocs()
+
+      if (fileUploadFailed) {
+        toast({
+          title: 'Saved, but file upload failed',
+          description: 'Make sure the "final-exams" storage bucket exists in Supabase and is public.',
+          variant: 'destructive',
+        })
+      } else {
+        toast({ title: docExistingId ? 'Document updated' : 'Document uploaded', description: 'Learners and mentors can now access it.' })
+      }
+    } catch (e) {
+      console.error(e)
+      toast({ title: 'Failed to save document.', variant: 'destructive' })
+    } finally {
+      setDocSaving(false)
+    }
+  }
+
+  const confirmDeleteDoc = async () => {
+    if (!docDeletingId) return
+    try {
+      const { error } = await supabase.from('resource_documents').delete().eq('id', docDeletingId)
+      if (error) throw error
+      loadDocs()
+      toast({ title: 'Document removed.' })
+    } catch (e) {
+      console.error(e)
+      toast({ title: 'Failed to delete document.', variant: 'destructive' })
+    } finally {
+      setDocDeletingId(null)
+    }
+  }
+
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-10 max-w-5xl">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="sm" asChild>
           <Link href="/admin" className="flex items-center gap-2 text-slate-600 hover:text-slate-900">
@@ -182,64 +328,145 @@ export default function AdminResourcesPage() {
           </Link>
         </Button>
       </div>
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Resource Directory</h1>
-          <p className="text-sm text-slate-600 mt-1">
-            Add and edit referral contacts (emergency, mental health, hospitals, NGOs). Learners and mentors see them on their Resources page.
-          </p>
+
+      {/* ── Resource Directory ──────────────────────────────────────────────── */}
+      <div>
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Resource Directory</h1>
+            <p className="text-sm text-slate-600 mt-1">
+              Add and edit referral contacts (emergency, mental health, hospitals, NGOs). Learners and mentors see them on their Resources page.
+            </p>
+          </div>
+          <Button onClick={openCreate} className="bg-teal-600 hover:bg-teal-700 text-white">
+            <Plus className="h-4 w-4 mr-2" />
+            Add resource
+          </Button>
         </div>
-        <Button onClick={openCreate} className="bg-teal-600 hover:bg-teal-700 text-white">
-          <Plus className="h-4 w-4 mr-2" />
-          Add resource
-        </Button>
+
+        <Card className="p-4 border-slate-200">
+          {loading ? (
+            <div className="flex items-center gap-2 text-sm text-slate-500 py-8">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading…
+            </div>
+          ) : list.length === 0 ? (
+            <p className="text-sm text-slate-500 py-6">
+              No resources yet. Add one to show it in the learner and mentor Resource Directory.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 text-left text-slate-600">
+                    <th className="pb-2 pr-4 font-medium">Title</th>
+                    <th className="pb-2 pr-4 font-medium">Category</th>
+                    <th className="pb-2 pr-4 font-medium">Location</th>
+                    <th className="pb-2 pr-4 font-medium w-24">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {list.map((row) => (
+                    <tr key={row.id} className="border-b border-slate-100">
+                      <td className="py-3 pr-4 font-medium text-slate-900">{row.title}</td>
+                      <td className="py-3 pr-4">
+                        <Badge variant="outline" className="text-xs capitalize">{row.category.replace('_', ' ')}</Badge>
+                      </td>
+                      <td className="py-3 pr-4 text-slate-600">{row.location || '—'}</td>
+                      <td className="py-3 pr-4 flex items-center gap-2">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEdit(row)} aria-label="Edit">
+                          <Pencil className="h-4 w-4" aria-hidden="true" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700" onClick={() => remove(row.id)} aria-label="Delete">
+                          <Trash2 className="h-4 w-4" aria-hidden="true" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
       </div>
 
-      <Card className="p-4 border-slate-200">
-        {loading ? (
-          <div className="flex items-center gap-2 text-sm text-slate-500 py-8">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Loading…
+      {/* ── Weekly Documents ────────────────────────────────────────────────── */}
+      <div>
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900">Weekly Course Documents</h2>
+            <p className="text-sm text-slate-600 mt-1">
+              Upload one PDF document per week (Weeks 1–9). Learners and mentors can open or download them from their Resources page.
+            </p>
           </div>
-        ) : list.length === 0 ? (
-          <p className="text-sm text-slate-500 py-6">
-            No resources yet. Add one to show it in the learner and mentor Resource Directory.
-          </p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 text-left text-slate-600">
-                  <th className="pb-2 pr-4 font-medium">Title</th>
-                  <th className="pb-2 pr-4 font-medium">Category</th>
-                  <th className="pb-2 pr-4 font-medium">Location</th>
-                  <th className="pb-2 pr-4 font-medium w-24">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {list.map((row) => (
-                  <tr key={row.id} className="border-b border-slate-100">
-                    <td className="py-3 pr-4 font-medium text-slate-900">{row.title}</td>
-                    <td className="py-3 pr-4">
-                      <Badge variant="outline" className="text-xs capitalize">{row.category.replace('_', ' ')}</Badge>
-                    </td>
-                    <td className="py-3 pr-4 text-slate-600">{row.location || '—'}</td>
-                    <td className="py-3 pr-4 flex items-center gap-2">
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEdit(row)} aria-label="Edit">
-                        <Pencil className="h-4 w-4" aria-hidden="true" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700" onClick={() => remove(row.id)} aria-label="Delete">
-                        <Trash2 className="h-4 w-4" aria-hidden="true" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
+          <Button onClick={() => openDocUpload()} className="bg-teal-600 hover:bg-teal-700 text-white">
+            <Upload className="h-4 w-4 mr-2" />
+            Upload document
+          </Button>
+        </div>
 
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {docsLoading ? (
+            <Card className="p-6 lg:col-span-2 flex items-center gap-2 text-sm text-slate-500">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading…
+            </Card>
+          ) : (
+            WEEKS.map((wk) => {
+              const doc = docs.find((d) => d.week_number === wk)
+              return (
+                <Card key={wk} className="p-4 border-slate-200 flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${doc ? 'bg-teal-100' : 'bg-slate-100'}`}>
+                      {doc ? (
+                        <FileText className="h-4 w-4 text-teal-700" />
+                      ) : (
+                        <BookOpen className="h-4 w-4 text-slate-400" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-0.5">Week {wk}</p>
+                      {doc ? (
+                        <>
+                          <p className="text-sm font-medium text-slate-900">{doc.title}</p>
+                          {doc.description && <p className="text-xs text-slate-500 mt-0.5">{doc.description}</p>}
+                          {doc.file_name && <p className="text-xs text-slate-400 mt-0.5">{doc.file_name}</p>}
+                        </>
+                      ) : (
+                        <p className="text-sm text-slate-400 italic">No document uploaded</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2 text-teal-700 hover:text-teal-800"
+                      onClick={() => openDocUpload(wk)}
+                    >
+                      <Upload className="h-3.5 w-3.5 mr-1" />
+                      {doc ? 'Replace' : 'Upload'}
+                    </Button>
+                    {doc && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
+                        onClick={() => setDocDeletingId(doc.id)}
+                        aria-label="Delete document"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                </Card>
+              )
+            })
+          )}
+        </div>
+      </div>
+
+      {/* ── Resource Directory Dialog ────────────────────────────────────────── */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -319,6 +546,78 @@ export default function AdminResourcesPage() {
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => setDeletingId(null)}>Cancel</Button>
             <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Weekly Document Upload Dialog ────────────────────────────────────── */}
+      <Dialog open={docDialogOpen} onOpenChange={setDocDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{docExistingId ? 'Replace document' : 'Upload document'}</DialogTitle>
+            <DialogDescription>
+              Upload a PDF for the selected week. Learners and mentors will be able to open or download it.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div>
+              <Label>Week</Label>
+              <Select value={docWeek} onValueChange={setDocWeek}>
+                <SelectTrigger className="mt-1 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {WEEKS.map((w) => (
+                    <SelectItem key={w} value={String(w)}>Week {w}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Document title</Label>
+              <Input value={docTitle} onChange={(e) => setDocTitle(e.target.value)} placeholder="e.g. HELP Foundation Course, Module One" className="mt-1" />
+            </div>
+            <div>
+              <Label>Description (optional)</Label>
+              <Textarea value={docDescription} onChange={(e) => setDocDescription(e.target.value)} placeholder="Brief description of this document…" rows={2} className="mt-1" />
+            </div>
+            <div>
+              <Label>File (PDF, DOC, etc.)</Label>
+              <p className="text-xs text-slate-500 mb-2">
+                {docExistingUrl && !docFile
+                  ? <>Current file: <a href={docExistingUrl} target="_blank" rel="noopener noreferrer" className="text-teal-600 underline">{docExistingName || 'Open file'}</a>. Choose a new file to replace it.</>
+                  : 'Choose a file to upload.'}
+              </p>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.txt"
+                  onChange={(e) => setDocFile(e.target.files?.[0] ?? null)}
+                  className="max-w-xs"
+                />
+                {docFile && <span className="text-xs text-slate-500">{docFile.name}</span>}
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setDocDialogOpen(false)}>Cancel</Button>
+              <Button onClick={saveDoc} disabled={docSaving} className="bg-teal-600 hover:bg-teal-700 text-white">
+                {docSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
+                {docSaving ? 'Saving…' : 'Save'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!docDeletingId} onOpenChange={(open) => { if (!open) setDocDeletingId(null) }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Remove this document?</DialogTitle>
+            <DialogDescription>The document record will be removed. The file in storage will remain but will no longer be linked.</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setDocDeletingId(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDeleteDoc}>Remove</Button>
           </div>
         </DialogContent>
       </Dialog>

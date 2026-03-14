@@ -3,6 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ResourceDirectory } from '@/components/lms/ResourceDirectory'
 import { QuickReferenceTools } from '@/components/lms/QuickReferenceTools'
+import { WeeklyDocuments } from '@/components/lms/WeeklyDocuments'
 
 export default function LearnerResourcesPage() {
   return (
@@ -23,6 +24,18 @@ export default function LearnerResourcesPage() {
         </CardHeader>
         <CardContent>
           <ResourceDirectory />
+        </CardContent>
+      </Card>
+
+      <Card className="border-slate-200">
+        <CardHeader>
+          <CardTitle className="text-base">Weekly Course Documents</CardTitle>
+          <CardDescription>
+            Download your weekly course materials — one document per week across the 9-week program.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <WeeklyDocuments />
         </CardContent>
       </Card>
 

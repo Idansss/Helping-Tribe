@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ResourceDirectory } from '@/components/lms/ResourceDirectory'
+import { WeeklyDocuments } from '@/components/lms/WeeklyDocuments'
 
 export default function MentorResourcesPage() {
   return (
@@ -21,6 +22,17 @@ export default function MentorResourcesPage() {
         </CardHeader>
         <CardContent>
           <ResourceDirectory />
+        </CardContent>
+      </Card>
+      <Card className="border-slate-200">
+        <CardHeader>
+          <CardTitle className="text-base">Weekly Course Documents</CardTitle>
+          <CardDescription>
+            Course materials for each week of the program. Share links or download for use with learners.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <WeeklyDocuments />
         </CardContent>
       </Card>
     </div>
