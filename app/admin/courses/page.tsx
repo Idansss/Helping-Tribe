@@ -140,8 +140,17 @@ export default function AdminCoursesPage() {
     if (!deleteConfirmId) return
     setDeletingModuleId(deleteConfirmId)
     try {
-      const { error } = await supabase.from('modules').delete().eq('id', deleteConfirmId)
+      const { data, error } = await supabase
+        .from('modules')
+        .delete()
+        .eq('id', deleteConfirmId)
+        .select('id')
       if (error) throw error
+      if (!data || data.length === 0) {
+        throw new Error(
+          'Blocked by database policy — no DELETE policy exists. Run the SQL in supabase/scripts/create_modules_table.sql (step 5) or migration 034 in Supabase → SQL Editor.'
+        )
+      }
       setModules(prev => prev.filter(m => m.id !== deleteConfirmId))
       toast({ title: 'Module deleted.' })
     } catch (err: unknown) {
