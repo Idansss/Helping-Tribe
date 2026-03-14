@@ -45,6 +45,7 @@ export default function AdminCoursesPage() {
   const [notesFile, setNotesFile] = React.useState<File | null>(null)
   const [editLoading, setEditLoading] = React.useState(false)
   const [editSaving, setEditSaving] = React.useState(false)
+  const [fileUploadErrorMsg, setFileUploadErrorMsg] = React.useState<string | null>(null)
   const [deletingModuleId, setDeletingModuleId] = React.useState<string | null>(null)
   const [deleteConfirmId, setDeleteConfirmId] = React.useState<string | null>(null)
 
@@ -132,6 +133,7 @@ export default function AdminCoursesPage() {
   const handleCloseEdit = () => {
     setEditModuleId(null)
     setNotesFile(null)
+    setFileUploadErrorMsg(null)
   }
 
   const handleDeleteModule = async () => {
@@ -170,11 +172,22 @@ export default function AdminCoursesPage() {
         if (uploadError) {
           fileUploadFailed = true
           console.warn('Module notes upload failed:', uploadError)
+          setFileUploadErrorMsg(
+            `File upload failed: ${uploadError.message}. Go to Supabase Dashboard → Storage, create a public bucket named "final-exams", then run supabase/scripts/storage_final_exams_bucket.sql and try again.`
+          )
         } else {
+          setFileUploadErrorMsg(null)
           const { data: urlData } = supabase.storage.from(MODULE_NOTES_BUCKET).getPublicUrl(storagePath)
           contentUrl = urlData.publicUrl
         }
       }
+
+      if (fileUploadFailed) {
+        // Don't close the dialog — keep it open so the user can see the error and retry
+        setEditSaving(false)
+        return
+      }
+
       const { error } = await supabase
         .from('modules')
         .update({
@@ -188,15 +201,7 @@ export default function AdminCoursesPage() {
       setModules(prev =>
         prev.map(m => (m.id === editModuleId ? { ...m, title: editTitle.trim() } : m))
       )
-      if (fileUploadFailed) {
-        toast({
-          title: 'Content saved; file upload failed',
-          description: 'Create bucket "final-exams" in Supabase → Storage (public), then run supabase/scripts/storage_final_exams_bucket.sql in SQL Editor.',
-          variant: 'destructive',
-        })
-      } else {
-        toast({ title: 'Module updated', description: 'Content and notes are visible to learners.' })
-      }
+      toast({ title: 'Module updated', description: 'Content and notes are visible to learners.' })
       handleCloseEdit()
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to update module.'
@@ -532,22 +537,35 @@ export default function AdminCoursesPage() {
                 <p className="text-xs text-muted-foreground mb-2">
                   Optional. Replaces any existing notes file. Students can open or download it.
                 </p>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="file"
-                    accept=".pdf,.doc,.docx,.txt"
-                    onChange={(e) => setNotesFile(e.target.files?.[0] ?? null)}
-                    className="max-w-xs"
-                  />
-                  {notesFile && (
-                    <span className="text-xs text-muted-foreground">{notesFile.name}</span>
-                  )}
-                </div>
-                {editContentUrl && !notesFile && (
-                  <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-                    <FileText className="h-3.5 w-3.5" />
-                    Current file: <a href={editContentUrl} target="_blank" rel="noopener noreferrer" className="text-[var(--talent-primary)] underline">Open link</a>
-                  </p>
+                {editContentUrl && (
+                  <div className="flex items-center gap-2 mb-2 px-3 py-2 rounded-md bg-teal-50 border border-teal-200">
+                    <FileText className="h-4 w-4 text-teal-700 flex-shrink-0" />
+                    <span className="text-xs text-teal-900 flex-1 truncate">
+                      {editContentUrl.split('/').pop()?.split('?')[0] || 'Uploaded file'}
+                    </span>
+                    <a
+                      href={editContentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-teal-700 underline flex-shrink-0"
+                    >
+                      Open
+                    </a>
+                  </div>
+                )}
+                <Input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.txt"
+                  onChange={(e) => { setNotesFile(e.target.files?.[0] ?? null); setFileUploadErrorMsg(null) }}
+                  className="max-w-xs"
+                />
+                {notesFile && (
+                  <p className="text-xs text-slate-500 mt-1">{notesFile.name} — will replace current file on save</p>
+                )}
+                {fileUploadErrorMsg && (
+                  <div className="mt-2 p-3 rounded-md bg-red-50 border border-red-200 text-xs text-red-800">
+                    <strong>Upload failed.</strong> {fileUploadErrorMsg}
+                  </div>
                 )}
               </div>
             </div>
