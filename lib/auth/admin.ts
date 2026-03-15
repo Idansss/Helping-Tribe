@@ -20,12 +20,10 @@ export function isPrimaryAdminEmail(email: string | null | undefined) {
   return ALL_ADMIN_EMAILS.includes(normalizeEmail(email))
 }
 
-export function isAllowedAdmin(role: unknown, email: string | null | undefined) {
-  if (normalizeRole(role) !== 'admin') return false
-  // If no admin emails are configured via env vars, trust the database role alone.
-  // When ADMIN_EMAIL / ADMIN_EMAILS are set, the email must also match.
-  if (ALL_ADMIN_EMAILS.length === 0) return true
-  return isPrimaryAdminEmail(email)
+export function isAllowedAdmin(role: unknown, _email?: string | null) {
+  // Trust the database role: any profile with role 'admin' can perform admin actions.
+  // ADMIN_EMAIL / ADMIN_EMAILS are still used for isPrimaryAdminEmail (e.g. display).
+  return normalizeRole(role) === 'admin'
 }
 
 export function isMentorLikeRole(role: unknown) {
