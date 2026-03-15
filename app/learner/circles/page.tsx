@@ -2,8 +2,12 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { PeerCircleList } from '@/components/lms/PeerCircleList'
+import { ActivityGate } from '@/components/lms/ActivityGate'
+import { useActivityGate } from '@/lib/hooks/useActivityGate'
 
 export default function LearnerCirclesPage() {
+  const gate = useActivityGate('peer_learning')
+
   return (
     <div className="space-y-6 max-w-5xl">
       <div>
@@ -12,17 +16,19 @@ export default function LearnerCirclesPage() {
           Helping skills are best learned together. Join Peer Learning Circles for discussion, role-play, and support with other trainees. Participation is central to the HELP Foundations methodology.
         </p>
       </div>
-      <Card className="border-slate-200">
-        <CardHeader>
-          <CardTitle className="text-base">The Tribe</CardTitle>
-          <CardDescription>
-            Small groups linked to modules. Your mentor adds you to a circle; you&apos;ll see your circle and peers here.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <PeerCircleList />
-        </CardContent>
-      </Card>
+      <ActivityGate {...gate}>
+        <Card className="border-slate-200">
+          <CardHeader>
+            <CardTitle className="text-base">The Tribe</CardTitle>
+            <CardDescription>
+              Small groups linked to modules. Your mentor adds you to a circle; you&apos;ll see your circle and peers here.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PeerCircleList />
+          </CardContent>
+        </Card>
+      </ActivityGate>
     </div>
   )
 }

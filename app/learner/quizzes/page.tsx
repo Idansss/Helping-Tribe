@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge'
 import { createClient } from '@/lib/supabase/client'
 import { QuizListSkeleton } from '@/components/lms/LoadingSkeletons'
 import { ListChecks, ArrowRight, CheckCircle2 } from 'lucide-react'
+import { ActivityGate } from '@/components/lms/ActivityGate'
+import { useActivityGate } from '@/lib/hooks/useActivityGate'
 
 type Quiz = {
   id: string
@@ -24,6 +26,7 @@ type Attempt = {
 
 export default function LearnerQuizzesPage() {
   const supabase = createClient()
+  const gate = useActivityGate('quiz')
   const [quizzes, setQuizzes] = useState<Quiz[]>([])
   const [attempts, setAttempts] = useState<Attempt[]>([])
   const [loading, setLoading] = useState(true)
@@ -81,6 +84,7 @@ export default function LearnerQuizzesPage() {
         </p>
       </div>
 
+      <ActivityGate {...gate}>
       {loading ? (
         <QuizListSkeleton />
       ) : quizzes.length === 0 ? (
@@ -127,6 +131,7 @@ export default function LearnerQuizzesPage() {
           })}
         </div>
       )}
+      </ActivityGate>
     </div>
   )
 }

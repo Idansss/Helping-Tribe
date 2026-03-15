@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
 import { CheckCircle2, XCircle, Loader2, ArrowLeft, ListChecks } from 'lucide-react'
+import { ActivityGate } from '@/components/lms/ActivityGate'
+import { useActivityGate } from '@/lib/hooks/useActivityGate'
 
 type Quiz = {
   id: string
@@ -33,6 +35,7 @@ export default function LearnerTakeQuizPage() {
   const router = useRouter()
   const quizId = params?.quizId as string
   const supabase = createClient()
+  const gate = useActivityGate('quiz')
 
   const [quiz, setQuiz] = useState<Quiz | null>(null)
   const [questions, setQuestions] = useState<Question[]>([])
@@ -215,6 +218,15 @@ export default function LearnerTakeQuizPage() {
   const currentResponse = currentQuestion ? responseForQuestion(currentQuestion.id) : null
   const allAnswered = questions.length > 0 && questions.every((q) => responseForQuestion(q.id))
   const canSubmit = selectedIndex != null && !currentResponse && !submitting
+
+  // Gate check: show spinner while checking, lock card if blocked
+  if (gate.loading || gate.locked) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <ActivityGate {...gate}>{null}</ActivityGate>
+      </div>
+    )
+  }
 
   if (loading || !quiz) {
     return (

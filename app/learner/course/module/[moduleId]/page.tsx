@@ -3,11 +3,23 @@
 import { use, useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { CoursePlayer } from '@/components/lms/CoursePlayer'
+import { ActivityGate } from '@/components/lms/ActivityGate'
+import { useActivityGate } from '@/lib/hooks/useActivityGate'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { BookOpen, ArrowLeft, FileText } from 'lucide-react'
 import Link from 'next/link'
+
+/** Thin wrapper so the hook is always called unconditionally once the moduleId is known. */
+function GatedCoursePlayer({ moduleId }: { moduleId: string }) {
+  const gate = useActivityGate('self_learning', moduleId)
+  return (
+    <ActivityGate {...gate}>
+      <CoursePlayer moduleId={moduleId} />
+    </ActivityGate>
+  )
+}
 
 const HELP_MODULES = [
   { week: 1, title: 'Helping Profession, Ethics, Cultural Competence', theme: 'Foundations' },
@@ -89,7 +101,7 @@ export default function LearnerModulePage({
   }
 
   if (resolvedModuleId) {
-    return <CoursePlayer moduleId={resolvedModuleId} />
+    return <GatedCoursePlayer moduleId={resolvedModuleId} />
   }
 
   if (fallbackWeek !== null) {
