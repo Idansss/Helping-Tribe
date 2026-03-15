@@ -18,7 +18,9 @@ export const metadata: Metadata = {
   title: 'The Helping Tribe | School of Counselling & Positive Psychology',
   description: 'Premium counsellor training - apply, learn, and grow with The Helping Tribe School of Counselling & Positive Psychology.',
   icons: {
-    icon: '/icon.svg',
+    icon: '/logo.png',
+    shortcut: '/logo.png',
+    apple: '/logo.png',
   },
 }
 
