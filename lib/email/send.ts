@@ -26,7 +26,10 @@ export async function sendEmail(options: {
 
   try {
     const resend = new Resend(resendApiKey)
-    const html = body.split('\n').map((line) => `<p>${escapeHtml(line)}</p>`).join('')
+    const html = body
+      .split('\n')
+      .map((line) => `<p>${linkifyUrls(escapeHtml(line))}</p>`)
+      .join('')
     const { data, error } = await resend.emails.send({
       from: fromAddress,
       to: toTrimmed,
@@ -52,4 +55,12 @@ function escapeHtml(text: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;')
+}
+
+/** Turn URLs in escaped text into clickable <a> links. */
+function linkifyUrls(escapedText: string): string {
+  return escapedText.replace(/(https?:\/\/[^\s&<>"']+)/g, (url) => {
+    const href = url.replace(/&/g, '&amp;')
+    return `<a href="${href}" target="_blank" rel="noopener noreferrer">${url}</a>`
+  })
 }
