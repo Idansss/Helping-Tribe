@@ -6,6 +6,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { isAllowedAdmin } from '@/lib/auth/admin'
 import { isMissingColumnError, missingPaymentsSchemaMessage } from '@/lib/supabase/migrations'
 import { PROGRAM_FULL_NAME } from '@/lib/brand/program'
+import { sendEmail } from '@/lib/email/send'
 
 const SetupLinkSchema = z.object({
   applicantId: z.string().uuid(),
@@ -111,19 +112,28 @@ export async function POST(request: NextRequest) {
     const baseUrl = (process.env.BASE_URL || '').replace(/\/$/, '')
     const setPasswordUrl = baseUrl ? `${baseUrl}${relativeUrl}` : relativeUrl
 
+    const recipientEmail = applicant.email || `student+${student.id}@helpingtribe.local`
+    const subject = `${PROGRAM_FULL_NAME}: set your password`
+    const body = [
+      'Your payment has been verified.',
+      `Use this one-time set-password link: ${setPasswordUrl}`,
+      `Matric Number: ${student.matric_number}`,
+      `This link expires on ${new Date(expiresAt).toLocaleString()}.`,
+    ].join('\n')
+
     await admin.from('email_outbox').insert({
-      recipient_email: applicant.email || `student+${student.id}@helpingtribe.local`,
+      recipient_email: recipientEmail,
       applicant_id: applicant.id,
       student_id: student.id,
       kind: 'SET_PASSWORD',
-      subject: `${PROGRAM_FULL_NAME}: set your password`,
-      body: [
-        'Your payment has been verified.',
-        `Use this one-time set-password link: ${setPasswordUrl}`,
-        `Matric Number: ${student.matric_number}`,
-        `This link expires on ${new Date(expiresAt).toLocaleString()}.`,
-      ].join('\n'),
+      subject,
+      body,
     })
+
+    const sendResult = await sendEmail({ to: recipientEmail, subject, body })
+    if (!sendResult.ok) {
+      console.warn('[setup-link] Set-password email not sent:', sendResult.error)
+    }
 
     return NextResponse.json({
       ok: true,

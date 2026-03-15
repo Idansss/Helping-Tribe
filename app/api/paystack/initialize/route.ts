@@ -3,6 +3,8 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { resolvePortalRole } from '@/lib/auth/admin'
+import { PROGRAM_FULL_NAME } from '@/lib/brand/program'
+import { sendEmail } from '@/lib/email/send'
 import { computeHelpFoundationalCoursePricing, HELP_FOUNDATIONAL_COURSE } from '@/lib/payments/helpFoundationalCourse'
 import { createPaystackReference, paystackInitializeTransaction } from '@/lib/paystack/server'
 import { isMissingColumnError, isMissingRelationError, missingPaymentsSchemaMessage } from '@/lib/supabase/migrations'
@@ -110,7 +112,7 @@ export async function POST(request: NextRequest) {
     if (applicantId) {
       const { data: a, error: aErr } = await admin
         .from('applicants')
-        .select('id, email, status')
+        .select('id, email, status, full_name_certificate')
         .eq('id', applicantId)
         .maybeSingle()
 
@@ -177,6 +179,36 @@ export async function POST(request: NextRequest) {
         .from('payments')
         .update({ raw_paystack_response: init.raw })
         .eq('reference', reference)
+
+      const recipientEmail = applicant?.email && String(applicant.email).trim() && !String(applicant.email).startsWith('noemail+')
+        ? String(applicant.email).trim()
+        : null
+      if (applicantId && recipientEmail && init.authorizationUrl) {
+        const subject = `${PROGRAM_FULL_NAME}: your payment link`
+        const body = [
+          applicant?.full_name_certificate ? `Hello ${applicant.full_name_certificate},` : 'Hello,',
+          '',
+          `Your matric number: ${student?.matric_number ?? '—'}.`,
+          `Amount to pay: NGN ${pricing.amountNgn.toLocaleString()}.`,
+          '',
+          'Pay securely here:',
+          init.authorizationUrl,
+          '',
+          'If you have any questions, contact admissions.',
+        ].join('\n')
+        await admin.from('email_outbox').insert({
+          recipient_email: recipientEmail,
+          applicant_id: applicantId,
+          student_id: studentId,
+          kind: 'PAYMENT_LINK',
+          subject,
+          body,
+        })
+        const sendResult = await sendEmail({ to: recipientEmail, subject, body })
+        if (!sendResult.ok) {
+          console.warn('[paystack/initialize] Payment link email not sent:', sendResult.error)
+        }
+      }
 
       return NextResponse.json({
         ok: true,
