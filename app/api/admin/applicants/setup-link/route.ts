@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
 
     const recipientEmail = applicant.email || `student+${student.id}@helpingtribe.local`
     const subject = `${PROGRAM_FULL_NAME}: set your password`
-    const body = [
+    const emailBody = [
       'Your payment has been verified.',
       `Use this one-time set-password link: ${setPasswordUrl}`,
       `Matric Number: ${student.matric_number}`,
@@ -127,10 +127,10 @@ export async function POST(request: NextRequest) {
       student_id: student.id,
       kind: 'SET_PASSWORD',
       subject,
-      body,
+      body: emailBody,
     })
 
-    const sendResult = await sendEmail({ to: recipientEmail, subject, body })
+    const sendResult = await sendEmail({ to: recipientEmail, subject, body: emailBody })
     if (!sendResult.ok) {
       console.warn('[setup-link] Set-password email not sent:', sendResult.error)
     }
