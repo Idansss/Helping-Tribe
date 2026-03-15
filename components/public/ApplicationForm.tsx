@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -288,6 +288,7 @@ export function ApplicationForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
+  const formTopRef = useRef<HTMLDivElement>(null)
   const [submitted, setSubmitted] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
   const [draftId, setDraftId] = useState<string | null>(null)
@@ -487,6 +488,10 @@ export function ApplicationForm() {
     return () => clearTimeout(timeout)
   }, [watchedValues, currentStep, loadingDraft, isSubmitting])
 
+  function scrollToFormTop() {
+    formTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   async function nextStep() {
     const fields = STEP_FIELDS[currentStep - 1]
     if (fields.length > 0) {
@@ -494,11 +499,13 @@ export function ApplicationForm() {
       if (!valid) return
     }
     setCurrentStep((value) => Math.min(totalSteps, value + 1))
+    scrollToFormTop()
     void saveDraft('silent')
   }
 
   function previousStep() {
     setCurrentStep((value) => Math.max(1, value - 1))
+    scrollToFormTop()
   }
 
   async function saveAndExit() {
@@ -548,6 +555,7 @@ export function ApplicationForm() {
 
   return (
     <Card className="border-slate-200 bg-white">
+      <div ref={formTopRef} />
       <CardHeader className="pb-4">
         <CardTitle className="text-xl md:text-2xl">{PROGRAM_FULL_NAME} Application</CardTitle>
         <CardDescription className="text-sm md:text-base">
