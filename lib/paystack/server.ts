@@ -90,7 +90,7 @@ export async function paystackInitializeTransaction(input: {
     body: JSON.stringify(payload),
   })
 
-  const data = json?.data
+  const data = (json as { data?: { authorization_url?: unknown; access_code?: unknown; reference?: unknown } } | null | undefined)?.data
   if (!data?.authorization_url || !data?.access_code || !data?.reference) {
     throw new Error('Paystack initialize returned an unexpected response')
   }
@@ -122,7 +122,7 @@ export async function paystackVerifyTransaction(reference: string): Promise<Pays
     method: 'GET',
   })
 
-  const data = json?.data
+  const data = (json as { data?: { status?: unknown; amount?: unknown; currency?: unknown; paid_at?: unknown; gateway_response?: unknown; reference?: unknown } } | null | undefined)?.data
   const status = data?.status ? String(data.status) : null
   const amountKobo = Number.isFinite(Number(data?.amount)) ? Number(data.amount) : null
   const currency = data?.currency ? String(data.currency) : null
