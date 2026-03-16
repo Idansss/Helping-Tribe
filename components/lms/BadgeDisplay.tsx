@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ComponentType } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Trophy, Award } from 'lucide-react'
@@ -57,8 +57,8 @@ export function BadgeDisplay({ userId }: { userId?: string }) {
   }
 
   const getIcon = (iconName: string) => {
-    const allIcons = Icons as Record<string, React.ComponentType<{ className?: string }>>
-    const IconComponent = allIcons[iconName] || Award
+    const iconEntry = (Icons as Record<string, unknown>)[iconName]
+    const IconComponent = (iconEntry as ComponentType<{ className?: string }>) || Award
     return IconComponent
   }
 
