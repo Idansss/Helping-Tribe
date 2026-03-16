@@ -46,11 +46,20 @@ async function repairStudentLink(admin: ReturnType<typeof createAdminClient>, ap
   const phone = normalize(applicant.phone_whatsapp)
   const fullName = normalize(applicant.full_name_certificate)
 
-  let profiles: any[] = []
+  type ProfileRow = {
+    id: string
+    role: string | null
+    matric_number: string | null
+    email: string | null
+    full_name: string | null
+    whatsapp_number: string | null
+  }
+
+  let profiles: ProfileRow[] = []
 
   if (email) {
     const { data } = await admin
-      .from('profiles')
+      .from<ProfileRow>('profiles')
       .select('id, role, matric_number, email, full_name, whatsapp_number')
       .ilike('email', email)
     profiles = data ?? []
@@ -58,7 +67,7 @@ async function repairStudentLink(admin: ReturnType<typeof createAdminClient>, ap
 
   if (profiles.length === 0 && phone) {
     const { data } = await admin
-      .from('profiles')
+      .from<ProfileRow>('profiles')
       .select('id, role, matric_number, email, full_name, whatsapp_number')
       .eq('whatsapp_number', phone)
     profiles = data ?? []
@@ -66,14 +75,14 @@ async function repairStudentLink(admin: ReturnType<typeof createAdminClient>, ap
 
   if (profiles.length === 0 && fullName) {
     const { data } = await admin
-      .from('profiles')
+      .from<ProfileRow>('profiles')
       .select('id, role, matric_number, email, full_name, whatsapp_number')
       .ilike('full_name', fullName)
     profiles = data ?? []
   }
 
-  const studentLikeProfiles = (profiles ?? []).filter((p: any) => {
-    const role = String(p?.role ?? '').toLowerCase()
+  const studentLikeProfiles = (profiles ?? []).filter((p) => {
+    const role = String(p.role ?? '').toLowerCase()
     return role === 'student' || role === 'learner'
   })
 
@@ -85,8 +94,8 @@ async function repairStudentLink(admin: ReturnType<typeof createAdminClient>, ap
     throw new Error('Multiple possible student profiles match this applicant; repair aborted')
   }
 
-  const candidate = studentLikeProfiles[0] as any
-  const candidateId = String(candidate.id)
+  const candidate = studentLikeProfiles[0]
+  const candidateId = candidate.id
 
   const { data: existingStudent, error: sErr } = await admin
     .from('students')
@@ -110,10 +119,11 @@ async function repairStudentLink(admin: ReturnType<typeof createAdminClient>, ap
     return
   }
 
-  let matric = normalize(candidate?.matric_number)
+  let matric = normalize(candidate.matric_number)
   if (!matric) {
     const userRes = await admin.auth.admin.getUserById(candidateId)
-    matric = normalize((userRes.data.user as any)?.user_metadata?.matric_number)
+    const userMeta = (userRes.data.user?.user_metadata ?? {}) as { matric_number?: string }
+    matric = normalize(userMeta.matric_number)
   }
 
   if (!matric) {
@@ -161,7 +171,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { data: applicant, error: aErr } = await admin
-      .from('applicants')
+      .from<ApplicantRow>('applicants')
       .select('id, status, email, full_name_certificate, phone_whatsapp')
       .eq('id', body.applicantId)
       .maybeSingle()
@@ -170,7 +180,7 @@ export async function POST(request: NextRequest) {
 
     const alreadyLinked = await loadStudentByApplicantId(admin, body.applicantId)
     if (!alreadyLinked) {
-      await repairStudentLink(admin, applicant as any)
+      await repairStudentLink(admin, applicant)
     }
 
     const student = await loadStudentByApplicantId(admin, body.applicantId)
@@ -181,8 +191,8 @@ export async function POST(request: NextRequest) {
       student: {
         id: student.id,
         matricNumber: student.matric_number,
-        isPaid: Boolean((student as any).is_paid),
-        paidAt: (student as any).paid_at ?? null,
+        isPaid: Boolean(student.is_paid),
+        paidAt: student.paid_at ?? null,
       },
     })
   } catch (e: any) {

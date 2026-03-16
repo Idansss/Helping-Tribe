@@ -2,12 +2,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isMissingColumnError, missingPaymentsSchemaMessage } from '@/lib/supabase/migrations'
+import { checkRateLimit, getRequestIp } from '@/lib/server/rate-limit'
 
 function hashToken(token: string) {
   return crypto.createHash('sha256').update(token).digest('hex')
 }
 
 export async function GET(request: NextRequest) {
+  const ip = getRequestIp(request.headers)
+  const limit = checkRateLimit({ key: `set-password-validate:${ip}`, limit: 20, windowMs: 15 * 60 * 1000 })
+  if (!limit.allowed) {
+    return NextResponse.json({ valid: false, reason: 'RATE_LIMITED' }, { status: 429 })
+  }
+
   const token = request.nextUrl.searchParams.get('token')?.trim()
   if (!token) {
     return NextResponse.json({ valid: false }, { status: 400 })
@@ -17,7 +24,6 @@ export async function GET(request: NextRequest) {
   const tokenHash = hashToken(token)
 
   const { data, error } = await supabase
-    .from('password_setup_tokens')
     .select('student_id, expires_at, used_at, students(matric_number, is_paid)')
     .eq('token_hash', tokenHash)
     .maybeSingle()
@@ -37,10 +43,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ valid: false }, { status: 200 })
   }
 
-  const matricNumber =
-    (data as any)?.students?.matric_number ?? null
+  const matricNumber = data.students?.matric_number ?? null
 
-  const isPaid = Boolean((data as any)?.students?.is_paid)
+  const isPaid = Boolean(data.students?.is_paid)
   if (!isPaid) {
     return NextResponse.json({ valid: false, reason: 'PAYMENT_REQUIRED' }, { status: 200 })
   }

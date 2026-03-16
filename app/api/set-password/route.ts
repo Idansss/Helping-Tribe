@@ -3,6 +3,7 @@ import { z } from 'zod'
 import crypto from 'crypto'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isMissingColumnError, missingPaymentsSchemaMessage } from '@/lib/supabase/migrations'
+import { checkRateLimit, getRequestIp } from '@/lib/server/rate-limit'
 
 const SetPasswordSchema = z.object({
   token: z.string().min(10),
@@ -16,13 +17,18 @@ function hashToken(token: string) {
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = getRequestIp(request.headers)
+    const limit = checkRateLimit({ key: `set-password:${ip}`, limit: 10, windowMs: 15 * 60 * 1000 })
+    if (!limit.allowed) {
+      return NextResponse.json({ error: 'Too many attempts. Please wait 15 minutes and try again.' }, { status: 429 })
+    }
+
     const body = SetPasswordSchema.parse(await request.json())
     const supabase = createAdminClient()
 
     const tokenHash = hashToken(body.token.trim())
 
-    const { data, error } = await supabase
-      .from('password_setup_tokens')
+    const { data, error } = await (supabase as any)
       .select('id, student_id, expires_at, used_at, students(matric_number, is_paid)')
       .eq('token_hash', tokenHash)
       .maybeSingle()
@@ -43,10 +49,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 })
     }
 
-    const matricNumber =
-      (data as any)?.students?.matric_number ?? null
+    const matricNumber = data.students?.matric_number ?? null
 
-    const isPaid = Boolean((data as any)?.students?.is_paid)
+    const isPaid = Boolean(data.students?.is_paid)
     if (!isPaid) {
       return NextResponse.json({ error: 'Payment required before setting password' }, { status: 403 })
     }

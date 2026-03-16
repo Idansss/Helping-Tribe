@@ -24,7 +24,12 @@ export function PublicHome() {
   useEffect(() => {
     let cancelled = false
     fetch('/api/settings/registration')
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to load registration status: ${res.status}`)
+        }
+        return res.json()
+      })
       .then((data: { opensAt?: string | null; closesAt?: string | null }) => {
         if (cancelled) return
         const today = new Date().toISOString().slice(0, 10)
@@ -44,7 +49,10 @@ export function PublicHome() {
         setRegMessage('')
       })
       .catch(() => {
-        if (!cancelled) setRegStatus('open')
+        if (!cancelled) {
+          setRegStatus('closed')
+          setRegMessage('Registration status is temporarily unavailable. Please check back soon or contact support.')
+        }
       })
     return () => { cancelled = true }
   }, [])

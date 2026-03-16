@@ -19,13 +19,14 @@ export async function POST(request: NextRequest) {
 
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  type ProfileRoleRow = { role: string | null }
   const { data: profile } = await supabase
-    .from('profiles')
+    .from<ProfileRoleRow>('profiles')
     .select('role')
     .eq('id', user.id)
     .maybeSingle()
 
-  const portalRole = resolvePortalRole((profile as any)?.role, user.email)
+  const portalRole = resolvePortalRole(profile?.role ?? null, user.email)
   const isStaff = portalRole === 'admin' || portalRole === 'mentor'
 
   if (!isStaff) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })

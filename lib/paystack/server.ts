@@ -46,7 +46,7 @@ async function paystackFetch(path: string, init: RequestInit) {
   })
 
   const text = await res.text()
-  let json: any = null
+  let json: unknown = null
   try {
     json = text ? JSON.parse(text) : null
   } catch {
@@ -54,10 +54,11 @@ async function paystackFetch(path: string, init: RequestInit) {
   }
 
   if (!res.ok) {
-    const message = json?.message || `Paystack request failed (${res.status})`
-    const err = new Error(message)
-    ;(err as any).status = res.status
-    ;(err as any).raw = json ?? text
+    const parsed = typeof json === 'object' && json !== null ? (json as { message?: unknown }) : null
+    const message = (parsed?.message && String(parsed.message)) || `Paystack request failed (${res.status})`
+    const err = new Error(message) as Error & { status?: number; raw?: unknown }
+    err.status = res.status
+    err.raw = json ?? text
     throw err
   }
 

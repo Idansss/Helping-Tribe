@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const APPLICATION_HONEYPOT_FIELD = 'companyWebsite'
+export const APPLICATION_HONEYPOT_FIELD = 'website_url'
 
 const ApplicationObjectSchema = z.object({
     fullNameCertificate: z.string().min(2, 'Full name is required'),

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Mail, Plus, Edit2, Trash2, Send, Calendar } from 'lucide-react'
+import { Mail, Plus, Edit2, Trash2, Send, Calendar, Loader2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import {
   Dialog,
@@ -15,104 +15,75 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/hooks/use-toast'
 
 interface NewsletterIssue {
   id: string
   subject: string
   content: string
-  sentAt: string | null
-  createdAt: string
+  sent_at: string | null
+  created_at: string
 }
 
 interface NewsletterSubscriber {
   id: string
   email: string
-  subscribedAt: string
+  subscribed_at: string
 }
 
-const NEWSLETTER_STORAGE_KEY = 'ht-newsletter-issues'
-const SUBSCRIBERS_STORAGE_KEY = 'ht-newsletter-subscribers'
-
-const INITIAL_ISSUES: NewsletterIssue[] = [
-  {
-    id: 'n1',
-    subject: 'Welcome to Helping Tribe Newsletter',
-    content: 'Welcome to our monthly newsletter! Stay updated with the latest counseling training resources, community updates, and professional development opportunities.',
-    sentAt: '2025-01-15T10:00:00Z',
-    createdAt: '2025-01-15T10:00:00Z',
-  },
-]
-
 export default function AdminNewsletterPage() {
-  const [issues, setIssues] = useState<NewsletterIssue[]>(INITIAL_ISSUES)
+  const supabase = createClient()
+  const { toast } = useToast()
+  const [issues, setIssues] = useState<NewsletterIssue[]>([])
   const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>([])
+  const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [sendingId, setSendingId] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
   const [subject, setSubject] = useState('')
   const [content, setContent] = useState('')
-  const [saveMessage, setSaveMessage] = useState<string | null>(null)
 
-  // Load saved data on mount
-  useEffect(() => {
+  const load = async () => {
+    setLoading(true)
     try {
-      const issuesRaw = localStorage.getItem(NEWSLETTER_STORAGE_KEY)
-      if (issuesRaw) {
-        const parsed = JSON.parse(issuesRaw) as NewsletterIssue[]
-        setIssues(parsed)
-      }
-    } catch {
-      // ignore
+      const [{ data: issuesData }, { data: subsData }] = await Promise.all([
+        supabase.from('newsletter_issues').select('*').order('created_at', { ascending: false }),
+        supabase.from('newsletter_subscribers').select('*').order('subscribed_at', { ascending: false }),
+      ])
+      setIssues((issuesData ?? []) as NewsletterIssue[])
+      setSubscribers((subsData ?? []) as NewsletterSubscriber[])
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
     }
+  }
 
-    try {
-      const subscribersRaw = localStorage.getItem(SUBSCRIBERS_STORAGE_KEY)
-      if (subscribersRaw) {
-        const parsed = JSON.parse(subscribersRaw) as NewsletterSubscriber[]
-        setSubscribers(parsed)
-      }
-    } catch {
-      // ignore
-    }
-  }, [])
+  useEffect(() => { load() }, [])
 
-  // Persist issues whenever they change
-  useEffect(() => {
-    try {
-      localStorage.setItem(NEWSLETTER_STORAGE_KEY, JSON.stringify(issues))
-    } catch {
-      // ignore
-    }
-  }, [issues])
-
-  // Persist subscribers whenever they change
-  useEffect(() => {
-    try {
-      localStorage.setItem(SUBSCRIBERS_STORAGE_KEY, JSON.stringify(subscribers))
-    } catch {
-      // ignore
-    }
-  }, [subscribers])
-
-  const handleCreateIssue = (e: React.FormEvent) => {
+  const handleCreateIssue = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!subject.trim() || !content.trim()) return
-
-    const newIssue: NewsletterIssue = {
-      id: `n${Date.now()}`,
-      subject: subject.trim(),
-      content: content.trim(),
-      sentAt: null,
-      createdAt: new Date().toISOString(),
+    setSaving(true)
+    try {
+      const { error } = await supabase.from('newsletter_issues').insert({
+        subject: subject.trim(),
+        content: content.trim(),
+      })
+      if (error) throw error
+      setSubject('')
+      setContent('')
+      setShowForm(false)
+      load()
+    } catch (e) {
+      console.error(e)
+      toast({ title: 'Failed to create issue.', variant: 'destructive' })
+    } finally {
+      setSaving(false)
     }
-
-    setIssues([newIssue, ...issues])
-    setSubject('')
-    setContent('')
-    setShowForm(false)
-    setSaveMessage('Newsletter issue created successfully.')
-    setTimeout(() => setSaveMessage(null), 2500)
   }
 
   const handleStartEdit = (issue: NewsletterIssue) => {
@@ -122,24 +93,27 @@ export default function AdminNewsletterPage() {
     setShowForm(true)
   }
 
-  const handleSaveEdit = (e: React.FormEvent) => {
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!subject.trim() || !content.trim() || !editingId) return
-
-    setIssues(
-      issues.map((issue) =>
-        issue.id === editingId
-          ? { ...issue, subject: subject.trim(), content: content.trim() }
-          : issue
-      )
-    )
-
-    setEditingId(null)
-    setSubject('')
-    setContent('')
-    setShowForm(false)
-    setSaveMessage('Newsletter issue updated successfully.')
-    setTimeout(() => setSaveMessage(null), 2500)
+    setSaving(true)
+    try {
+      const { error } = await supabase
+        .from('newsletter_issues')
+        .update({ subject: subject.trim(), content: content.trim(), updated_at: new Date().toISOString() })
+        .eq('id', editingId)
+      if (error) throw error
+      setEditingId(null)
+      setSubject('')
+      setContent('')
+      setShowForm(false)
+      load()
+    } catch (e) {
+      console.error(e)
+      toast({ title: 'Failed to update issue.', variant: 'destructive' })
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleCancel = () => {
@@ -149,37 +123,51 @@ export default function AdminNewsletterPage() {
     setShowForm(false)
   }
 
-  const handleDeleteIssue = (id: string) => setDeletingId(id)
-
-  const confirmDeleteIssue = () => {
+  const confirmDeleteIssue = async () => {
     if (!deletingId) return
-    setIssues(issues.filter((issue) => issue.id !== deletingId))
-    setSaveMessage('Newsletter issue deleted.')
-    setTimeout(() => setSaveMessage(null), 2500)
-    setDeletingId(null)
+    try {
+      const { error } = await supabase.from('newsletter_issues').delete().eq('id', deletingId)
+      if (error) throw error
+      setDeletingId(null)
+      load()
+    } catch (e) {
+      console.error(e)
+      toast({ title: 'Failed to delete issue.', variant: 'destructive' })
+    }
   }
 
-  const handleSendIssue = (id: string) => setSendingId(id)
-
-  const confirmSendIssue = () => {
+  const confirmSendIssue = async () => {
     if (!sendingId) return
-    setIssues(
-      issues.map((issue) =>
-        issue.id === sendingId ? { ...issue, sentAt: new Date().toISOString() } : issue
-      )
-    )
-    setSaveMessage('Newsletter sent successfully.')
-    setTimeout(() => setSaveMessage(null), 2500)
-    setSendingId(null)
+    try {
+      const { error } = await supabase
+        .from('newsletter_issues')
+        .update({ sent_at: new Date().toISOString() })
+        .eq('id', sendingId)
+      if (error) throw error
+      setSendingId(null)
+      load()
+      toast({ title: 'Newsletter marked as sent.' })
+    } catch (e) {
+      console.error(e)
+      toast({ title: 'Failed to mark as sent.', variant: 'destructive' })
+    }
+  }
+
+  const handleRemoveSubscriber = async (id: string) => {
+    try {
+      const { error } = await supabase.from('newsletter_subscribers').delete().eq('id', id)
+      if (error) throw error
+      load()
+    } catch (e) {
+      console.error(e)
+      toast({ title: 'Failed to remove subscriber.', variant: 'destructive' })
+    }
   }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-NG', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+      year: 'numeric', month: 'short', day: 'numeric',
+      hour: '2-digit', minute: '2-digit',
     })
   }
 
@@ -195,20 +183,15 @@ export default function AdminNewsletterPage() {
             Create, edit, and send newsletter issues to your subscribers.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          {saveMessage && (
-            <span className="text-xs text-emerald-600">{saveMessage}</span>
-          )}
-          {!showForm && (
-            <Button
-              onClick={() => setShowForm(true)}
-              className="bg-[var(--talent-primary)] hover:bg-[var(--talent-primary-dark)] text-white"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Create Newsletter Issue
-            </Button>
-          )}
-        </div>
+        {!showForm && (
+          <Button
+            onClick={() => setShowForm(true)}
+            className="bg-[var(--talent-primary)] hover:bg-[var(--talent-primary-dark)] text-white"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Create Newsletter Issue
+          </Button>
+        )}
       </div>
 
       {/* Stats Cards */}
@@ -227,7 +210,7 @@ export default function AdminNewsletterPage() {
             <div>
               <p className="text-xs text-slate-500 mb-1">Sent Issues</p>
               <p className="text-2xl font-semibold text-slate-900">
-                {issues.filter((i) => i.sentAt).length}
+                {issues.filter((i) => i.sent_at).length}
               </p>
             </div>
             <Send className="h-8 w-8 text-emerald-600 opacity-50" />
@@ -237,9 +220,7 @@ export default function AdminNewsletterPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-slate-500 mb-1">Subscribers</p>
-              <p className="text-2xl font-semibold text-slate-900">
-                {subscribers.length}
-              </p>
+              <p className="text-2xl font-semibold text-slate-900">{subscribers.length}</p>
             </div>
             <Mail className="h-8 w-8 text-blue-600 opacity-50" />
           </div>
@@ -254,9 +235,7 @@ export default function AdminNewsletterPage() {
           </h2>
           <form onSubmit={editingId ? handleSaveEdit : handleCreateIssue} className="space-y-4">
             <div className="space-y-1">
-              <Label htmlFor="subject" className="text-xs font-medium text-slate-700">
-                Subject
-              </Label>
+              <Label htmlFor="subject" className="text-xs font-medium text-slate-700">Subject</Label>
               <Input
                 id="subject"
                 value={subject}
@@ -266,11 +245,8 @@ export default function AdminNewsletterPage() {
                 required
               />
             </div>
-
             <div className="space-y-1">
-              <Label htmlFor="content" className="text-xs font-medium text-slate-700">
-                Content
-              </Label>
+              <Label htmlFor="content" className="text-xs font-medium text-slate-700">Content</Label>
               <Textarea
                 id="content"
                 value={content}
@@ -280,21 +256,16 @@ export default function AdminNewsletterPage() {
                 required
               />
             </div>
-
             <div className="flex items-center justify-end gap-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={handleCancel}
-                className="text-xs text-slate-600"
-              >
+              <Button type="button" variant="ghost" onClick={handleCancel} className="text-xs text-slate-600">
                 Cancel
               </Button>
               <Button
                 type="submit"
+                disabled={saving}
                 className="bg-[var(--talent-primary)] hover:bg-[var(--talent-primary-dark)] text-white text-xs"
               >
-                {editingId ? 'Save Changes' : 'Create Issue'}
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : editingId ? 'Save Changes' : 'Create Issue'}
               </Button>
             </div>
           </form>
@@ -304,74 +275,54 @@ export default function AdminNewsletterPage() {
       {/* Newsletter Issues List */}
       <Card className="p-4">
         <h2 className="text-sm font-semibold text-slate-900 mb-4">Newsletter Issues</h2>
-        {issues.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center gap-2 text-sm text-slate-500 py-8">
+            <Loader2 className="h-4 w-4 animate-spin" /> Loading…
+          </div>
+        ) : issues.length === 0 ? (
           <div className="text-center py-8 text-sm text-slate-500">
             No newsletter issues yet. Create your first one!
           </div>
         ) : (
           <div className="space-y-3">
             {issues.map((issue) => (
-              <div
-                key={issue.id}
-                className="border border-slate-200 rounded-md p-4 hover:bg-slate-50 transition-colors"
-              >
+              <div key={issue.id} className="border border-slate-200 rounded-md p-4 hover:bg-slate-50 transition-colors">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-semibold text-slate-900">
-                        {issue.subject}
-                      </h3>
-                      {issue.sentAt ? (
-                        <Badge className="bg-emerald-100 text-emerald-700 text-[10px]">
-                          Sent
-                        </Badge>
+                      <h3 className="text-sm font-semibold text-slate-900">{issue.subject}</h3>
+                      {issue.sent_at ? (
+                        <Badge className="bg-emerald-100 text-emerald-700 text-[10px]">Sent</Badge>
                       ) : (
-                        <Badge className="bg-slate-100 text-slate-700 text-[10px]">
-                          Draft
-                        </Badge>
+                        <Badge className="bg-slate-100 text-slate-700 text-[10px]">Draft</Badge>
                       )}
                     </div>
                     <p className="text-xs text-slate-600 line-clamp-2">{issue.content}</p>
                     <div className="flex items-center gap-4 text-[11px] text-slate-500">
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        Created: {formatDate(issue.createdAt)}
+                        Created: {formatDate(issue.created_at)}
                       </span>
-                      {issue.sentAt && (
+                      {issue.sent_at && (
                         <span className="flex items-center gap-1">
                           <Send className="h-3 w-3" />
-                          Sent: {formatDate(issue.sentAt)}
+                          Sent: {formatDate(issue.sent_at)}
                         </span>
                       )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {!issue.sentAt && (
+                    {!issue.sent_at && (
                       <>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleStartEdit(issue)}
-                          className="text-xs text-slate-600"
-                        >
+                        <Button size="sm" variant="ghost" onClick={() => handleStartEdit(issue)} className="text-xs text-slate-600">
                           <Edit2 className="h-3.5 w-3.5" />
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleSendIssue(issue.id)}
-                          className="text-xs text-emerald-600"
-                        >
+                        <Button size="sm" variant="ghost" onClick={() => setSendingId(issue.id)} className="text-xs text-emerald-600">
                           <Send className="h-3.5 w-3.5" />
                         </Button>
                       </>
                     )}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleDeleteIssue(issue.id)}
-                      className="text-xs text-red-600"
-                    >
+                    <Button size="sm" variant="ghost" onClick={() => setDeletingId(issue.id)} className="text-xs text-red-600">
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
@@ -392,26 +343,15 @@ export default function AdminNewsletterPage() {
         ) : (
           <div className="space-y-2">
             {subscribers.map((subscriber) => (
-              <div
-                key={subscriber.id}
-                className="flex items-center justify-between border border-slate-200 rounded-md p-3 hover:bg-slate-50 transition-colors"
-              >
+              <div key={subscriber.id} className="flex items-center justify-between border border-slate-200 rounded-md p-3 hover:bg-slate-50 transition-colors">
                 <div>
                   <p className="text-sm font-medium text-slate-900">{subscriber.email}</p>
-                  <p className="text-[11px] text-slate-500">
-                    Subscribed: {formatDate(subscriber.subscribedAt)}
-                  </p>
+                  <p className="text-[11px] text-slate-500">Subscribed: {formatDate(subscriber.subscribed_at)}</p>
                 </div>
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => {
-                    if (confirm('Remove this subscriber?')) {
-                      setSubscribers(
-                        subscribers.filter((s) => s.id !== subscriber.id)
-                      )
-                    }
-                  }}
+                  onClick={() => handleRemoveSubscriber(subscriber.id)}
                   className="text-xs text-red-600"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -439,7 +379,7 @@ export default function AdminNewsletterPage() {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Send this newsletter?</DialogTitle>
-            <DialogDescription>This issue will be sent to all active subscribers. This action cannot be undone.</DialogDescription>
+            <DialogDescription>This issue will be marked as sent. This action cannot be undone.</DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => setSendingId(null)}>Cancel</Button>

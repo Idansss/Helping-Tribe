@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
+
+const SubmitAnswerSchema = z.object({
+  attemptId: z.string().min(1),
+  questionId: z.string().min(1),
+  selectedAnswerIndex: z.number().int(),
+})
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,18 +16,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { attemptId, questionId, selectedAnswerIndex } = body
-    if (
-      typeof attemptId !== 'string' ||
-      typeof questionId !== 'string' ||
-      typeof selectedAnswerIndex !== 'number'
-    ) {
-      return NextResponse.json(
-        { error: 'attemptId, questionId, and selectedAnswerIndex (number) required' },
-        { status: 400 }
-      )
+    let parsed
+    try {
+      const body = await request.json()
+      parsed = SubmitAnswerSchema.parse(body)
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return NextResponse.json({ error: 'Invalid payload for quiz answer' }, { status: 400 })
+      }
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
     }
+
+    const { attemptId, questionId, selectedAnswerIndex } = parsed
 
     // Ensure attempt belongs to this user
     const { data: attempt, error: attemptErr } = await supabase

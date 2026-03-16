@@ -46,13 +46,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Login failed' }, { status: 500 })
     }
 
+    type ProfileRoleRow = { role: string | null }
     const { data: profile } = await supabase
-      .from('profiles')
+      .from<ProfileRoleRow>('profiles')
       .select('role')
       .eq('id', user.id)
       .maybeSingle()
 
-    const role = String((profile as any)?.role ?? '').toLowerCase()
+    const role = String(profile?.role ?? '').toLowerCase()
     if (role !== 'student') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }

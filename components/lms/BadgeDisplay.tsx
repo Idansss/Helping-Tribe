@@ -49,7 +49,7 @@ export function BadgeDisplay({ userId }: { userId?: string }) {
       }
 
       if (earned) {
-        setEarnedBadges(new Set(earned.map(e => e.badge_id)))
+        setEarnedBadges(new Set(earned.map((e) => e.badge_id)))
       }
     } catch (error) {
       console.error('Error loading badges:', error)
@@ -57,7 +57,8 @@ export function BadgeDisplay({ userId }: { userId?: string }) {
   }
 
   const getIcon = (iconName: string) => {
-    const IconComponent = (Icons as any)[iconName] || Award
+    const allIcons = Icons as Record<string, React.ComponentType<{ className?: string }>>
+    const IconComponent = allIcons[iconName] || Award
     return IconComponent
   }
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit, getRequestIp } from '@/lib/server/rate-limit'
 
@@ -8,6 +9,19 @@ import { checkRateLimit, getRequestIp } from '@/lib/server/rate-limit'
 const MAX_MESSAGES = 20
 const MAX_MESSAGE_LENGTH = 2000
 const MAX_SYSTEM_PROMPT_LENGTH = 1000
+
+const AiClientRequestSchema = z.object({
+  messages: z
+    .array(
+      z.object({
+        role: z.string(),
+        content: z.string().max(MAX_MESSAGE_LENGTH),
+      })
+    )
+    .min(1)
+    .max(MAX_MESSAGES),
+  systemPrompt: z.string().max(MAX_SYSTEM_PROMPT_LENGTH).optional(),
+})
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -47,30 +61,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body = await request.json()
-    const { messages, systemPrompt } = body
-
-    // Input validation — prevent prompt injection and DoS
-    if (!Array.isArray(messages) || messages.length === 0) {
-      return NextResponse.json({ error: 'messages must be a non-empty array' }, { status: 400 })
-    }
-    if (messages.length > MAX_MESSAGES) {
-      return NextResponse.json({ error: `Too many messages (max ${MAX_MESSAGES})` }, { status: 400 })
-    }
-    for (const m of messages) {
-      if (typeof m?.content !== 'string' || m.content.length > MAX_MESSAGE_LENGTH) {
-        return NextResponse.json(
-          { error: `Each message content must be a string under ${MAX_MESSAGE_LENGTH} characters` },
-          { status: 400 }
-        )
+    let parsed
+    try {
+      const body = await request.json()
+      parsed = AiClientRequestSchema.parse(body)
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return NextResponse.json({ error: 'Invalid AI client payload' }, { status: 400 })
       }
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
     }
-    if (systemPrompt && (typeof systemPrompt !== 'string' || systemPrompt.length > MAX_SYSTEM_PROMPT_LENGTH)) {
-      return NextResponse.json(
-        { error: `systemPrompt must be a string under ${MAX_SYSTEM_PROMPT_LENGTH} characters` },
-        { status: 400 }
-      )
-    }
+
+    const { messages, systemPrompt } = parsed
 
     if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json(

@@ -46,19 +46,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Login failed' }, { status: 500 })
     }
 
+    type ProfileRoleRow = { role: string | null }
     const { data: profile } = await supabase
-      .from('profiles')
+      .from<ProfileRoleRow>('profiles')
       .select('role')
       .eq('id', user.id)
       .maybeSingle()
 
-    const role = String((profile as any)?.role ?? '').toLowerCase()
+    const role = String(profile?.role ?? '').toLowerCase()
     const isStaff = role === 'admin' || role === 'faculty' || role === 'mentor'
     if (!isStaff) {
       return NextResponse.json({ error: 'This account does not have staff access.' }, { status: 403 })
     }
 
-    const portalRole = resolvePortalRole((profile as any)?.role, user.email)
+    const portalRole = resolvePortalRole(profile?.role ?? null, user.email)
 
     // Enforce portal-specific login: reject if the user's role doesn't match
     if (body.portal === 'admin' && portalRole !== 'admin') {

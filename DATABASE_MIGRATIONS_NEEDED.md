@@ -3,13 +3,16 @@
 ## Required Supabase Changes
 
 ### 1. **Storage Buckets** (Already Created)
+
 ✅ These should already exist from previous setup:
+
 - `profile-photos` - For user avatars
 - `voice-notes` - For audio reflections
 
 ### 2. **New Tables Needed**
 
 #### A. `peer_reviews` Table
+
 ```sql
 CREATE TABLE peer_reviews (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -40,7 +43,10 @@ CREATE POLICY "Users can create reviews"
   WITH CHECK (auth.uid() = reviewer_id);
 ```
 
-#### B. `ai_client_sessions` Table
+> **Note:** The `ai_client_sessions` and `user_activity` tables (plus related indexes/RLS) are already implemented in migration `026_add_enhanced_features.sql`. The snippets below are kept for reference but do not require a new migration.
+
+#### B. `peer_reviews` Table (still needed)
+
 ```sql
 CREATE TABLE ai_client_sessions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -70,7 +76,8 @@ CREATE POLICY "Users can update their own sessions"
   USING (auth.uid() = user_id);
 ```
 
-#### C. `user_activity` Table (For Analytics)
+#### C. `ai_client_sessions` Table (already implemented in 026)
+
 ```sql
 CREATE TABLE user_activity (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -106,7 +113,10 @@ CREATE POLICY "System can insert activity"
   WITH CHECK (true);
 ```
 
-#### D. Update `profiles` Table
+#### D. `user_activity` Table (already implemented in 026)
+
+#### E. Update `profiles` Table
+
 ```sql
 -- Add role column if it doesn't exist
 ALTER TABLE profiles 
@@ -153,6 +163,7 @@ USING (bucket_id = 'profile-photos');
 ```
 
 #### Voice Notes Bucket
+
 ```sql
 -- Allow users to upload voice notes
 CREATE POLICY "Users can upload voice notes"

@@ -20,6 +20,7 @@ export function isPublicApiPath(pathname: string) {
   return (
     pathname === '/api/apply' ||
     pathname.startsWith('/api/apply/') ||
+    pathname === '/api/settings/registration' ||
     pathname === '/api/student/login' ||
     pathname === '/api/staff/login' ||
     pathname === '/api/set-password' ||

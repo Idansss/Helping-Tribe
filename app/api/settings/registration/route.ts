@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server'
+import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 const OPENS_KEY = 'registration_opens_at'
 const CLOSES_KEY = 'registration_closes_at'
+
+const RegistrationSettingsSchema = z.object({
+  opensAt: z.string().trim().min(1).nullable().optional(),
+  closesAt: z.string().trim().min(1).nullable().optional(),
+})
 
 export async function GET() {
   try {
@@ -34,9 +40,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const body = await request.json().catch(() => ({}))
-    const opensAt = typeof body.opensAt === 'string' ? body.opensAt.trim() || null : null
-    const closesAt = typeof body.closesAt === 'string' ? body.closesAt.trim() || null : null
+    let parsed
+    try {
+      const body = await request.json()
+      parsed = RegistrationSettingsSchema.parse({
+        opensAt: body?.opensAt ?? null,
+        closesAt: body?.closesAt ?? null,
+      })
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return NextResponse.json({ error: 'Invalid registration settings payload' }, { status: 400 })
+      }
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+    }
+
+    const opensAt = parsed.opensAt ?? null
+    const closesAt = parsed.closesAt ?? null
 
     const admin = createAdminClient()
     if (opensAt !== null) {

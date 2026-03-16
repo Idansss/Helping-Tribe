@@ -7,6 +7,7 @@ import { isAllowedAdmin } from '@/lib/auth/admin'
 import { isMissingColumnError, missingPaymentsSchemaMessage } from '@/lib/supabase/migrations'
 import { PROGRAM_FULL_NAME } from '@/lib/brand/program'
 import { sendEmail } from '@/lib/email/send'
+import { checkRateLimit, getRequestIp } from '@/lib/server/rate-limit'
 
 const SetupLinkSchema = z.object({
   applicantId: z.string().uuid(),
@@ -37,6 +38,12 @@ export async function POST(request: NextRequest) {
 
   if (!isAllowedAdmin(profile?.role, user.email)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  const ip = getRequestIp(request.headers)
+  const limit = checkRateLimit({ key: `setup-link:${ip}`, limit: 20, windowMs: 60 * 60 * 1000 })
+  if (!limit.allowed) {
+    return NextResponse.json({ error: 'Too many setup link requests. Please wait an hour.' }, { status: 429 })
   }
 
   try {
@@ -121,16 +128,16 @@ export async function POST(request: NextRequest) {
       `This link expires on ${new Date(expiresAt).toLocaleString()}.`,
     ].join('\n')
 
-    await admin.from('email_outbox').insert({
+    const { data: outboxRow } = await admin.from('email_outbox').insert({
       recipient_email: recipientEmail,
       applicant_id: applicant.id,
       student_id: student.id,
       kind: 'SET_PASSWORD',
       subject,
       body: emailBody,
-    })
+    }).select('id').maybeSingle()
 
-    const sendResult = await sendEmail({ to: recipientEmail, subject, body: emailBody })
+    const sendResult = await sendEmail({ to: recipientEmail, subject, body: emailBody, outboxId: outboxRow?.id })
     if (!sendResult.ok) {
       console.warn('[setup-link] Set-password email not sent:', sendResult.error)
     }

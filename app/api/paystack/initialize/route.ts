@@ -27,14 +27,15 @@ export async function POST(request: NextRequest) {
 
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  type ProfileRoleRow = { role: string | null }
   const { data: profile } = await supabase
-    .from('profiles')
+    .from<ProfileRoleRow>('profiles')
     .select('role')
     .eq('id', user.id)
     .maybeSingle()
 
-  const portalRole = resolvePortalRole((profile as any)?.role, user.email)
-  const role = String((profile as any)?.role ?? '').toLowerCase()
+  const portalRole = resolvePortalRole(profile?.role ?? null, user.email)
+  const role = String(profile?.role ?? '').toLowerCase()
   const isStaff = portalRole === 'admin' || portalRole === 'mentor'
   const isStudent = role === 'student'
 
@@ -196,15 +197,15 @@ export async function POST(request: NextRequest) {
           '',
           'If you have any questions, contact admissions.',
         ].join('\n')
-        await admin.from('email_outbox').insert({
+        const { data: outboxRow } = await admin.from('email_outbox').insert({
           recipient_email: recipientEmail,
           applicant_id: applicantId,
           student_id: studentId,
           kind: 'PAYMENT_LINK',
           subject,
           body,
-        })
-        const sendResult = await sendEmail({ to: recipientEmail, subject, body })
+        }).select('id').maybeSingle()
+        const sendResult = await sendEmail({ to: recipientEmail, subject, body, outboxId: outboxRow?.id })
         if (!sendResult.ok) {
           console.warn('[paystack/initialize] Payment link email not sent:', sendResult.error)
         }

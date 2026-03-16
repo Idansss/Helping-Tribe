@@ -7,16 +7,16 @@ describe('hard gate allowlist', () => {
     expect(isPublicPath('/student/login')).toBe(true)
     expect(isPublicPath('/staff/login')).toBe(true)
     expect(isPublicPath('/set-password')).toBe(true)
+    expect(isPublicPath('/')).toBe(true)
 
     // Not public by policy.
-    expect(isPublicPath('/')).toBe(false)
     expect(isPublicPath('/dashboard')).toBe(false)
     expect(isPublicPath('/catalog')).toBe(false)
     expect(isPublicPath('/learner/dashboard')).toBe(false)
     expect(isPublicPath('/admin')).toBe(false)
     expect(isPublicPath('/mentor')).toBe(false)
 
-    expect(PUBLIC_PAGES.has('/')).toBe(false)
+    expect(PUBLIC_PAGES.has('/')).toBe(true)
   })
 
   it('allows only required public API endpoints', () => {
@@ -31,7 +31,7 @@ describe('hard gate allowlist', () => {
     expect(isPublicApiPath('/api/admin/weekly-report')).toBe(false)
   })
 
-  it('redirects unauthenticated users to /apply', () => {
-    expect(unauthenticatedRedirectTarget()).toBe('/apply')
+  it('redirects unauthenticated users to /', () => {
+    expect(unauthenticatedRedirectTarget()).toBe('/')
   })
 })

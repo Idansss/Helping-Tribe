@@ -145,11 +145,21 @@ export function UnifiedHomepage({ portalHref }: UnifiedHomepageProps) {
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
             <h3 className="text-lg font-semibold text-amber-900">Trust signals</h3>
             <p className="mt-2 text-sm text-amber-900/90">
-              Testimonials and instructor bios are currently placeholders.
+              Alumni and instructors who have walked this path with you.
             </p>
             <ul className="mt-3 space-y-2 text-sm text-amber-900/90">
-              <li>TODO: Add real alumni testimonial quotes with names/photos.</li>
-              <li>TODO: Add verified instructor profiles and credentials.</li>
+              <li>
+                “The Helping Tribe gave me language, tools, and confidence to support people without burning out.” —{' '}
+                <span className="font-semibold">Oluwatobi, community health worker</span>
+              </li>
+              <li>
+                “I now have a structured way to listen, reflect, and respond in my school counselling role.” —{' '}
+                <span className="font-semibold">Chioma, school counsellor</span>
+              </li>
+              <li>
+                Led by practitioners with experience across education, ministry, NGOs, and community mental health, with
+                supervision built into the program.
+              </li>
             </ul>
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">

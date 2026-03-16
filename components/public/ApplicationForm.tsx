@@ -216,9 +216,13 @@ function optionId(group: string, value: string) {
   return `${group}-${slug}`
 }
 
-function FieldError({ message }: { message?: string }) {
+function FieldError({ message }: { message?: ReactNode }) {
   if (!message) return null
-  return <p className="text-xs text-red-600">{message}</p>
+  return (
+    <p className="text-xs text-red-600" role="alert">
+      {message}
+    </p>
+  )
 }
 
 function Option({
@@ -495,7 +499,7 @@ export function ApplicationForm() {
   async function nextStep() {
     const fields = STEP_FIELDS[currentStep - 1]
     if (fields.length > 0) {
-      const valid = await trigger(fields as any, { shouldFocus: true })
+      const valid = await trigger(fields, { shouldFocus: true })
       if (!valid) return
     }
     setCurrentStep((value) => Math.min(totalSteps, value + 1))
@@ -748,7 +752,7 @@ export function ApplicationForm() {
                   </Option>
                 ))}
               </div>
-              <FieldError message={errors.professionalBackground?.message as any} />
+              <FieldError message={errors.professionalBackground?.message} />
 
               {professionalBackground.includes('Other') ? (
                 <div className="space-y-1.5">
@@ -1001,7 +1005,7 @@ export function ApplicationForm() {
                   </Option>
                 ))}
               </div>
-              <FieldError message={errors.availability?.message as any} />
+              <FieldError message={errors.availability?.message} />
             </div>
 
             <div className="space-y-1.5">

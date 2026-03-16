@@ -44,6 +44,15 @@ function normalizeEmail(email: string | null | undefined) {
   return String(email ?? '').trim()
 }
 
+type ProfileCandidate = {
+  id: string
+  role: string | null
+  matric_number: string | null
+  email: string | null
+  full_name: string | null
+  whatsapp_number: string | null
+}
+
 async function tryRepairStudentLink(admin: ReturnType<typeof createAdminClient>, applicant: ApplicantRow) {
   if (applicant.status !== 'APPROVED') return
 
@@ -54,13 +63,13 @@ async function tryRepairStudentLink(admin: ReturnType<typeof createAdminClient>,
   const fullName = String(applicant.full_name_certificate ?? '').trim()
 
   // 1) Email match (case-insensitive)
-  let profiles: any[] = []
+  let profiles: ProfileCandidate[] = []
   if (email) {
     const { data } = await admin
       .from('profiles')
       .select('id, role, matric_number, email, full_name, whatsapp_number')
       .ilike('email', email)
-    profiles = data ?? []
+    profiles = (data ?? []) as ProfileCandidate[]
   }
 
   // 2) WhatsApp match (fallback)
@@ -69,7 +78,7 @@ async function tryRepairStudentLink(admin: ReturnType<typeof createAdminClient>,
       .from('profiles')
       .select('id, role, matric_number, email, full_name, whatsapp_number')
       .eq('whatsapp_number', phone)
-    profiles = data ?? []
+    profiles = (data ?? []) as ProfileCandidate[]
   }
 
   // 3) Name match (last resort, only if unique)
@@ -78,17 +87,17 @@ async function tryRepairStudentLink(admin: ReturnType<typeof createAdminClient>,
       .from('profiles')
       .select('id, role, matric_number, email, full_name, whatsapp_number')
       .ilike('full_name', fullName)
-    profiles = data ?? []
+    profiles = (data ?? []) as ProfileCandidate[]
   }
 
-  const studentLikeProfiles = (profiles ?? []).filter((p: any) => {
-    const role = String(p?.role ?? '').toLowerCase()
+  const studentLikeProfiles = profiles.filter((p) => {
+    const role = String(p.role ?? '').toLowerCase()
     return role === 'student' || role === 'learner'
   })
 
   if (studentLikeProfiles.length !== 1) return
 
-  const candidate = studentLikeProfiles[0] as any
+  const candidate = studentLikeProfiles[0]
   const candidateId = String(candidate.id)
 
   const { data: existingStudent, error: sErr } = await admin
@@ -117,10 +126,10 @@ async function tryRepairStudentLink(admin: ReturnType<typeof createAdminClient>,
   }
 
   // No students row yet: attempt to create one from profile/user metadata.
-  let matric = String(candidate?.matric_number ?? '').trim()
+  let matric = String(candidate.matric_number ?? '').trim()
   if (!matric) {
     const userRes = await admin.auth.admin.getUserById(candidateId)
-    matric = String((userRes.data.user as any)?.user_metadata?.matric_number ?? '').trim()
+    matric = String((userRes.data.user?.user_metadata?.matric_number) ?? '').trim()
   }
 
   if (!matric) return
@@ -148,7 +157,7 @@ export async function POST(request: NextRequest) {
     .eq('id', user.id)
     .maybeSingle()
 
-  const portalRole = resolvePortalRole((profile as any)?.role, user.email)
+  const portalRole = resolvePortalRole(profile?.role, user.email)
   const isStaff = portalRole === 'admin' || portalRole === 'mentor'
   if (!isStaff) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
@@ -178,7 +187,7 @@ export async function POST(request: NextRequest) {
 
     // Auto-repair is allowed only for the primary admin session.
     if (!student && portalRole === 'admin') {
-      await tryRepairStudentLink(admin, applicant as any)
+      await tryRepairStudentLink(admin, applicant)
       student = await loadStudentByApplicantId(admin, body.applicantId)
     }
 
@@ -222,8 +231,8 @@ export async function POST(request: NextRequest) {
         ? {
             id: student.id,
             matricNumber: student.matric_number,
-            isPaid: Boolean((student as any).is_paid),
-            paidAt: (student as any).paid_at ?? null,
+            isPaid: Boolean(student.is_paid),
+            paidAt: student.paid_at ?? null,
           }
         : null,
       needsRepair: applicant.status === 'APPROVED' && !student,

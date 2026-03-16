@@ -142,16 +142,16 @@ export async function POST(request: NextRequest) {
         'If you need support, contact admissions.',
       ].join('\n')
 
-      await admin.from('email_outbox').insert({
+      const { data: outboxRow } = await admin.from('email_outbox').insert({
         recipient_email: recipientEmail,
         applicant_id: applicant.id,
         student_id: studentId,
         kind: 'APPLICATION_APPROVED',
         subject,
         body,
-      })
+      }).select('id').maybeSingle()
 
-      const sendResult = await sendEmail({ to: recipientEmail, subject, body })
+      const sendResult = await sendEmail({ to: recipientEmail, subject, body, outboxId: outboxRow?.id })
       if (!sendResult.ok) {
         console.warn('[approve] Approval email not sent:', sendResult.error)
       }
