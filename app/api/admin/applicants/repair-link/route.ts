@@ -59,26 +59,26 @@ async function repairStudentLink(admin: ReturnType<typeof createAdminClient>, ap
 
   if (email) {
     const { data } = await admin
-      .from<ProfileRow>('profiles')
+      .from('profiles')
       .select('id, role, matric_number, email, full_name, whatsapp_number')
       .ilike('email', email)
-    profiles = data ?? []
+    profiles = (data ?? []) as ProfileRow[]
   }
 
   if (profiles.length === 0 && phone) {
     const { data } = await admin
-      .from<ProfileRow>('profiles')
+      .from('profiles')
       .select('id, role, matric_number, email, full_name, whatsapp_number')
       .eq('whatsapp_number', phone)
-    profiles = data ?? []
+    profiles = (data ?? []) as ProfileRow[]
   }
 
   if (profiles.length === 0 && fullName) {
     const { data } = await admin
-      .from<ProfileRow>('profiles')
+      .from('profiles')
       .select('id, role, matric_number, email, full_name, whatsapp_number')
       .ilike('full_name', fullName)
-    profiles = data ?? []
+    profiles = (data ?? []) as ProfileRow[]
   }
 
   const studentLikeProfiles = (profiles ?? []).filter((p) => {
