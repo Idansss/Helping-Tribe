@@ -23,6 +23,7 @@ import {
   MessageSquare,
   ListChecks,
   MessageCircle,
+  GraduationCap,
   X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
@@ -41,6 +42,7 @@ const NAV_ITEMS: AdminNavItem[] = [
   { label: 'Courses', href: '/admin/courses', icon: BookOpen },
   { label: 'Journals', href: '/admin/journals', icon: FileText },
   { label: 'Case Studies', href: '/admin/case-studies', icon: Briefcase },
+  { label: 'CPD Snippets', href: '/admin/cpd-snippets', icon: GraduationCap },
   { label: 'Resources', href: '/admin/resources', icon: FolderOpen },
   { label: 'Calendar', href: '/admin/calendar', icon: CalendarDays },
   { label: 'Discussions', href: '/admin/discussions', icon: MessageSquare },

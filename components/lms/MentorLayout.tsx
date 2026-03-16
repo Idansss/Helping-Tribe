@@ -23,6 +23,7 @@ import {
   LayoutGrid,
   UserCircle,
   ListChecks,
+  GraduationCap,
   X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
@@ -95,6 +96,7 @@ export function MentorLayout({ children }: MentorLayoutProps) {
     { href: '/mentor/reports', label: 'Reports', icon: BarChart3 },
     { href: '/mentor/calendar', label: 'Calendar', icon: CalendarDays },
     { href: '/mentor/skills', label: 'Skills', icon: Sparkles },
+    { href: '/mentor/cpd-snippets', label: 'CPD Snippets', icon: GraduationCap },
     { href: '/mentor/discussions', label: 'Discussions', icon: MessageSquare },
     { href: '/mentor/quizzes', label: 'Quizzes', icon: ListChecks },
     { href: '/mentor/messages', label: 'Messages', icon: MessageCircle },

@@ -18,6 +18,7 @@ import {
   Mail,
   Menu,
   ListChecks,
+  GraduationCap,
   X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
@@ -36,6 +37,7 @@ const NAV_ITEMS = [
   { label: 'Quizzes', href: '/learner/quizzes', icon: ListChecks },
   { label: 'Skills', href: '/learner/skills', icon: Sparkles },
   { label: 'Discussions', href: '/learner/discussions', icon: MessageSquare },
+  { label: 'CPD Snippets', href: '/learner/cpd-snippets', icon: GraduationCap },
   { label: 'Messages', href: '/learner/messages', icon: Mail },
 ] as const
 
