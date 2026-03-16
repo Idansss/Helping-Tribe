@@ -46,12 +46,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Login failed' }, { status: 500 })
     }
 
-    type ProfileRoleRow = { role: string | null }
     const { data: profile } = await supabase
-      .from<ProfileRoleRow>('profiles')
+      .from('profiles')
       .select('role')
       .eq('id', user.id)
-      .maybeSingle()
+      .maybeSingle() as { data: { role: string | null } | null; error: unknown }
 
     const role = String(profile?.role ?? '').toLowerCase()
     const isStaff = role === 'admin' || role === 'faculty' || role === 'mentor'

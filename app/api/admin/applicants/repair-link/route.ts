@@ -171,10 +171,10 @@ export async function POST(request: NextRequest) {
     }
 
     const { data: applicant, error: aErr } = await admin
-      .from<ApplicantRow>('applicants')
+      .from('applicants')
       .select('id, status, email, full_name_certificate, phone_whatsapp')
       .eq('id', body.applicantId)
-      .maybeSingle()
+      .maybeSingle() as { data: ApplicantRow | null; error: unknown }
 
     if (aErr || !applicant) return NextResponse.json({ error: 'Applicant not found' }, { status: 404 })
 

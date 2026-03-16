@@ -27,12 +27,11 @@ export async function POST(request: NextRequest) {
 
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  type ProfileRoleRow = { role: string | null }
   const { data: profile } = await supabase
-    .from<ProfileRoleRow>('profiles')
+    .from('profiles')
     .select('role')
     .eq('id', user.id)
-    .maybeSingle()
+    .maybeSingle() as { data: { role: string | null } | null; error: unknown }
 
   const portalRole = resolvePortalRole(profile?.role ?? null, user.email)
   const role = String(profile?.role ?? '').toLowerCase()
