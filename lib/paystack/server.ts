@@ -154,7 +154,7 @@ export async function paystackVerifyTransaction(reference: string): Promise<Pays
   const gatewayResponse = data.gateway_response ? String(data.gateway_response) : null
 
   return {
-    ok: Boolean(json?.status) && Boolean(data?.reference),
+    ok: Boolean(status) && Boolean(data.reference),
     status,
     reference: data?.reference ? String(data.reference) : cleanRef,
     amountKobo,
