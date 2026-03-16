@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
   const tokenHash = hashToken(token)
 
   const { data, error } = await supabase
+    .from('password_setup_tokens')
     .select('student_id, expires_at, used_at, students(matric_number, is_paid)')
     .eq('token_hash', tokenHash)
     .maybeSingle()
