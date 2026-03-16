@@ -238,7 +238,7 @@ export function LearnerHeader({ onMenuClick }: LearnerHeaderProps) {
         </div>
 
         {/* Role Switcher – avoid accidental switch on tap */}
-        {canSwitchRoles && (
+        {false && (
           <div className="relative flex-shrink-0" data-dropdown>
           <button
             type="button"

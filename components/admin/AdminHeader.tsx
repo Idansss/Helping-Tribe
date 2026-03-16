@@ -383,7 +383,7 @@ export function AdminHeader({
 
         <NotificationBell className="relative rounded-full hover:bg-slate-100 p-2 text-slate-600" iconSize="sm" />
 
-        {canSwitchRoles && (
+        {false && (
           <div className="relative" data-dropdown>
             <button
               type="button"

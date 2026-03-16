@@ -12,7 +12,9 @@
       "Bash(done)",
       "Bash(grep -v \"//.*purple\")",
       "Bash(find '/c/Users/Admin/Desktop/Helping Tribe/app' -type d -name *discussion* -o -name *quiz* -o -name *assignment* -o -name *activity* -o -name *self-learning* -o -name *peer* -o -name *live*)",
-      "Bash(grep -r \"locked\\\\|unlock\\\\|prerequisite\\\\|progress\" '/c/Users/Admin/Desktop/Helping Tribe/app/learner/course' --include=*.tsx)"
+      "Bash(grep -r \"locked\\\\|unlock\\\\|prerequisite\\\\|progress\" '/c/Users/Admin/Desktop/Helping Tribe/app/learner/course' --include=*.tsx)",
+      "Bash(xargs grep:*)",
+      "Bash(find '/c/Users/Admin/Desktop/Helping Tribe' -type f -name *backpack* -o -name *resource*)"
     ]
   }
 }
