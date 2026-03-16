@@ -122,12 +122,36 @@ export async function paystackVerifyTransaction(reference: string): Promise<Pays
     method: 'GET',
   })
 
-  const data = (json as { data?: { status?: unknown; amount?: unknown; currency?: unknown; paid_at?: unknown; gateway_response?: unknown; reference?: unknown } } | null | undefined)?.data
-  const status = data?.status ? String(data.status) : null
-  const amountKobo = Number.isFinite(Number(data?.amount)) ? Number(data.amount) : null
-  const currency = data?.currency ? String(data.currency) : null
-  const paidAt = data?.paid_at ? String(data.paid_at) : null
-  const gatewayResponse = data?.gateway_response ? String(data.gateway_response) : null
+  const data = (json as {
+    data?: {
+      status?: unknown
+      amount?: unknown
+      currency?: unknown
+      paid_at?: unknown
+      gateway_response?: unknown
+      reference?: unknown
+    }
+    status?: unknown
+  } | null | undefined)?.data
+
+  if (!data) {
+    return {
+      ok: false,
+      status: null,
+      reference: cleanRef,
+      amountKobo: null,
+      currency: null,
+      paidAt: null,
+      gatewayResponse: null,
+      raw: json,
+    }
+  }
+
+  const status = data.status ? String(data.status) : null
+  const amountKobo = Number.isFinite(Number(data.amount)) ? Number(data.amount) : null
+  const currency = data.currency ? String(data.currency) : null
+  const paidAt = data.paid_at ? String(data.paid_at) : null
+  const gatewayResponse = data.gateway_response ? String(data.gateway_response) : null
 
   return {
     ok: Boolean(json?.status) && Boolean(data?.reference),
