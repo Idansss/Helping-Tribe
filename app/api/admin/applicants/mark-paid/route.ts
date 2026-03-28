@@ -1,13 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import crypto from 'crypto'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isAllowedAdmin } from '@/lib/auth/admin'
 import { isMissingColumnError, isMissingRelationError, missingPaymentsSchemaMessage } from '@/lib/supabase/migrations'
+import { PROGRAM_FULL_NAME } from '@/lib/brand/program'
+import { sendEmail } from '@/lib/email/send'
 
 const MarkPaidSchema = z.object({
   applicantId: z.string().uuid(),
 })
+
+function sha256(value: string) {
+  return crypto.createHash('sha256').update(value).digest('hex')
+}
+
+function randomToken() {
+  return crypto.randomBytes(32).toString('base64url')
+}
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -41,10 +52,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Load applicant for email
+    const { data: applicant } = await admin
+      .from('applicants')
+      .select('id, email')
+      .eq('id', body.applicantId)
+      .maybeSingle()
+
     // Load student by applicant_id
     const { data: student, error: sErr } = await admin
       .from('students')
-      .select('id, is_paid')
+      .select('id, matric_number, is_paid')
       .eq('applicant_id', body.applicantId)
       .maybeSingle()
 
@@ -96,7 +114,60 @@ export async function POST(request: NextRequest) {
         .eq('id', latestPayment.id)
     }
 
-    return NextResponse.json({ ok: true, paidAt })
+    // Auto-generate and send set-password link
+    let setPasswordUrl: string | null = null
+    let expiresAt: string | null = null
+    try {
+      const ttlHours = 72
+      const token = randomToken()
+      const tokenHash = sha256(token)
+      expiresAt = new Date(Date.now() + ttlHours * 60 * 60 * 1000).toISOString()
+
+      // Expire any existing unused tokens
+      await admin
+        .from('password_setup_tokens')
+        .update({ used_at: new Date().toISOString() })
+        .eq('student_id', student.id)
+        .is('used_at', null)
+
+      await admin.from('password_setup_tokens').insert({
+        token_hash: tokenHash,
+        student_id: student.id,
+        expires_at: expiresAt,
+      })
+
+      const relativeUrl = `/student/set-password?token=${encodeURIComponent(token)}`
+      const baseUrl = (process.env.BASE_URL || '').replace(/\/$/, '')
+      setPasswordUrl = baseUrl ? `${baseUrl}${relativeUrl}` : relativeUrl
+
+      const recipientEmail = applicant?.email || `student+${student.id}@helpingtribe.local`
+      const subject = `${PROGRAM_FULL_NAME}: set your password`
+      const emailBody = [
+        'Your payment has been verified.',
+        `Use this one-time set-password link: ${setPasswordUrl}`,
+        `Matric Number: ${student.matric_number}`,
+        `This link expires on ${new Date(expiresAt).toLocaleString()}.`,
+      ].join('\n')
+
+      const { data: outboxRow } = await admin.from('email_outbox').insert({
+        recipient_email: recipientEmail,
+        applicant_id: applicant?.id ?? null,
+        student_id: student.id,
+        kind: 'SET_PASSWORD',
+        subject,
+        body: emailBody,
+      }).select('id').maybeSingle()
+
+      const sendResult = await sendEmail({ to: recipientEmail, subject, body: emailBody, outboxId: outboxRow?.id })
+      if (!sendResult.ok) {
+        console.warn('[mark-paid] Set-password email not sent:', sendResult.error)
+      }
+    } catch (emailErr) {
+      // Don't fail the whole request if email sending fails — payment is already marked
+      console.warn('[mark-paid] Failed to auto-send set-password link:', emailErr)
+    }
+
+    return NextResponse.json({ ok: true, paidAt, setPasswordUrl, expiresAt })
   } catch (e: any) {
     if (e?.name === 'ZodError') {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })

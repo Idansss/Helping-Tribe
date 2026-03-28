@@ -28,7 +28,8 @@ export async function POST(request: NextRequest) {
 
     const tokenHash = hashToken(body.token.trim())
 
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
+      .from('password_setup_tokens')
       .select('id, student_id, expires_at, used_at, students(matric_number, is_paid)')
       .eq('token_hash', tokenHash)
       .maybeSingle()

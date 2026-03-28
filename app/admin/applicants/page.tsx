@@ -470,7 +470,10 @@ export default function ApplicantsPage() {
       const json = await res.json()
       if (!res.ok) throw new Error(json?.error || 'Failed to mark as paid')
 
-      toast({ title: 'Marked as paid', description: 'Student payment has been manually verified.' })
+      const desc = json?.setPasswordUrl
+        ? 'Payment verified and set-password link sent to student email.'
+        : 'Student payment has been manually verified.'
+      toast({ title: 'Marked as paid', description: desc })
       await refreshProcessedDetails(applicantId)
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Failed', description: e?.message || 'Error' })
