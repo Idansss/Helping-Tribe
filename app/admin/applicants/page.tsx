@@ -482,6 +482,24 @@ export default function ApplicantsPage() {
     }
   }
 
+  async function unlockWeek(studentId: string, weekNumber: number) {
+    setBusyId(studentId)
+    try {
+      const res = await fetch('/api/admin/students/unlock-week', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ studentId, weekNumber }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json?.error || 'Failed to unlock week')
+      toast({ title: `Week ${weekNumber} unlocked`, description: `The student can now access Week ${weekNumber} and its resources.` })
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: 'Failed', description: e?.message || 'Error' })
+    } finally {
+      setBusyId(null)
+    }
+  }
+
   async function generateSetupLink(applicantId: string) {
     setBusyId(applicantId)
     try {
@@ -816,6 +834,25 @@ export default function ApplicantsPage() {
                                     </Button>
                                   )}
                                 </div>
+                                {processedDetails.studentId && (
+                                  <div className="pt-2 border-t border-slate-100">
+                                    <p className="text-xs font-medium text-slate-500 mb-2">Unlock weeks manually</p>
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {[1,2,3,4,5,6,7,8,9].map((week) => (
+                                        <Button
+                                          key={week}
+                                          size="sm"
+                                          variant="outline"
+                                          disabled={busyId === processedDetails.studentId}
+                                          className="text-xs h-7 px-2 border-slate-300"
+                                          onClick={() => unlockWeek(processedDetails.studentId!, week)}
+                                        >
+                                          Week {week}
+                                        </Button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
                               </>
                             )}
                           </>
