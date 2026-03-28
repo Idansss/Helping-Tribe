@@ -14,7 +14,7 @@ export default function MentorPracticePage() {
           Practice Client
         </h1>
         <p className="text-slate-600 mt-1">
-          Learners use the Practice Client to have simulated conversations with AI personas (e.g. Chika, Amina, Tunde) and build helping skills. You don’t run sessions here—you review their work in Grading.
+          Learners use the Practice Client to have simulated conversations with AI personas (e.g. Temi, Amara, Tobi) and build helping skills. You don’t run sessions here—you review their work in Grading.
         </p>
       </div>
 

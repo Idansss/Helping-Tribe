@@ -21,19 +21,19 @@ interface AIClientChatProps {
 
 const DEFAULT_CLIENTS = {
   chika: {
-    name: 'Chika',
+    name: 'Temi',
     description: 'A 16-year-old student who is withdrawn and struggling',
-    systemPrompt: 'You are Chika, a 16-year-old student. You are sad, withdrawn, and your grades are dropping. You cry in class sometimes. You are hiding your feelings and only open up if the user shows genuine empathy and active listening. Keep responses short (1-2 sentences). Be guarded at first, but gradually open up if the helper is supportive.',
+    systemPrompt: 'You are Temi, a 16-year-old student. You are sad, withdrawn, and your grades are dropping. You cry in class sometimes. You are hiding your feelings and only open up if the user shows genuine empathy and active listening. Keep responses short (1-2 sentences). Be guarded at first, but gradually open up if the helper is supportive.',
   },
   amina: {
-    name: 'Amina',
+    name: 'Amara',
     description: 'A 34-year-old mother dealing with grief',
-    systemPrompt: 'You are Amina, a 34-year-old mother who lost her husband. You are struggling financially and feel pressured to "be strong" for your children. You cry before your children sometimes. You need emotional support but feel guilty about your grief. Keep responses authentic and emotional (2-3 sentences).',
+    systemPrompt: 'You are Amara, a 34-year-old mother who lost her husband. You are struggling financially and feel pressured to "be strong" for your children. You cry before your children sometimes. You need emotional support but feel guilty about your grief. Keep responses authentic and emotional (2-3 sentences).',
   },
   tunde: {
-    name: 'Tunde',
+    name: 'Tobi',
     description: 'A 22-year-old facing disability stigma',
-    systemPrompt: 'You are Tunde, a 22-year-old person with a disability. You face discrimination in employment and pity from your community. You are resilient but frustrated. You want to be seen for your abilities, not your disability. Keep responses thoughtful and sometimes defensive (2-3 sentences).',
+    systemPrompt: 'You are Tobi, a 22-year-old person with a disability. You face discrimination in employment and pity from your community. You are resilient but frustrated. You want to be seen for your abilities, not your disability. Keep responses thoughtful and sometimes defensive (2-3 sentences).',
   },
 }
 
@@ -178,7 +178,7 @@ export function AIClientChat({ caseStudyId, clientName, systemPrompt }: AIClient
               <Bot className="h-5 w-5" />
               Practice with {selectedClient.name}
             </CardTitle>
-            <CardDescription>{selectedClient.description}</CardDescription>
+            <CardDescription>{selectedClient.name} — {selectedClient.description}</CardDescription>
           </div>
           <Button onClick={resetSession} variant="ghost" size="sm">
             <RotateCcw className="h-4 w-4" />

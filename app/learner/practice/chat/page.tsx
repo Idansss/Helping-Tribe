@@ -16,7 +16,7 @@ export default function LearnerPracticeChatPage() {
         <CardHeader>
           <CardTitle className="text-base">Simulated client conversation</CardTitle>
           <CardDescription>
-            Chika (withdrawn student), Amina (grief), and Tunde (disability stigma) are available. Start a conversation and practice your skills.
+            Temi (withdrawn student), Amara (grief), and Tobi (disability stigma) are available. Start a conversation and practice your skills.
           </CardDescription>
         </CardHeader>
         <CardContent>
