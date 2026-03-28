@@ -50,9 +50,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 })
     }
 
-    const matricNumber = data.students?.matric_number ?? null
+    const studentRel = (data as { students?: { matric_number?: string | null; is_paid?: boolean | null }[] | null }).students
+    const firstStudent = Array.isArray(studentRel) ? studentRel[0] : studentRel
 
-    const isPaid = Boolean(data.students?.is_paid)
+    const matricNumber = firstStudent?.matric_number ?? null
+
+    const isPaid = Boolean(firstStudent?.is_paid)
     if (!isPaid) {
       return NextResponse.json({ error: 'Payment required before setting password' }, { status: 403 })
     }
