@@ -96,6 +96,11 @@ export default function LearnerCourseModulesPage() {
         theme: m.theme,
       }))
 
+  function isLocked(week: number): boolean {
+    if (week <= 1) return false
+    return (progressMap[week - 1] ?? 0) < 100
+  }
+
   return (
     <div className="space-y-8 max-w-5xl">
       <div>
@@ -128,39 +133,55 @@ export default function LearnerCourseModulesPage() {
             {displayModules.map((mod) => {
               const progress = progressMap[mod.week] ?? 0
               const completed = progress >= 100
+              const locked = isLocked(mod.week)
               const moduleId = mod.id
               const isRealId = moduleId && moduleId.length > 10 && !moduleId.startsWith('w')
               const href = `/learner/course/module/${isRealId ? moduleId : mod.week}`
 
+              const inner = (
+                <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${
+                      locked ? 'bg-slate-100 text-slate-400' : completed ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      {locked ? <Lock className="h-5 w-5" /> : completed ? <CheckCircle2 className="h-5 w-5" /> : <BookOpen className="h-5 w-5" />}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`text-xs font-medium ${locked ? 'text-slate-400' : 'text-slate-500'}`}>Week {mod.week}</span>
+                        <Badge variant="secondary" className={`text-[10px] ${locked ? 'opacity-50' : ''}`}>{mod.theme}</Badge>
+                        {locked && <span className="text-[10px] text-slate-400">Complete Week {mod.week - 1} first</span>}
+                      </div>
+                      <h3 className={`font-semibold truncate ${locked ? 'text-slate-400' : 'text-slate-900'}`}>{mod.title}</h3>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    {locked ? (
+                      <Lock className="h-4 w-4 text-slate-300" />
+                    ) : (
+                      <>
+                        <div className="w-24 h-2 rounded-full bg-slate-200 overflow-hidden">
+                          <div
+                            className="h-full bg-teal-600 rounded-full transition-all"
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-medium text-slate-600 w-10">{progress}%</span>
+                        <ChevronRight className="h-4 w-4 text-slate-400" />
+                      </>
+                    )}
+                  </div>
+                </CardContent>
+              )
+
               return (
                 <li key={mod.week}>
-                  <Card className="overflow-hidden border-slate-200 hover:border-teal-300 transition-colors">
-                    <Link href={href} className="block">
-                      <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-4">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${completed ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
-                            {completed ? <CheckCircle2 className="h-5 w-5" /> : <BookOpen className="h-5 w-5" />}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-xs font-medium text-slate-500">Week {mod.week}</span>
-                              <Badge variant="secondary" className="text-[10px]">{mod.theme}</Badge>
-                            </div>
-                            <h3 className="font-semibold text-slate-900 truncate">{mod.title}</h3>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3 shrink-0">
-                          <div className="w-24 h-2 rounded-full bg-slate-200 overflow-hidden">
-                            <div
-                              className="h-full bg-teal-600 rounded-full transition-all"
-                              style={{ width: `${progress}%` }}
-                            />
-                          </div>
-                          <span className="text-xs font-medium text-slate-600 w-10">{progress}%</span>
-                          <ChevronRight className="h-4 w-4 text-slate-400" />
-                        </div>
-                      </CardContent>
-                    </Link>
+                  <Card className={`overflow-hidden border-slate-200 transition-colors ${locked ? 'opacity-60 cursor-not-allowed' : 'hover:border-teal-300'}`}>
+                    {locked ? (
+                      <div>{inner}</div>
+                    ) : (
+                      <Link href={href} className="block">{inner}</Link>
+                    )}
                   </Card>
                 </li>
               )

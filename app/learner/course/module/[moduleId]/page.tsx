@@ -8,7 +8,7 @@ import { useActivityGate } from '@/lib/hooks/useActivityGate'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { BookOpen, ArrowLeft, FileText } from 'lucide-react'
+import { BookOpen, ArrowLeft, FileText, Lock } from 'lucide-react'
 import Link from 'next/link'
 
 /** Thin wrapper so the hook is always called unconditionally once the moduleId is known. */
@@ -47,6 +47,8 @@ export default function LearnerModulePage({
   const [resolvedModuleId, setResolvedModuleId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [fallbackWeek, setFallbackWeek] = useState<number | null>(null)
+  const [isModuleLocked, setIsModuleLocked] = useState(false)
+  const [lockedWeek, setLockedWeek] = useState<number | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -56,14 +58,43 @@ export default function LearnerModulePage({
         return
       }
 
+      const { data: { user } } = await supabase.auth.getUser()
+
+      async function checkLock(week: number): Promise<boolean> {
+        if (week <= 1) return false
+        const prevWeek = week - 1
+        // Find previous module
+        const { data: prevMod } = await supabase
+          .from('modules')
+          .select('id')
+          .eq('week_number', prevWeek)
+          .maybeSingle()
+        if (!prevMod || !user) return false
+        const { data: prevProgress } = await supabase
+          .from('module_progress')
+          .select('completed, progress')
+          .eq('module_id', prevMod.id)
+          .eq('user_id', user.id)
+          .maybeSingle()
+        const prevDone = (prevProgress as any)?.completed || (prevProgress as any)?.is_completed || ((prevProgress as any)?.progress ?? 0) >= 100
+        return !prevDone
+      }
+
       if (isUuid(moduleId)) {
         const { data } = await supabase
           .from('modules')
-          .select('id')
+          .select('id, week_number')
           .eq('id', moduleId)
           .single()
         if (!cancelled && data) {
-          setResolvedModuleId((data as { id: string }).id)
+          const mod = data as { id: string; week_number: number }
+          const locked = await checkLock(mod.week_number)
+          if (locked) {
+            setIsModuleLocked(true)
+            setLockedWeek(mod.week_number)
+          } else {
+            setResolvedModuleId(mod.id)
+          }
         }
         if (!cancelled) setLoading(false)
         return
@@ -71,6 +102,15 @@ export default function LearnerModulePage({
 
       const week = parseInt(moduleId, 10)
       if (week >= 1 && week <= 9) {
+        const locked = await checkLock(week)
+        if (locked) {
+          if (!cancelled) {
+            setIsModuleLocked(true)
+            setLockedWeek(week)
+            setLoading(false)
+          }
+          return
+        }
         const { data } = await supabase
           .from('modules')
           .select('id')
@@ -96,6 +136,35 @@ export default function LearnerModulePage({
     return (
       <div className="flex items-center justify-center min-h-[300px] text-slate-500">
         Loading module…
+      </div>
+    )
+  }
+
+  if (isModuleLocked && lockedWeek !== null) {
+    return (
+      <div className="space-y-6 max-w-4xl">
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/learner/course/modules" className="flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to modules
+          </Link>
+        </Button>
+        <Card className="border-slate-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-slate-500">
+              <Lock className="h-5 w-5" />
+              Week {lockedWeek} — Locked
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-slate-600">
+              You need to complete <strong>Week {lockedWeek - 1}</strong> before you can access this module.
+            </p>
+            <Button asChild>
+              <Link href={`/learner/course/module/${lockedWeek - 1}`}>Go to Week {lockedWeek - 1}</Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }
