@@ -9,6 +9,7 @@ import { computeHelpFoundationalCoursePricing, HELP_FOUNDATIONAL_COURSE } from '
 import { createPaystackReference, paystackInitializeTransaction } from '@/lib/paystack/server'
 import { isMissingColumnError, isMissingRelationError, missingPaymentsSchemaMessage } from '@/lib/supabase/migrations'
 import { getRegistrationWindow, isRegistrationOpen } from '@/lib/settings/registration'
+import { getPublicSiteBaseUrl } from '@/lib/server/public-site-url'
 
 const InitializeSchema = z.object({
   studentId: z.string().uuid().optional(),
@@ -16,7 +17,7 @@ const InitializeSchema = z.object({
 })
 
 function safeBaseUrl(request: NextRequest) {
-  return process.env.BASE_URL || request.nextUrl.origin
+  return getPublicSiteBaseUrl(request)
 }
 
 export async function POST(request: NextRequest) {

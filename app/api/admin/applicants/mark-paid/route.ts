@@ -7,6 +7,7 @@ import { isAllowedAdmin } from '@/lib/auth/admin'
 import { isMissingColumnError, isMissingRelationError, missingPaymentsSchemaMessage } from '@/lib/supabase/migrations'
 import { PROGRAM_FULL_NAME } from '@/lib/brand/program'
 import { sendEmail } from '@/lib/email/send'
+import { absolutePublicUrl } from '@/lib/server/public-site-url'
 
 const MarkPaidSchema = z.object({
   applicantId: z.string().uuid(),
@@ -137,8 +138,7 @@ export async function POST(request: NextRequest) {
       })
 
       const relativeUrl = `/student/set-password?token=${encodeURIComponent(token)}`
-      const baseUrl = (process.env.BASE_URL || '').replace(/\/$/, '')
-      setPasswordUrl = baseUrl ? `${baseUrl}${relativeUrl}` : relativeUrl
+      setPasswordUrl = absolutePublicUrl(request, relativeUrl)
 
       const recipientEmail = applicant?.email || `student+${student.id}@helpingtribe.local`
       const subject = `${PROGRAM_FULL_NAME}: set your password`

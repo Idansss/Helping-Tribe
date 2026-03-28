@@ -8,6 +8,7 @@ import { isMissingColumnError, missingPaymentsSchemaMessage } from '@/lib/supaba
 import { PROGRAM_FULL_NAME } from '@/lib/brand/program'
 import { sendEmail } from '@/lib/email/send'
 import { checkRateLimit, getRequestIp } from '@/lib/server/rate-limit'
+import { absolutePublicUrl } from '@/lib/server/public-site-url'
 
 const SetupLinkSchema = z.object({
   applicantId: z.string().uuid(),
@@ -116,8 +117,7 @@ export async function POST(request: NextRequest) {
     }
 
     const relativeUrl = `/student/set-password?token=${encodeURIComponent(token)}`
-    const baseUrl = (process.env.BASE_URL || '').replace(/\/$/, '')
-    const setPasswordUrl = baseUrl ? `${baseUrl}${relativeUrl}` : relativeUrl
+    const setPasswordUrl = absolutePublicUrl(request, relativeUrl)
 
     const recipientEmail = applicant.email || `student+${student.id}@helpingtribe.local`
     const subject = `${PROGRAM_FULL_NAME}: set your password`
