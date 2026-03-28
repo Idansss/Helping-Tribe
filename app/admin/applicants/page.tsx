@@ -458,6 +458,27 @@ export default function ApplicantsPage() {
     }
   }
 
+  async function markManuallyPaid(applicantId: string) {
+    if (!confirm('Mark this student as manually paid? This bypasses Paystack and should only be used for confirmed bank transfers.')) return
+    setBusyId(applicantId)
+    try {
+      const res = await fetch('/api/admin/applicants/mark-paid', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ applicantId }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json?.error || 'Failed to mark as paid')
+
+      toast({ title: 'Marked as paid', description: 'Student payment has been manually verified.' })
+      await refreshProcessedDetails(applicantId)
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: 'Failed', description: e?.message || 'Error' })
+    } finally {
+      setBusyId(null)
+    }
+  }
+
   async function generateSetupLink(applicantId: string) {
     setBusyId(applicantId)
     try {
@@ -723,7 +744,7 @@ export default function ApplicantsPage() {
                                     </a>
                                   </p>
                                 )}
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-wrap items-center gap-2">
                                   <Button
                                     size="sm"
                                     variant="outline"
@@ -742,6 +763,15 @@ export default function ApplicantsPage() {
                                       {busyId === a.id ? 'Working...' : 'Verify payment'}
                                     </Button>
                                   )}
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={busyId === a.id}
+                                    className="border-amber-400 text-amber-700 hover:bg-amber-50"
+                                    onClick={() => markManuallyPaid(a.id)}
+                                  >
+                                    {busyId === a.id ? 'Working...' : 'Mark as manually paid'}
+                                  </Button>
                                 </div>
                               </>
                             ) : (
