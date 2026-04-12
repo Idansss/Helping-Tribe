@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { createClient } from '@/lib/supabase/client'
 import { ModuleListSkeleton } from '@/components/lms/LoadingSkeletons'
+import { useCourseAccessSettings } from '@/lib/hooks/useCourseAccessSettings'
 import {
   BookOpen,
   ChevronRight,
@@ -39,13 +40,14 @@ interface ModuleProgress {
 }
 
 export default function LearnerCourseModulesPage() {
-  const supabase = createClient()
   const [modulesFromDb, setModulesFromDb] = useState<{ id: string; week_number: number; title: string }[]>([])
   const [progressMap, setProgressMap] = useState<Record<number, number>>({})
   const [loading, setLoading] = useState(true)
+  const { manualUnlockedWeeks } = useCourseAccessSettings()
 
   useEffect(() => {
     async function load() {
+      const supabase = createClient()
       try {
         const { data: modData, error: modErr } = await supabase
           .from('modules')
@@ -57,12 +59,12 @@ export default function LearnerCourseModulesPage() {
           if (user) {
             const { data: progressData } = await supabase
               .from('module_progress')
-              .select('module_id, progress, completed')
+              .select('module_id, progress, completed, is_completed')
               .eq('user_id', user.id)
             if (progressData?.length) {
               const byModule: Record<string, { progress: number; completed: boolean }> = {}
-              progressData.forEach((p: { module_id: string; progress: number; completed: boolean }) => {
-                byModule[p.module_id] = { progress: p.progress, completed: p.completed }
+              progressData.forEach((p: { module_id: string; progress: number; completed?: boolean; is_completed?: boolean }) => {
+                byModule[p.module_id] = { progress: p.progress, completed: Boolean(p.completed || p.is_completed) }
               })
               const byWeek: Record<number, number> = {}
               modData.forEach((m: { id: string; week_number: number }) => {
@@ -80,7 +82,7 @@ export default function LearnerCourseModulesPage() {
       }
     }
     load()
-  }, [supabase])
+  }, [])
 
   const displayModules = modulesFromDb.length > 0
     ? modulesFromDb.map((m) => ({
@@ -98,6 +100,7 @@ export default function LearnerCourseModulesPage() {
 
   function isLocked(week: number): boolean {
     if (week <= 1) return false
+    if (manualUnlockedWeeks.includes(week)) return false
     return (progressMap[week - 1] ?? 0) < 100
   }
 

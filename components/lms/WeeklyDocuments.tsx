@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { FileText, Download, Loader2, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useCourseAccessSettings } from '@/lib/hooks/useCourseAccessSettings'
 
 type ResourceDoc = {
   id: string
@@ -15,13 +16,14 @@ type ResourceDoc = {
 }
 
 export function WeeklyDocuments() {
-  const supabase = createClient()
   const [docs, setDocs] = useState<ResourceDoc[]>([])
   const [loading, setLoading] = useState(true)
   const [progressMap, setProgressMap] = useState<Record<number, number>>({})
+  const { manualUnlockedWeeks } = useCourseAccessSettings()
 
   useEffect(() => {
     async function load() {
+      const supabase = createClient()
       const [{ data: docsData }, { data: { user } }] = await Promise.all([
         supabase.from('resource_documents').select('*').order('week_number', { ascending: true }),
         supabase.auth.getUser(),
@@ -61,6 +63,7 @@ export function WeeklyDocuments() {
 
   function isLocked(week: number): boolean {
     if (week <= 1) return false
+    if (manualUnlockedWeeks.includes(week)) return false
     return (progressMap[week - 1] ?? 0) < 100
   }
 

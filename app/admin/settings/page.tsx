@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Card } from '@/components/ui/card'
-import { Settings2, Calendar } from 'lucide-react'
+import { Settings2, Calendar, BookOpen, LockOpen } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { COURSE_WEEKS, normalizeManualUnlockedWeeks } from '@/lib/settings/course-access'
 
 const PORTAL_SETTINGS_STORAGE_KEY = 'ht-portal-settings'
 
@@ -35,6 +36,12 @@ export default function AdminSettingsPage() {
   const [regLoading, setRegLoading] = useState(true)
   const [regSaving, setRegSaving] = useState(false)
   const [regMessage, setRegMessage] = useState<string | null>(null)
+
+  // Course access overrides (from API)
+  const [manualUnlockedWeeks, setManualUnlockedWeeks] = useState<number[]>([])
+  const [courseAccessLoading, setCourseAccessLoading] = useState(true)
+  const [courseAccessSaving, setCourseAccessSaving] = useState(false)
+  const [courseAccessMessage, setCourseAccessMessage] = useState<string | null>(null)
 
   // Load saved settings on first mount
   useEffect(() => {
@@ -90,6 +97,20 @@ export default function AdminSettingsPage() {
     return () => { cancelled = true }
   }, [])
 
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/settings/course-access')
+      .then((res) => res.json())
+      .then((data: { manualUnlockedWeeks?: number[] }) => {
+        if (!cancelled) {
+          setManualUnlockedWeeks(normalizeManualUnlockedWeeks(data.manualUnlockedWeeks ?? []))
+        }
+      })
+      .catch(() => { if (!cancelled) setCourseAccessMessage('Failed to load course access settings.') })
+      .finally(() => { if (!cancelled) setCourseAccessLoading(false) })
+    return () => { cancelled = true }
+  }, [])
+
   const handleSaveRegistration = async (e: React.FormEvent) => {
     e.preventDefault()
     setRegSaving(true)
@@ -129,6 +150,44 @@ export default function AdminSettingsPage() {
     setDashboardAnnouncements(DEFAULT_PORTAL_SETTINGS.dashboardAnnouncements)
     setSaveMessage('Portal settings reset to defaults.')
     setTimeout(() => setSaveMessage(null), 2500)
+  }
+
+  const handleToggleManualUnlock = (weekNumber: number, enabled: boolean) => {
+    if (weekNumber === 1) return
+    setManualUnlockedWeeks((previous) => {
+      const next = enabled
+        ? [...previous, weekNumber]
+        : previous.filter((week) => week !== weekNumber)
+      return normalizeManualUnlockedWeeks(next)
+    })
+    setCourseAccessMessage(null)
+  }
+
+  const handleSaveCourseAccess = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setCourseAccessSaving(true)
+    setCourseAccessMessage(null)
+    try {
+      const res = await fetch('/api/settings/course-access', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          manualUnlockedWeeks,
+        }),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error || 'Failed to save')
+      }
+      const data = await res.json().catch(() => ({ manualUnlockedWeeks }))
+      setManualUnlockedWeeks(normalizeManualUnlockedWeeks(data.manualUnlockedWeeks ?? manualUnlockedWeeks))
+      setCourseAccessMessage('Course access overrides saved.')
+      setTimeout(() => setCourseAccessMessage(null), 3000)
+    } catch (err: unknown) {
+      setCourseAccessMessage(err instanceof Error ? err.message : 'Failed to save.')
+    } finally {
+      setCourseAccessSaving(false)
+    }
   }
 
   return (
@@ -376,8 +435,70 @@ export default function AdminSettingsPage() {
             Define permissions for SuperAdmin, Admin, Instructor and Learner roles.
           </TabsContent>
 
-          <TabsContent value="courses" className="text-xs text-slate-600">
-            Manage catalog visibility, course settings and certificates.
+          <TabsContent value="courses" className="text-xs text-slate-600 space-y-3">
+            <div className="flex items-center gap-2 text-slate-700">
+              <BookOpen className="h-4 w-4 text-[var(--talent-primary)]" />
+              <span className="font-medium text-sm">
+                Manual learner access overrides
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-500 max-w-2xl">
+              Force-unlock specific weeks from the admin portal. When enabled, learners can open that week and its weekly course documents even if they have not completed the previous week yet.
+            </p>
+            {courseAccessLoading ? (
+              <p className="text-slate-500">Loading…</p>
+            ) : (
+              <form onSubmit={handleSaveCourseAccess} className="space-y-4 max-w-3xl">
+                <div className="grid gap-3 md:grid-cols-2">
+                  {COURSE_WEEKS.map((weekNumber) => {
+                    const alwaysOpen = weekNumber === 1
+                    const enabled = alwaysOpen || manualUnlockedWeeks.includes(weekNumber)
+
+                    return (
+                      <div
+                        key={weekNumber}
+                        className="flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-3"
+                      >
+                        <div>
+                          <p className="text-[11px] font-medium text-slate-800">
+                            Week {weekNumber}
+                          </p>
+                          <p className="text-[10px] text-slate-500">
+                            {alwaysOpen
+                              ? 'Always available to learners.'
+                              : enabled
+                                ? 'Manually unlocked for all learners.'
+                                : `Locked until Week ${weekNumber - 1} is complete.`}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {!alwaysOpen && enabled && (
+                            <LockOpen className="h-4 w-4 text-emerald-600" />
+                          )}
+                          <Switch
+                            checked={enabled}
+                            disabled={alwaysOpen}
+                            onCheckedChange={(checked) => handleToggleManualUnlock(weekNumber, checked)}
+                            className="scale-125 data-[state=unchecked]:bg-slate-200 data-[state=checked]:bg-[var(--talent-primary)]"
+                          />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={courseAccessSaving}
+                    className="text-[11px] bg-[var(--talent-primary)] hover:bg-[var(--talent-primary-dark)] text-white"
+                  >
+                    {courseAccessSaving ? 'Saving…' : 'Save course access'}
+                  </Button>
+                  {courseAccessMessage && <span className="text-[10px] text-slate-500">{courseAccessMessage}</span>}
+                </div>
+              </form>
+            )}
           </TabsContent>
 
           <TabsContent value="categories" className="text-xs text-slate-600">

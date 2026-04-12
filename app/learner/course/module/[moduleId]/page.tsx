@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { CoursePlayer } from '@/components/lms/CoursePlayer'
 import { ActivityGate } from '@/components/lms/ActivityGate'
 import { useActivityGate } from '@/lib/hooks/useActivityGate'
+import { useCourseAccessSettings } from '@/lib/hooks/useCourseAccessSettings'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -12,7 +13,11 @@ import { BookOpen, ArrowLeft, FileText, Lock } from 'lucide-react'
 import Link from 'next/link'
 
 /** Thin wrapper so the hook is always called unconditionally once the moduleId is known. */
-function GatedCoursePlayer({ moduleId }: { moduleId: string }) {
+function GatedCoursePlayer({ bypassGate, moduleId }: { bypassGate: boolean; moduleId: string }) {
+  if (bypassGate) {
+    return <CoursePlayer moduleId={moduleId} />
+  }
+
   const gate = useActivityGate('self_learning', moduleId)
   return (
     <ActivityGate {...gate}>
@@ -43,8 +48,9 @@ export default function LearnerModulePage({
   params: Promise<{ moduleId: string }>
 }) {
   const { moduleId } = use(params)
-  const supabase = createClient()
+  const { loading: courseAccessLoading, manualUnlockedWeeks } = useCourseAccessSettings()
   const [resolvedModuleId, setResolvedModuleId] = useState<string | null>(null)
+  const [resolvedWeek, setResolvedWeek] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [fallbackWeek, setFallbackWeek] = useState<number | null>(null)
   const [isModuleLocked, setIsModuleLocked] = useState(false)
@@ -53,15 +59,18 @@ export default function LearnerModulePage({
   useEffect(() => {
     let cancelled = false
     async function resolve() {
+      if (courseAccessLoading) return
       if (!moduleId) {
         if (!cancelled) setLoading(false)
         return
       }
 
+      const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
 
       async function checkLock(week: number): Promise<boolean> {
         if (week <= 1) return false
+        if (manualUnlockedWeeks.includes(week)) return false
         const prevWeek = week - 1
         // Find previous module
         const { data: prevMod } = await supabase
@@ -72,7 +81,7 @@ export default function LearnerModulePage({
         if (!prevMod || !user) return false
         const { data: prevProgress } = await supabase
           .from('module_progress')
-          .select('completed, progress')
+          .select('completed, progress, is_completed')
           .eq('module_id', prevMod.id)
           .eq('user_id', user.id)
           .maybeSingle()
@@ -94,6 +103,7 @@ export default function LearnerModulePage({
             setLockedWeek(mod.week_number)
           } else {
             setResolvedModuleId(mod.id)
+            setResolvedWeek(mod.week_number)
           }
         }
         if (!cancelled) setLoading(false)
@@ -121,6 +131,7 @@ export default function LearnerModulePage({
         if (!cancelled) {
           if (data) {
             setResolvedModuleId((data as { id: string }).id)
+            setResolvedWeek(week)
           } else {
             setFallbackWeek(week)
           }
@@ -130,7 +141,7 @@ export default function LearnerModulePage({
     }
     resolve()
     return () => { cancelled = true }
-  }, [moduleId, supabase])
+  }, [courseAccessLoading, manualUnlockedWeeks, moduleId])
 
   if (loading) {
     return (
@@ -170,7 +181,12 @@ export default function LearnerModulePage({
   }
 
   if (resolvedModuleId) {
-    return <GatedCoursePlayer moduleId={resolvedModuleId} />
+    return (
+      <GatedCoursePlayer
+        bypassGate={resolvedWeek !== null && manualUnlockedWeeks.includes(resolvedWeek)}
+        moduleId={resolvedModuleId}
+      />
+    )
   }
 
   if (fallbackWeek !== null) {
