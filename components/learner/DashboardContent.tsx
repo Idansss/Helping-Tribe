@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { EmptyState } from '@/components/admin/EmptyState'
+import { LearnerOnboardingVideos } from '@/components/lms/LearnerOnboardingVideos'
 import { DashboardSkeleton } from '@/components/lms/LoadingSkeletons'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -139,6 +140,11 @@ export function DashboardContent() {
           Your counseling training journey continues here. Track your progress, join Peer Circles, and build the skills to support your community.
         </p>
       </div>
+
+      <LearnerOnboardingVideos
+        title="Start here before your first week"
+        description="These two short videos explain the program and show you how to move around the learner portal."
+      />
 
       {/* Quick stats row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

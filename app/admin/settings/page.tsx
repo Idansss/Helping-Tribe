@@ -5,10 +5,15 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Card } from '@/components/ui/card'
 import { Settings2, Calendar, BookOpen, LockOpen } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { COURSE_WEEKS, normalizeManualUnlockedWeeks } from '@/lib/settings/course-access'
+import {
+  createLearnerOnboardingDraft,
+  type LearnerOnboardingSettings,
+} from '@/lib/settings/learner-onboarding'
 
 const PORTAL_SETTINGS_STORAGE_KEY = 'ht-portal-settings'
 
@@ -42,6 +47,14 @@ export default function AdminSettingsPage() {
   const [courseAccessLoading, setCourseAccessLoading] = useState(true)
   const [courseAccessSaving, setCourseAccessSaving] = useState(false)
   const [courseAccessMessage, setCourseAccessMessage] = useState<string | null>(null)
+
+  // Learner onboarding videos (from API)
+  const [learnerOnboardingDraft, setLearnerOnboardingDraft] = useState(
+    createLearnerOnboardingDraft()
+  )
+  const [learnerOnboardingLoading, setLearnerOnboardingLoading] = useState(true)
+  const [learnerOnboardingSaving, setLearnerOnboardingSaving] = useState(false)
+  const [learnerOnboardingMessage, setLearnerOnboardingMessage] = useState<string | null>(null)
 
   // Load saved settings on first mount
   useEffect(() => {
@@ -108,6 +121,31 @@ export default function AdminSettingsPage() {
       })
       .catch(() => { if (!cancelled) setCourseAccessMessage('Failed to load course access settings.') })
       .finally(() => { if (!cancelled) setCourseAccessLoading(false) })
+    return () => { cancelled = true }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/settings/learner-onboarding')
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error('Failed to load learner onboarding videos.')
+        }
+        return res.json()
+      })
+      .then((data: LearnerOnboardingSettings) => {
+        if (!cancelled) {
+          setLearnerOnboardingDraft(createLearnerOnboardingDraft(data))
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setLearnerOnboardingMessage('Failed to load learner onboarding videos.')
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLearnerOnboardingLoading(false)
+      })
     return () => { cancelled = true }
   }, [])
 
@@ -187,6 +225,30 @@ export default function AdminSettingsPage() {
       setCourseAccessMessage(err instanceof Error ? err.message : 'Failed to save.')
     } finally {
       setCourseAccessSaving(false)
+    }
+  }
+
+  const handleSaveLearnerOnboarding = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLearnerOnboardingSaving(true)
+    setLearnerOnboardingMessage(null)
+    try {
+      const res = await fetch('/api/settings/learner-onboarding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(learnerOnboardingDraft),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to save')
+      }
+      setLearnerOnboardingDraft(createLearnerOnboardingDraft(data))
+      setLearnerOnboardingMessage('Learner onboarding videos saved.')
+      setTimeout(() => setLearnerOnboardingMessage(null), 3000)
+    } catch (err: unknown) {
+      setLearnerOnboardingMessage(err instanceof Error ? err.message : 'Failed to save.')
+    } finally {
+      setLearnerOnboardingSaving(false)
     }
   }
 
@@ -499,6 +561,168 @@ export default function AdminSettingsPage() {
                 </div>
               </form>
             )}
+
+            <div className="border-t border-slate-200 pt-4">
+              <div className="flex items-center gap-2 text-slate-700">
+                <BookOpen className="h-4 w-4 text-[var(--talent-primary)]" />
+                <span className="font-medium text-sm">
+                  Learner onboarding videos
+                </span>
+              </div>
+              <p className="mt-1 max-w-2xl text-[10px] text-slate-500">
+                Configure the two non-teaching onboarding videos learners should see before diving into course work: one welcome/overview video and one portal-usage video. Use a direct MP4 URL or an embeddable YouTube/Vimeo link for in-portal playback.
+              </p>
+              {learnerOnboardingLoading ? (
+                <p className="mt-3 text-slate-500">Loading...</p>
+              ) : (
+                <form
+                  onSubmit={handleSaveLearnerOnboarding}
+                  className="mt-3 space-y-4 max-w-3xl"
+                >
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <div className="rounded-md border border-slate-200 bg-slate-50 p-4 space-y-3">
+                      <div>
+                        <p className="text-[11px] font-medium text-slate-800">
+                          Video 1: Welcome to the course
+                        </p>
+                        <p className="text-[10px] text-slate-500">
+                          Introduce learners to the program and explain what the course is about.
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="welcome-video-title">Title</Label>
+                        <Input
+                          id="welcome-video-title"
+                          value={learnerOnboardingDraft.welcomeVideo.title}
+                          onChange={(e) =>
+                            setLearnerOnboardingDraft((previous) => ({
+                              ...previous,
+                              welcomeVideo: {
+                                ...previous.welcomeVideo,
+                                title: e.target.value,
+                              },
+                            }))
+                          }
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="welcome-video-description">Short description</Label>
+                        <Textarea
+                          id="welcome-video-description"
+                          value={learnerOnboardingDraft.welcomeVideo.description}
+                          onChange={(e) =>
+                            setLearnerOnboardingDraft((previous) => ({
+                              ...previous,
+                              welcomeVideo: {
+                                ...previous.welcomeVideo,
+                                description: e.target.value,
+                              },
+                            }))
+                          }
+                          className="min-h-[96px]"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="welcome-video-url">Video URL</Label>
+                        <Input
+                          id="welcome-video-url"
+                          type="url"
+                          placeholder="https://..."
+                          value={learnerOnboardingDraft.welcomeVideo.url}
+                          onChange={(e) =>
+                            setLearnerOnboardingDraft((previous) => ({
+                              ...previous,
+                              welcomeVideo: {
+                                ...previous.welcomeVideo,
+                                url: e.target.value,
+                              },
+                            }))
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <div className="rounded-md border border-slate-200 bg-slate-50 p-4 space-y-3">
+                      <div>
+                        <p className="text-[11px] font-medium text-slate-800">
+                          Video 2: How to use the portal
+                        </p>
+                        <p className="text-[10px] text-slate-500">
+                          Show learners how to navigate the portal and complete activities on the platform.
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="portal-guide-video-title">Title</Label>
+                        <Input
+                          id="portal-guide-video-title"
+                          value={learnerOnboardingDraft.portalGuideVideo.title}
+                          onChange={(e) =>
+                            setLearnerOnboardingDraft((previous) => ({
+                              ...previous,
+                              portalGuideVideo: {
+                                ...previous.portalGuideVideo,
+                                title: e.target.value,
+                              },
+                            }))
+                          }
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="portal-guide-video-description">Short description</Label>
+                        <Textarea
+                          id="portal-guide-video-description"
+                          value={learnerOnboardingDraft.portalGuideVideo.description}
+                          onChange={(e) =>
+                            setLearnerOnboardingDraft((previous) => ({
+                              ...previous,
+                              portalGuideVideo: {
+                                ...previous.portalGuideVideo,
+                                description: e.target.value,
+                              },
+                            }))
+                          }
+                          className="min-h-[96px]"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="portal-guide-video-url">Video URL</Label>
+                        <Input
+                          id="portal-guide-video-url"
+                          type="url"
+                          placeholder="https://..."
+                          value={learnerOnboardingDraft.portalGuideVideo.url}
+                          onChange={(e) =>
+                            setLearnerOnboardingDraft((previous) => ({
+                              ...previous,
+                              portalGuideVideo: {
+                                ...previous.portalGuideVideo,
+                                url: e.target.value,
+                              },
+                            }))
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="submit"
+                      size="sm"
+                      disabled={learnerOnboardingSaving}
+                      className="text-[11px] bg-[var(--talent-primary)] hover:bg-[var(--talent-primary-dark)] text-white"
+                    >
+                      {learnerOnboardingSaving ? 'Saving...' : 'Save onboarding videos'}
+                    </Button>
+                    {learnerOnboardingMessage && (
+                      <span className="text-[10px] text-slate-500">
+                        {learnerOnboardingMessage}
+                      </span>
+                    )}
+                  </div>
+                </form>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="categories" className="text-xs text-slate-600">

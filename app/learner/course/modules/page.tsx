@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { createClient } from '@/lib/supabase/client'
 import { ModuleListSkeleton } from '@/components/lms/LoadingSkeletons'
+import { LearnerOnboardingVideos } from '@/components/lms/LearnerOnboardingVideos'
 import { useCourseAccessSettings } from '@/lib/hooks/useCourseAccessSettings'
 import {
   BookOpen,
@@ -112,6 +113,11 @@ export default function LearnerCourseModulesPage() {
           HELP Foundations Training — 9-week program in mental health and psychosocial support. Complete modules, attend Peer Learning Circles, and submit your Learning Journal to progress.
         </p>
       </div>
+
+      <LearnerOnboardingVideos
+        title="Before you begin"
+        description="Watch the welcome and portal-guide videos before you continue with the weekly modules."
+      />
 
       {/* Program requirements reminder */}
       <Card className="border-teal-200 bg-teal-50/50">
