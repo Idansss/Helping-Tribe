@@ -31,6 +31,13 @@ import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils/cn'
 import { APPLICATION_HONEYPOT_FIELD } from '@/lib/applications/schema'
 import {
+  APPLICATION_DRAFT_CACHE_STORAGE_KEY,
+  APPLICATION_DRAFT_ID_QUERY_PARAM,
+  APPLICATION_DRAFT_ID_STORAGE_KEY,
+  APPLICATION_DRAFT_TOKEN_QUERY_PARAM,
+  APPLICATION_DRAFT_TOKEN_STORAGE_KEY,
+} from '@/lib/applications/draft-resume'
+import {
   APPLICATION_ESTIMATED_MINUTES,
   APPLICATION_REVIEW_DAYS,
   PROGRAM_FULL_NAME,
@@ -161,9 +168,6 @@ const HEAR_ABOUT_OPTIONS = [
   'Event / Seminar',
   'Other',
 ] as const
-
-const DRAFT_ID_STORAGE_KEY = 'ht_apply_draft_id'
-const DRAFT_CACHE_STORAGE_KEY = 'ht_apply_form_cache'
 
 const STEP_FIELDS: Array<Array<keyof ApplyFormValues>> = [
   ['fullNameCertificate', 'gender', 'dob', 'phoneWhatsApp', 'email', 'cityState', 'nationality'],
@@ -296,6 +300,7 @@ export function ApplicationForm() {
   const [submitted, setSubmitted] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
   const [draftId, setDraftId] = useState<string | null>(null)
+  const [draftToken, setDraftToken] = useState<string | null>(null)
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null)
   const [loadingDraft, setLoadingDraft] = useState(true)
   const [savingDraft, setSavingDraft] = useState(false)
@@ -384,17 +389,31 @@ export function ApplicationForm() {
   const totalSteps = STEP_FIELDS.length
   const progressValue = (currentStep / totalSteps) * 100
 
+  function clearStoredDraftAccess() {
+    setDraftId(null)
+    setDraftToken(null)
+    localStorage.removeItem(APPLICATION_DRAFT_ID_STORAGE_KEY)
+    localStorage.removeItem(APPLICATION_DRAFT_TOKEN_STORAGE_KEY)
+  }
+
   useEffect(() => {
     let mounted = true
 
     async function hydrateDraft() {
       try {
-        const queryDraftId = searchParams.get('draft')
-        const localDraftId = localStorage.getItem(DRAFT_ID_STORAGE_KEY)
-        const candidateDraftId = queryDraftId || localDraftId
+        const queryDraftId = searchParams.get(APPLICATION_DRAFT_ID_QUERY_PARAM)
+        const queryDraftToken = searchParams.get(APPLICATION_DRAFT_TOKEN_QUERY_PARAM)
+        const localDraftId = localStorage.getItem(APPLICATION_DRAFT_ID_STORAGE_KEY)
+        const localDraftToken = localStorage.getItem(APPLICATION_DRAFT_TOKEN_STORAGE_KEY)
+        const candidateDraftId = queryDraftId && queryDraftToken ? queryDraftId : localDraftId
+        const candidateDraftToken = queryDraftId && queryDraftToken ? queryDraftToken : localDraftToken
 
-        if (candidateDraftId) {
-          const res = await fetch(`/api/apply/draft?id=${encodeURIComponent(candidateDraftId)}`, { cache: 'no-store' })
+        if (candidateDraftId && candidateDraftToken) {
+          const params = new URLSearchParams({
+            id: candidateDraftId,
+            token: candidateDraftToken,
+          })
+          const res = await fetch(`/api/apply/draft?${params.toString()}`, { cache: 'no-store' })
           if (res.ok) {
             const json = await res.json()
             const draft = json?.draft
@@ -404,14 +423,29 @@ export function ApplicationForm() {
                 ...(draft.data ?? {}),
               })
               setDraftId(draft.id)
+              setDraftToken(candidateDraftToken)
               setCurrentStep(Math.min(totalSteps, Math.max(1, Number(draft.lastStep ?? 1))))
               setLastSavedAt(draft.updatedAt ?? null)
-              localStorage.setItem(DRAFT_ID_STORAGE_KEY, draft.id)
-              localStorage.setItem(DRAFT_CACHE_STORAGE_KEY, JSON.stringify(draft.data ?? {}))
+              localStorage.setItem(APPLICATION_DRAFT_ID_STORAGE_KEY, draft.id)
+              localStorage.setItem(APPLICATION_DRAFT_TOKEN_STORAGE_KEY, candidateDraftToken)
+              localStorage.setItem(APPLICATION_DRAFT_CACHE_STORAGE_KEY, JSON.stringify(draft.data ?? {}))
+            }
+          } else {
+            clearStoredDraftAccess()
+            if (queryDraftId && mounted) {
+              toast({
+                variant: 'destructive',
+                title: 'Resume link invalid',
+                description: 'Request a fresh secure resume link to continue this draft.',
+              })
             }
           }
         } else {
-          const cached = localStorage.getItem(DRAFT_CACHE_STORAGE_KEY)
+          if (localDraftId && !localDraftToken) {
+            clearStoredDraftAccess()
+          }
+
+          const cached = localStorage.getItem(APPLICATION_DRAFT_CACHE_STORAGE_KEY)
           if (cached) {
             reset({
               ...defaultValues,
@@ -448,6 +482,7 @@ export function ApplicationForm() {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           draftId: draftId ?? undefined,
+          draftToken: draftToken ?? undefined,
           email: values.email || undefined,
           lastStep: currentStep,
           data: values,
@@ -457,15 +492,23 @@ export function ApplicationForm() {
       if (!res.ok) {
         // Silently ignore rate-limit errors on background saves
         if (res.status === 429 && mode === 'silent') return true
+        if (res.status === 403 || res.status === 404 || res.status === 409) {
+          clearStoredDraftAccess()
+        }
         throw new Error(json?.error || 'Failed to save draft')
       }
 
       if (json?.draftId) {
         setDraftId(json.draftId)
-        localStorage.setItem(DRAFT_ID_STORAGE_KEY, json.draftId)
+        localStorage.setItem(APPLICATION_DRAFT_ID_STORAGE_KEY, json.draftId)
       }
 
-      localStorage.setItem(DRAFT_CACHE_STORAGE_KEY, JSON.stringify(values))
+      if (json?.draftToken) {
+        setDraftToken(json.draftToken)
+        localStorage.setItem(APPLICATION_DRAFT_TOKEN_STORAGE_KEY, json.draftToken)
+      }
+
+      localStorage.setItem(APPLICATION_DRAFT_CACHE_STORAGE_KEY, JSON.stringify(values))
       if (json?.lastSavedAt) setLastSavedAt(json.lastSavedAt)
 
       if (mode === 'manual') {
@@ -524,6 +567,7 @@ export function ApplicationForm() {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           draftId: draftId ?? undefined,
+          draftToken: draftToken ?? undefined,
           data: values,
         }),
       })
@@ -531,8 +575,9 @@ export function ApplicationForm() {
       if (!res.ok) throw new Error(json?.error || 'Failed to submit')
 
       setSubmitted(true)
-      localStorage.removeItem(DRAFT_ID_STORAGE_KEY)
-      localStorage.removeItem(DRAFT_CACHE_STORAGE_KEY)
+      localStorage.removeItem(APPLICATION_DRAFT_ID_STORAGE_KEY)
+      localStorage.removeItem(APPLICATION_DRAFT_TOKEN_STORAGE_KEY)
+      localStorage.removeItem(APPLICATION_DRAFT_CACHE_STORAGE_KEY)
       toast({
         title: 'Application submitted',
         description: 'Redirecting to confirmation page...',

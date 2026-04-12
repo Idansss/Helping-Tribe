@@ -69,7 +69,7 @@ export function LandingFooter() {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
-                  href="/resources"
+                  href="/learner/resources"
                   className="text-white/80 hover:text-white transition-colors"
                 >
                   Resource Directory
@@ -77,7 +77,7 @@ export function LandingFooter() {
               </li>
               <li>
                 <Link
-                  href="/tools"
+                  href="/learner/resources#quick-reference-tools"
                   className="text-white/80 hover:text-white transition-colors"
                 >
                   Quick Reference Tools
@@ -85,7 +85,7 @@ export function LandingFooter() {
               </li>
               <li>
                 <Link
-                  href="#faq"
+                  href="/contact"
                   className="text-white/80 hover:text-white transition-colors"
                 >
                   FAQ

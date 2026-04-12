@@ -18,7 +18,7 @@ function hashToken(token: string) {
 export async function POST(request: NextRequest) {
   try {
     const ip = getRequestIp(request.headers)
-    const limit = checkRateLimit({ key: `set-password:${ip}`, limit: 10, windowMs: 15 * 60 * 1000 })
+    const limit = await checkRateLimit({ key: `set-password:${ip}`, limit: 10, windowMs: 15 * 60 * 1000 })
     if (!limit.allowed) {
       return NextResponse.json({ error: 'Too many attempts. Please wait 15 minutes and try again.' }, { status: 429 })
     }

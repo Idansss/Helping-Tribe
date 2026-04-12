@@ -21,9 +21,9 @@ export function RoleSwitcher({ currentRole }: RoleSwitcherProps) {
       window.localStorage.setItem('ht-active-view', value)
     }
     if (value === 'learner') {
-      // Student dashboard
-      if (!pathname.startsWith('/dashboard')) {
-        router.push('/dashboard')
+      // Learner portal
+      if (!pathname.startsWith('/learner')) {
+        router.push('/learner/dashboard')
       }
     } else if (value === 'instructor') {
       // Mentor portal
@@ -31,9 +31,8 @@ export function RoleSwitcher({ currentRole }: RoleSwitcherProps) {
         router.push('/mentor')
       }
     } else if (value === 'administrator') {
-      // For now reuse analytics page as "admin home"
-      if (!pathname.startsWith('/analytics')) {
-        router.push('/analytics')
+      if (!pathname.startsWith('/admin')) {
+        router.push('/admin')
       }
     }
   }
@@ -45,7 +44,7 @@ export function RoleSwitcher({ currentRole }: RoleSwitcherProps) {
   const activeView: 'learner' | 'instructor' | 'administrator' =
     pathname.startsWith('/mentor')
       ? 'instructor'
-      : pathname.startsWith('/analytics')
+      : pathname.startsWith('/admin')
         ? 'administrator'
         : 'learner'
 

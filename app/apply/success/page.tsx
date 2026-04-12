@@ -15,7 +15,7 @@ export default async function ApplySuccessPage({ searchParams }: SuccessPageProp
   const applicationId = Array.isArray(idParam) ? idParam[0] : idParam
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
+    <main id="main-content" className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
       <section className="mx-auto max-w-2xl rounded-2xl border border-emerald-200 bg-white p-6 shadow-sm md:p-8">
         <p className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
           Application submitted

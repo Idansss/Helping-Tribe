@@ -1,16 +1,13 @@
-'use client'
+import { redirect } from 'next/navigation'
 
-import { FinalProjectSubmission } from '@/components/lms/FinalProjectSubmission'
-import { LearnerPortalPlaceholder } from '@/components/lms/LearnerPortalPlaceholder'
-import { useParams } from 'next/navigation'
+type FinalProjectDetailPageProps = {
+  params: Promise<{ projectId: string }>
+}
 
-export default function FinalProjectDetailPage() {
-  const params = useParams()
-  const projectId = params.projectId as string
+export default async function FinalProjectDetailPage({
+  params,
+}: FinalProjectDetailPageProps) {
+  const { projectId } = await params
 
-  return (
-    <LearnerPortalPlaceholder>
-      <FinalProjectSubmission projectId={projectId} />
-    </LearnerPortalPlaceholder>
-  )
+  redirect(`/learner/final-projects/${projectId}`)
 }

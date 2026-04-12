@@ -4,11 +4,11 @@ import { ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
-  PlusCircle,
   Settings2,
   Users,
   BookOpen,
   FileBarChart2,
+  FileText,
 } from 'lucide-react'
 
 interface QuickAction {
@@ -34,9 +34,9 @@ const ACTIONS: QuickAction[] = [
     href: '/admin/settings',
   },
   {
-    label: 'Add group',
-    icon: <PlusCircle className="h-4 w-4" />,
-    href: '/admin/groups',
+    label: 'Review applicants',
+    icon: <FileText className="h-4 w-4" />,
+    href: '/admin/applicants',
   },
   {
     label: 'Custom reports',

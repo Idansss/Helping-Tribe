@@ -62,7 +62,7 @@ export function PublicHome() {
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,#d9f7f1_0%,#edf7f6_35%,#f8fbfb_65%,#ffffff_100%)] text-slate-900">
       <TopNav />
-      <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 md:py-10 pb-0">
+      <main id="main-content" className="mx-auto max-w-6xl space-y-8 px-4 py-8 md:py-10 pb-0">
         <Card className="overflow-hidden rounded-2xl border-teal-100/80 shadow-[0_10px_30px_rgba(15,118,110,0.12)]">
           <div className="relative overflow-hidden bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-700 px-6 py-7 text-white md:px-10 md:py-10">
             <div className="pointer-events-none absolute -left-24 -top-16 h-52 w-52 rounded-full bg-white/10 blur-2xl" />
@@ -230,7 +230,7 @@ export function PublicHome() {
         <div id="application-form">
           {regStatus === 'loading' && (
             <Card className="rounded-2xl border-teal-100/80 p-8 text-center text-slate-500">
-              Loading…
+              Loading...
             </Card>
           )}
           {regStatus === 'open' && <ApplicationForm />}
@@ -251,7 +251,7 @@ export function PublicHome() {
             </Card>
           )}
         </div>
-      </div>
+      </main>
 
       <footer className="mt-16 bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-700 text-teal-100">
         <div className="mx-auto max-w-6xl px-6 py-12">
@@ -281,7 +281,7 @@ export function PublicHome() {
               <h4 className="text-sm font-bold text-white/95">Support</h4>
               <ul className="mt-4 space-y-3 text-sm">
                 <li><Link scroll={false} href="/contact" className="hover:text-white transition-colors text-teal-100/80">Contact Us</Link></li>
-                <li><Link scroll={false} href="/contact#faq" className="hover:text-white transition-colors text-teal-100/80">FAQ</Link></li>
+                <li><Link scroll={false} href="/contact" className="hover:text-white transition-colors text-teal-100/80">Support Guide</Link></li>
                 <li><Link scroll={false} href="/contact" className="hover:text-white transition-colors text-teal-100/80">Help Center</Link></li>
               </ul>
             </div>
@@ -296,7 +296,7 @@ export function PublicHome() {
           </div>
 
           <div className="mt-10 border-t border-teal-700/60 pt-6 text-sm text-teal-100/50">
-            © {new Date().getFullYear()} The Helping Tribe. All rights reserved.
+            Copyright {new Date().getFullYear()} The Helping Tribe. All rights reserved.
           </div>
         </div>
       </footer>

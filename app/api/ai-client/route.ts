@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
   // Rate-limit AI calls: 20 requests per user per hour (cost + DoS protection)
   const ip = getRequestIp(request.headers)
-  const limit = checkRateLimit({
+  const limit = await checkRateLimit({
     key: `ai-client:${user.id}:${ip}`,
     limit: 20,
     windowMs: 60 * 60 * 1000,

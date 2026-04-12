@@ -10,7 +10,7 @@ function hashToken(token: string) {
 
 export async function GET(request: NextRequest) {
   const ip = getRequestIp(request.headers)
-  const limit = checkRateLimit({ key: `set-password-validate:${ip}`, limit: 20, windowMs: 15 * 60 * 1000 })
+  const limit = await checkRateLimit({ key: `set-password-validate:${ip}`, limit: 20, windowMs: 15 * 60 * 1000 })
   if (!limit.allowed) {
     return NextResponse.json({ valid: false, reason: 'RATE_LIMITED' }, { status: 429 })
   }

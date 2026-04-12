@@ -127,7 +127,7 @@ export function AssessmentList() {
               </CardHeader>
               <CardContent>
                 <Button asChild className="w-full">
-                  <Link href={`/assessments/${assessment.id}`}>
+                  <Link href={`/learner/assessments/${assessment.id}`}>
                     {assessment.hasResponse ? 'View/Edit Response' : 'Start Assessment'}
                   </Link>
                 </Button>

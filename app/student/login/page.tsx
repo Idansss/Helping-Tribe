@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
@@ -8,6 +9,16 @@ import {
 } from 'lucide-react'
 import { BlurBlobs } from '@/components/blur-blobs'
 import { StudentLoginForm } from './student-login-form'
+import { PROGRAM_FULL_NAME } from '@/lib/brand/program'
+
+export const metadata: Metadata = {
+  title: `Student Login | ${PROGRAM_FULL_NAME}`,
+  description:
+    'Sign in with your matric number and password to access your learner portal, modules, and progress.',
+  alternates: {
+    canonical: '/student/login',
+  },
+}
 
 function MarketingPanel() {
   return (
@@ -137,4 +148,3 @@ export default function StudentLoginPage() {
     </div>
   )
 }
-

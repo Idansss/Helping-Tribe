@@ -1,14 +1,13 @@
-import { LearnerLayout } from '@/components/lms/LearnerLayout'
-import { AssessmentEngine } from '@/components/lms/AssessmentEngine'
+import { redirect } from 'next/navigation'
 
-export default function QuizPage({
+type QuizPageProps = {
+  params: Promise<{ moduleId: string }>
+}
+
+export default async function QuizPage({
   params,
-}: {
-  params: { moduleId: string }
-}) {
-  return (
-    <LearnerLayout>
-      <AssessmentEngine moduleId={params.moduleId} />
-    </LearnerLayout>
-  )
+}: QuizPageProps) {
+  const { moduleId } = await params
+
+  redirect(`/learner/course/module/${moduleId}/quiz`)
 }

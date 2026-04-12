@@ -123,7 +123,7 @@ export function DiscussionForum() {
                     </div>
                   </div>
                   <Button asChild>
-                    <Link href={`/discussions/${prompt.module_id}`}>
+                    <Link href={`/learner/discussions/${prompt.module_id}`}>
                       Join Discussion
                       <ChevronRight className="ml-2 h-4 w-4" />
                     </Link>

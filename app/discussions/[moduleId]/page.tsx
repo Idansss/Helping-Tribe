@@ -1,14 +1,13 @@
-import { DiscussionThread } from '@/components/lms/DiscussionThread'
-import { LearnerPortalPlaceholder } from '@/components/lms/LearnerPortalPlaceholder'
+import { redirect } from 'next/navigation'
 
-export default function ModuleDiscussionPage({
-  params
-}: {
-  params: { moduleId: string }
-}) {
-  return (
-    <LearnerPortalPlaceholder>
-      <DiscussionThread moduleId={params.moduleId} />
-    </LearnerPortalPlaceholder>
-  )
+type ModuleDiscussionPageProps = {
+  params: Promise<{ moduleId: string }>
+}
+
+export default async function ModuleDiscussionPage({
+  params,
+}: ModuleDiscussionPageProps) {
+  const { moduleId } = await params
+
+  redirect(`/learner/discussions/${moduleId}`)
 }

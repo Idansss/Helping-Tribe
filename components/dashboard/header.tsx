@@ -13,17 +13,17 @@ export function Header() {
   const handleRoleClick = (role: 'administrator' | 'instructor' | 'learner') => {
     setOpen(false)
     if (role === 'administrator') {
-      router.push('/analytics')
+      router.push('/admin')
     } else if (role === 'instructor') {
       router.push('/mentor')
     } else {
-      router.push('/dashboard')
+      router.push('/learner/dashboard')
     }
   }
 
   const handleProfile = () => {
     setOpen(false)
-    router.push('/profile')
+    router.push('/learner/settings')
   }
 
   const handleLogout = () => {

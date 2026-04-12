@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const ip = getRequestIp(request.headers)
-    const limit = checkRateLimit({
+    const limit = await checkRateLimit({
       key: `student-login:${ip}`,
       limit: 10,
       windowMs: 15 * 60 * 1000,

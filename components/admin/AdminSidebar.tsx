@@ -6,14 +6,8 @@ import {
   LayoutDashboard,
   Users,
   BookOpen,
-  Waypoints,
-  Store,
-  Layers3,
-  GitBranch,
-  Workflow,
   Bell,
   BarChart3,
-  Sparkles,
   Settings2,
   Mail,
   FileText,
@@ -47,15 +41,9 @@ const NAV_ITEMS: AdminNavItem[] = [
   { label: 'Calendar', href: '/admin/calendar', icon: CalendarDays },
   { label: 'Discussions', href: '/admin/discussions', icon: MessageSquare },
   { label: 'Quizzes', href: '/admin/quizzes', icon: ListChecks },
-  { label: 'Learning paths', href: '/admin/learning-paths', icon: Waypoints },
-  { label: 'Course store', href: '/admin/course-store', icon: Store },
-  { label: 'Groups', href: '/admin/groups', icon: Layers3 },
-  { label: 'Branches', href: '/admin/branches', icon: GitBranch },
-  { label: 'Automations', href: '/admin/automations', icon: Workflow },
   { label: 'Notifications', href: '/admin/notifications', icon: Bell },
   { label: 'Newsletter', href: '/admin/newsletter', icon: Mail },
   { label: 'Reports', href: '/admin/reports', icon: BarChart3 },
-  { label: 'Skills', href: '/admin/skills', icon: Sparkles },
   { label: 'Account & Settings', href: '/admin/settings', icon: Settings2 },
 ]
 
@@ -100,7 +88,7 @@ export function AdminSidebar({
           {showContent && (
             <div className="leading-tight min-w-0">
               <div className="text-[13px] font-semibold text-white truncate">Helping Tribe</div>
-              <div className="text-[11px] text-white/80 truncate">Admin • Counseling LMS</div>
+              <div className="text-[11px] text-white/80 truncate">Admin | Counseling LMS</div>
             </div>
           )}
         </div>
@@ -148,7 +136,7 @@ export function AdminSidebar({
       {showContent && (
         <div className="px-3 py-2 text-[11px] text-white/80 flex-shrink-0">
           <span>
-            Powered by <span className="font-semibold text-white">Blakmoh Wellbeing</span> · Nigerian counseling training.
+            Powered by <span className="font-semibold text-white">Blakmoh Wellbeing</span> | Nigerian counseling training.
           </span>
         </div>
       )}

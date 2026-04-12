@@ -6,7 +6,7 @@ import { checkRateLimit, getRequestIp } from '@/lib/server/rate-limit'
 export async function POST(request: NextRequest) {
   try {
     const ip = getRequestIp(request.headers)
-    const limit = checkRateLimit({
+    const limit = await checkRateLimit({
       key: `apply-submit-legacy:${ip}`,
       limit: 8,
       windowMs: 60 * 60 * 1000,

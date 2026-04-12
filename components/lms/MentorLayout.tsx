@@ -145,7 +145,7 @@ export function MentorLayout({ children }: MentorLayoutProps) {
             {showSidebar && (
               <div className="leading-tight min-w-0">
                 <div className="text-[13px] font-semibold text-white truncate">Helping Tribe</div>
-                <div className="text-[11px] text-white/80 truncate">Facilitator • Counseling LMS</div>
+                <div className="text-[11px] text-white/80 truncate">Facilitator | Counseling LMS</div>
               </div>
             )}
           </div>
@@ -194,7 +194,7 @@ export function MentorLayout({ children }: MentorLayoutProps) {
         {showSidebar && (
           <div className="px-3 py-2 text-[11px] text-white/80 flex-shrink-0">
             <span>
-              Powered by <span className="font-semibold text-white">Blakmoh Wellbeing</span> · Nigerian counseling training.
+              Powered by <span className="font-semibold text-white">Blakmoh Wellbeing</span> | Nigerian counseling training.
             </span>
           </div>
         )}

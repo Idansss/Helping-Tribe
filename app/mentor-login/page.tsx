@@ -1,8 +1,19 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { BookOpen, Users, AlertTriangle } from 'lucide-react'
 import { BlurBlobs } from '@/components/blur-blobs'
 import { StaffLoginForm } from '@/app/staff/login/staff-login-form'
+import { ORGANIZATION_NAME } from '@/lib/brand/program'
+
+export const metadata: Metadata = {
+  title: `Facilitator Login | ${ORGANIZATION_NAME}`,
+  description:
+    'Secure facilitator access for grading, learner support, discussions, and course delivery.',
+  alternates: {
+    canonical: '/mentor-login',
+  },
+}
 
 function MarketingPanel() {
   return (

@@ -3,9 +3,11 @@ import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { checkRateLimit, getRequestIp } from '@/lib/server/rate-limit'
 import { APPLICATION_HONEYPOT_FIELD } from '@/lib/applications/schema'
+import { createApplicationDraftToken, hashApplicationDraftToken } from '@/lib/applications/draft-access'
 
 const DraftSaveSchema = z.object({
   draftId: z.string().uuid().optional(),
+  draftToken: z.string().min(16).optional(),
   email: z.string().email().optional(),
   lastStep: z.number().int().min(1).max(8).optional(),
   // Drafts are in-progress snapshots, so keep this permissive.
@@ -14,13 +16,14 @@ const DraftSaveSchema = z.object({
 
 const DraftQuerySchema = z.object({
   id: z.string().uuid(),
+  token: z.string().min(16),
 })
 
 export async function GET(request: NextRequest) {
   try {
     // Rate-limit GET to prevent UUID enumeration / brute-force
     const ip = getRequestIp(request.headers)
-    const limit = checkRateLimit({
+    const limit = await checkRateLimit({
       key: `apply-draft-get:${ip}`,
       limit: 30,
       windowMs: 15 * 60 * 1000,
@@ -34,18 +37,26 @@ export async function GET(request: NextRequest) {
 
     const query = DraftQuerySchema.parse({
       id: request.nextUrl.searchParams.get('id'),
+      token: request.nextUrl.searchParams.get('token'),
     })
+    const tokenHash = hashApplicationDraftToken(query.token)
 
     const admin = createAdminClient()
     const { data, error } = await admin
       .from('application_drafts')
       .select('id, status, email, form_data, last_step, created_at, updated_at')
       .eq('id', query.id)
+      .eq('access_token_hash', tokenHash)
       .maybeSingle()
 
     if (error || !data) {
       return NextResponse.json({ error: 'Draft not found' }, { status: 404 })
     }
+
+    await admin
+      .from('application_drafts')
+      .update({ access_token_last_used_at: new Date().toISOString() })
+      .eq('id', data.id)
 
     return NextResponse.json({
       ok: true,
@@ -70,7 +81,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const ip = getRequestIp(request.headers)
-    const limit = checkRateLimit({
+    const limit = await checkRateLimit({
       key: `apply-draft:${ip}`,
       limit: 120,
       windowMs: 15 * 60 * 1000,
@@ -98,6 +109,14 @@ export async function POST(request: NextRequest) {
     const sanitizedEmail = payload.email?.trim().toLowerCase() || dataEmail || null
 
     if (payload.draftId) {
+      if (!payload.draftToken) {
+        return NextResponse.json(
+          { error: 'This saved draft needs a new secure resume link. Use resume by email to continue.' },
+          { status: 409 }
+        )
+      }
+
+      const tokenHash = hashApplicationDraftToken(payload.draftToken)
       const { data: updated, error } = await admin
         .from('application_drafts')
         .update({
@@ -108,6 +127,7 @@ export async function POST(request: NextRequest) {
           status: 'DRAFT',
         })
         .eq('id', payload.draftId)
+        .eq('access_token_hash', tokenHash)
         .select('id, updated_at')
         .maybeSingle()
 
@@ -115,10 +135,16 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           ok: true,
           draftId: updated.id,
+          draftToken: payload.draftToken,
           lastSavedAt: updated.updated_at,
         })
       }
+
+      return NextResponse.json({ error: 'Draft not found' }, { status: 404 })
     }
+
+    const draftToken = createApplicationDraftToken()
+    const tokenHash = hashApplicationDraftToken(draftToken)
 
     const { data: inserted, error: insertError } = await admin
       .from('application_drafts')
@@ -126,6 +152,7 @@ export async function POST(request: NextRequest) {
         email: sanitizedEmail,
         form_data: dataRecord,
         last_step: payload.lastStep ?? 1,
+        access_token_hash: tokenHash,
         updated_at: now,
         status: 'DRAFT',
       })
@@ -142,6 +169,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       ok: true,
       draftId: inserted.id,
+      draftToken,
       lastSavedAt: inserted.updated_at,
     })
   } catch (error: any) {

@@ -1,16 +1,13 @@
-'use client'
+import { redirect } from 'next/navigation'
 
-import { AssessmentTool } from '@/components/lms/AssessmentTool'
-import { LearnerPortalPlaceholder } from '@/components/lms/LearnerPortalPlaceholder'
-import { useParams } from 'next/navigation'
+type AssessmentDetailPageProps = {
+  params: Promise<{ assessmentId: string }>
+}
 
-export default function AssessmentDetailPage() {
-  const params = useParams()
-  const assessmentId = params.assessmentId as string
+export default async function AssessmentDetailPage({
+  params,
+}: AssessmentDetailPageProps) {
+  const { assessmentId } = await params
 
-  return (
-    <LearnerPortalPlaceholder>
-      <AssessmentTool assessmentId={assessmentId} />
-    </LearnerPortalPlaceholder>
-  )
+  redirect(`/learner/assessments/${assessmentId}`)
 }

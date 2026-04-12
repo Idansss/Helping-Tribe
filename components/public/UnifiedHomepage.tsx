@@ -39,7 +39,7 @@ const faqItems = [
 export function UnifiedHomepage({ portalHref }: UnifiedHomepageProps) {
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,#d9f7f1_0%,#ebf8f5_36%,#f8fbfb_66%,#ffffff_100%)] text-slate-900">
-      <main className="mx-auto max-w-6xl space-y-10 px-4 py-8 md:py-10">
+      <main id="main-content" className="mx-auto max-w-6xl space-y-10 px-4 py-8 md:py-10">
         <section className="overflow-hidden rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-700 p-6 text-white shadow-[0_16px_40px_rgba(15,118,110,0.2)] md:p-10">
           <p className="text-xs font-semibold tracking-[0.18em] text-emerald-100">{ORGANIZATION_NAME}</p>
           <h1 className="mt-3 max-w-4xl text-3xl font-bold leading-tight md:text-5xl">
@@ -149,11 +149,11 @@ export function UnifiedHomepage({ portalHref }: UnifiedHomepageProps) {
             </p>
             <ul className="mt-3 space-y-2 text-sm text-amber-900/90">
               <li>
-                “The Helping Tribe gave me language, tools, and confidence to support people without burning out.” —{' '}
+                "The Helping Tribe gave me language, tools, and confidence to support people without burning out." -{' '}
                 <span className="font-semibold">Oluwatobi, community health worker</span>
               </li>
               <li>
-                “I now have a structured way to listen, reflect, and respond in my school counselling role.” —{' '}
+                "I now have a structured way to listen, reflect, and respond in my school counselling role." -{' '}
                 <span className="font-semibold">Chioma, school counsellor</span>
               </li>
               <li>
@@ -193,7 +193,7 @@ export function UnifiedHomepage({ portalHref }: UnifiedHomepageProps) {
 
       <footer className="border-t border-slate-200 bg-white py-5">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 text-sm text-slate-600">
-          <p>© {new Date().getFullYear()} {ORGANIZATION_NAME}</p>
+          <p>Copyright {new Date().getFullYear()} {ORGANIZATION_NAME}</p>
           <div className="flex items-center gap-4">
             <Link href="/privacy" className="hover:text-slate-900 hover:underline">Privacy</Link>
             <Link href="/terms" className="hover:text-slate-900 hover:underline">Terms</Link>

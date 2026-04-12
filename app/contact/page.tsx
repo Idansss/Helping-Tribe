@@ -8,7 +8,10 @@ export const metadata = {
 
 export default function ContactPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-emerald-50/60 via-slate-50 to-slate-100 px-4 py-10 text-slate-900">
+    <main
+      id="main-content"
+      className="min-h-screen bg-gradient-to-b from-emerald-50/60 via-slate-50 to-slate-100 px-4 py-10 text-slate-900"
+    >
       <section className="mx-auto flex max-w-4xl flex-col gap-8 md:flex-row md:items-stretch">
         <div className="relative flex-1 overflow-hidden rounded-2xl bg-emerald-900 px-6 py-8 text-emerald-50 shadow-xl md:px-8">
           <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-emerald-700/40 blur-3xl" />
@@ -16,7 +19,7 @@ export default function ContactPage() {
 
           <span className="inline-flex items-center gap-2 rounded-full bg-emerald-800/80 px-3 py-1 text-[11px] font-medium uppercase tracking-wide">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
-            We’re here to help
+            We are here to help
           </span>
 
           <h1 className="mt-4 text-3xl font-semibold tracking-tight md:text-4xl">
@@ -62,7 +65,7 @@ export default function ContactPage() {
               <Clock className="mt-0.5 h-4 w-4 text-emerald-200" />
               <div>
                 <p className="text-emerald-100/90 font-medium">Support hours</p>
-                <p>Monday – Friday, 9:00 AM – 5:00 PM (WAT)</p>
+                <p>Monday - Friday, 9:00 AM - 5:00 PM (WAT)</p>
               </div>
             </div>
           </div>

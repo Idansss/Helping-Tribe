@@ -226,7 +226,7 @@ export function SkillGapAnalysis() {
               <div className="text-xs text-gray-500">
                 Related: {skill.relatedModules.join(', ')}
               </div>
-              <Link href="/course/module/1">
+              <Link href="/learner/course/module/1">
                 <Button size="sm" variant="outline" className="text-[#4c1d95] border-[#4c1d95]">
                   <BookOpen className="mr-2 h-3 w-3" />
                   Study

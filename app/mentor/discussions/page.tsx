@@ -318,7 +318,7 @@ export default function MentorDiscussionsPage() {
                           <Trash2 className="h-4 w-4" />
                         </Button>
                         <Button variant="outline" size="sm" asChild>
-                          <Link href={`/discussions/${row.module_id}`} target="_blank" rel="noopener noreferrer">
+                          <Link href={`/learner/discussions/${row.module_id}`} target="_blank" rel="noopener noreferrer">
                             View
                           </Link>
                         </Button>

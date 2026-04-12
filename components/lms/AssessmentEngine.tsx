@@ -253,11 +253,11 @@ export function AssessmentEngine({ moduleId }: AssessmentEngineProps) {
               </div>
 
               <div className="flex gap-4">
-                <Button onClick={() => router.push('/dashboard')}>
+                <Button onClick={() => router.push('/learner/dashboard')}>
                   Back to Dashboard
                 </Button>
                 {!passed && (
-                  <Button variant="outline" onClick={() => router.push(`/course/module/${moduleId}`)}>
+                  <Button variant="outline" onClick={() => router.push(`/learner/course/module/${moduleId}`)}>
                     Review Module
                   </Button>
                 )}

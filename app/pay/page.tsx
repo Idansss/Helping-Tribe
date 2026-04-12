@@ -1,7 +1,17 @@
+import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import PayClient from './pay-client'
+import { PROGRAM_FULL_NAME } from '@/lib/brand/program'
 
 export const dynamic = 'force-dynamic'
+export const metadata: Metadata = {
+  title: `Payment | ${PROGRAM_FULL_NAME}`,
+  description:
+    'Complete approved applicant payment and continue onboarding into the learner portal.',
+  alternates: {
+    canonical: '/pay',
+  },
+}
 
 export default function PayPage() {
   return (
@@ -20,4 +30,3 @@ export default function PayPage() {
     </Suspense>
   )
 }
-

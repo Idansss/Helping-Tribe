@@ -64,7 +64,7 @@ export function PersonalizedRecommendations() {
             reason: `You're ${inProgressModule.completion_percentage}% through! Finish strong.`,
             urgency: 'high',
             icon: BookOpen,
-            href: '/course/module/1'
+            href: '/learner/course/module/1'
           })
         }
       }
@@ -85,7 +85,7 @@ export function PersonalizedRecommendations() {
           reason: 'You have an assignment due soon. Stay on track!',
           urgency: 'high',
           icon: FileText,
-          href: '/assignments'
+          href: '/learner/course/modules'
         })
       }
 
@@ -104,7 +104,7 @@ export function PersonalizedRecommendations() {
           reason: 'Connect with fellow learners for support and shared growth.',
           urgency: 'medium',
           icon: Users,
-          href: '/peer-circles'
+          href: '/learner/circles'
         })
       }
 
@@ -119,7 +119,7 @@ export function PersonalizedRecommendations() {
             reason: 'Apply what you\'ve learned with a real-world scenario.',
             urgency: 'medium',
             icon: FileSearch,
-            href: '/case-studies'
+            href: '/learner/cases'
           })
         }
       }
@@ -139,7 +139,7 @@ export function PersonalizedRecommendations() {
           reason: 'Build confidence by practicing counseling conversations with AI.',
           urgency: 'low',
           icon: Sparkles,
-          href: '/practice-client'
+          href: '/learner/practice/chat'
         })
       }
 

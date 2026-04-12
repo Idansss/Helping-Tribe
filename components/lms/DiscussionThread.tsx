@@ -137,7 +137,7 @@ export function DiscussionThread({ moduleId }: { moduleId: string }) {
             type: 'discussion_reply',
             title: 'New reply to your discussion post',
             body: textToSubmit.trim().slice(0, 100),
-            link: `/discussions/${prompt.module_id}`,
+            link: `/learner/discussions/${prompt.module_id}`,
           })
         }
       }
@@ -201,7 +201,7 @@ export function DiscussionThread({ moduleId }: { moduleId: string }) {
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
         <Button variant="ghost" asChild className="mb-4">
-          <Link href="/discussions">← Back to all discussions</Link>
+          <Link href="/learner/discussions">← Back to all discussions</Link>
         </Button>
         <h1 className="text-4xl font-bold">Discussion</h1>
         {prompt.module && (

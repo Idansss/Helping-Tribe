@@ -179,7 +179,7 @@ export function WeeklyCalendar() {
                           </a>
                         )}
                         {event.module_id && event.event_type === 'discussion_prompt' && (
-                          <Link href={`/discussions/${event.module_id}`} className="inline-block text-[11px] text-teal-700 hover:underline">
+                          <Link href={`/learner/discussions/${event.module_id}`} className="inline-block text-[11px] text-teal-700 hover:underline">
                             View
                           </Link>
                         )}

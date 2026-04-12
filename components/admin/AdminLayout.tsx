@@ -72,7 +72,7 @@ export function AdminLayout({
           description={description}
         />
 
-        <main className="flex-1 p-4 md:p-6 space-y-4 overflow-y-auto">
+        <main id="main-content" className="flex-1 p-4 md:p-6 space-y-4 overflow-y-auto">
           {children}
         </main>
       </div>

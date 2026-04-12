@@ -176,7 +176,7 @@ export function FinalProjectList() {
                       Max Points: {project.max_points}
                     </div>
                     <Button asChild>
-                      <Link href={`/final-projects/${project.id}`}>
+                      <Link href={`/learner/final-projects/${project.id}`}>
                         {project.hasSubmission ? 'View/Edit Submission' : 'Start Project'}
                         <ArrowRight className="h-4 w-4 ml-2" />
                       </Link>

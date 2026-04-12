@@ -10,25 +10,25 @@ export function LearningTools() {
       title: 'Resources',
       description: 'Directory of helping resources',
       icon: BookMarked,
-      href: '/resources'
+      href: '/learner/resources'
     },
     {
       title: 'Quick Tools',
       description: 'Reference guides and checklists',
       icon: Wrench,
-      href: '/tools'
+      href: '/learner/resources#quick-reference-tools'
     },
     {
       title: 'Case Studies',
       description: 'Practice with real scenarios',
       icon: FileSearch,
-      href: '/case-studies'
+      href: '/learner/cases'
     },
     {
       title: 'Assessments',
       description: 'Track your progress',
       icon: ClipboardCheck,
-      href: '/assessments'
+      href: '/learner/assessments'
     }
   ]
 

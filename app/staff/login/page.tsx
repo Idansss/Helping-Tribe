@@ -1,8 +1,19 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ShieldCheck, UserCog, AlertTriangle } from 'lucide-react'
 import { BlurBlobs } from '@/components/blur-blobs'
 import { StaffLoginForm } from './staff-login-form'
+import { ORGANIZATION_NAME } from '@/lib/brand/program'
+
+export const metadata: Metadata = {
+  title: `Admin Login | ${ORGANIZATION_NAME}`,
+  description:
+    'Secure admin access for admissions review, learner operations, payments, and training oversight.',
+  alternates: {
+    canonical: '/staff/login',
+  },
+}
 
 function MarketingPanel() {
   return (

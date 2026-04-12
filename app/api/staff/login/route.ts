@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
   try {
     // Brute-force protection: 10 attempts per IP per 15 minutes
     const ip = getRequestIp(request.headers)
-    const limit = checkRateLimit({
+    const limit = await checkRateLimit({
       key: `staff-login:${ip}`,
       limit: 10,
       windowMs: 15 * 60 * 1000,

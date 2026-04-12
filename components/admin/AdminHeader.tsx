@@ -79,6 +79,7 @@ export function AdminHeader({
     } else if (pathname?.startsWith('/analytics')) {
       setCurrentRole('admin')
     } else if (
+      pathname?.startsWith('/learner') ||
       pathname === '/' ||
       pathname?.startsWith('/dashboard') ||
       pathname?.startsWith('/profile') ||
@@ -178,10 +179,11 @@ export function AdminHeader({
 
   const adminQuickTargets = [
     { id: 'users', label: 'Users', description: 'Find or manage learners and mentors', href: '/admin/users' },
+    { id: 'applicants', label: 'Applicants', description: 'Review admissions decisions and onboarding status', href: '/admin/applicants' },
     { id: 'courses', label: 'Courses', description: 'Browse and edit counseling modules', href: '/admin/courses' },
-    { id: 'groups', label: 'Groups', description: 'Peer circles and campus cohorts', href: '/admin/groups' },
-    { id: 'branches', label: 'Branches', description: 'State or campus sub‑portals', href: '/admin/branches' },
+    { id: 'messages', label: 'Messages', description: 'Coordinate with learners, mentors, and staff', href: '/admin/messages' },
     { id: 'reports', label: 'Reports', description: 'Progress, ethics and practicum reporting', href: '/admin/reports' },
+    { id: 'settings', label: 'Settings', description: 'Registration windows, access rules, and portal controls', href: '/admin/settings' },
   ]
 
   const mentorQuickTargets = [
@@ -195,12 +197,12 @@ export function AdminHeader({
   ]
 
   const learnerQuickTargets = [
-    { id: 'dashboard', label: 'Dashboard', description: 'Your training home', href: '/dashboard' },
-    { id: 'my-training', label: 'My Training', description: 'Your courses and progress', href: '/my-training' },
-    { id: 'catalog', label: 'Catalog', description: 'Browse and enroll in courses', href: '/catalog' },
-    { id: 'skills', label: 'Skills', description: 'Your skills and development', href: '/skills' },
-    { id: 'discussions', label: 'Discussions', description: 'Peer discussions', href: '/discussions' },
-    { id: 'messages', label: 'Messages', description: 'Your messages', href: '/messages' },
+    { id: 'dashboard', label: 'Dashboard', description: 'Your training home', href: '/learner/dashboard' },
+    { id: 'my-training', label: 'My Training', description: 'Your courses and progress', href: '/learner/course/modules' },
+    { id: 'catalog', label: 'Catalog', description: 'Browse and enroll in courses', href: '/learner/catalog' },
+    { id: 'skills', label: 'Skills', description: 'Your skills and development', href: '/learner/skills' },
+    { id: 'discussions', label: 'Discussions', description: 'Peer discussions', href: '/learner/discussions' },
+    { id: 'messages', label: 'Messages', description: 'Your messages', href: '/learner/messages' },
   ]
 
   const quickTargets =
@@ -238,7 +240,7 @@ export function AdminHeader({
     {
       id: '3',
       title: 'Course completion',
-      body: 'Two learners just completed “Introduction to Ethical Practice”.',
+      body: 'Two learners just completed "Introduction to Ethical Practice".',
       time: 'Today',
     },
   ]
@@ -301,19 +303,19 @@ export function AdminHeader({
       ? 'Search courses, learners, resources...'
       : currentRole === 'learner'
         ? 'Search courses, resources...'
-        : 'Search users, courses, branches...'
+        : 'Search users, applicants, courses...'
 
   const profileMenuProfileLink =
     currentRole === 'mentor'
       ? '/mentor'
       : currentRole === 'learner'
-        ? '/profile'
+        ? '/learner/settings'
         : '/admin/profile'
   const profileMenuSettingsLink =
     currentRole === 'mentor'
       ? '/mentor/settings'
       : currentRole === 'learner'
-        ? '/profile'
+        ? '/learner/settings'
         : '/admin/settings'
   const profileFallbackLabel =
     currentRole === 'mentor' ? 'Mentor' : currentRole === 'learner' ? 'Learner' : 'Admin'
@@ -488,7 +490,7 @@ export function AdminHeader({
                   {profileName ?? profileFallbackLabel}
                 </p>
                 <p className="text-[10px] text-slate-500">
-                  {currentRoleOption.label} • Counseling LMS
+                  {currentRoleOption.label} | Counseling LMS
                 </p>
               </div>
               <button

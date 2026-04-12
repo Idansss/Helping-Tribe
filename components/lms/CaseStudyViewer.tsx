@@ -170,7 +170,7 @@ export function CaseStudyViewer({ caseStudyId }: { caseStudyId: string }) {
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
         <Button variant="ghost" asChild className="mb-4">
-          <Link href="/case-studies">← Back to Case Studies</Link>
+          <Link href="/learner/cases">← Back to Case Studies</Link>
         </Button>
         <div className="flex items-start justify-between">
           <div>
@@ -298,7 +298,7 @@ export function CaseStudyViewer({ caseStudyId }: { caseStudyId: string }) {
       {/* Save Button */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" asChild>
-          <Link href="/case-studies">Back to Case Studies</Link>
+          <Link href="/learner/cases">Back to Case Studies</Link>
         </Button>
         <Button
           onClick={handleSave}

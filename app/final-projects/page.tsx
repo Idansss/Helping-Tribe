@@ -1,10 +1,5 @@
-import { FinalProjectList } from '@/components/lms/FinalProjectList'
-import { LearnerPortalPlaceholder } from '@/components/lms/LearnerPortalPlaceholder'
+import { redirect } from 'next/navigation'
 
 export default function FinalProjectsPage() {
-  return (
-    <LearnerPortalPlaceholder>
-      <FinalProjectList />
-    </LearnerPortalPlaceholder>
-  )
+  redirect('/learner/final-projects')
 }

@@ -1,12 +1,5 @@
-'use client'
-
-import { LearnerLayout } from '@/components/learner/LearnerLayout'
-import { DashboardContent } from '@/components/learner/DashboardContent'
+import { redirect } from 'next/navigation'
 
 export default function DashboardPage() {
-  return (
-    <LearnerLayout>
-      <DashboardContent />
-    </LearnerLayout>
-  )
+  redirect('/learner/dashboard')
 }

@@ -39,7 +39,7 @@ export default function LearnerResourcesPage() {
         </CardContent>
       </Card>
 
-      <Card className="border-slate-200">
+      <Card id="quick-reference-tools" className="border-slate-200">
         <CardHeader>
           <CardTitle className="text-base">Quick Reference Tools</CardTitle>
           <CardDescription>

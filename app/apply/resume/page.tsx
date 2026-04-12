@@ -8,23 +8,29 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
-
-const DRAFT_ID_STORAGE_KEY = 'ht_apply_draft_id'
+import {
+  APPLICATION_DRAFT_ID_STORAGE_KEY,
+  APPLICATION_DRAFT_TOKEN_STORAGE_KEY,
+  buildDraftResumePath,
+} from '@/lib/applications/draft-resume'
 
 export default function ApplyResumePage() {
   const router = useRouter()
   const { toast } = useToast()
   const [savedDraftId, setSavedDraftId] = useState<string | null>(null)
+  const [savedDraftToken, setSavedDraftToken] = useState<string | null>(null)
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    const existing = localStorage.getItem(DRAFT_ID_STORAGE_KEY)
+    const existing = localStorage.getItem(APPLICATION_DRAFT_ID_STORAGE_KEY)
+    const token = localStorage.getItem(APPLICATION_DRAFT_TOKEN_STORAGE_KEY)
     if (existing) setSavedDraftId(existing)
+    if (token) setSavedDraftToken(token)
   }, [])
 
-  function continueWithDraftId(draftId: string) {
-    router.push(`/apply?draft=${encodeURIComponent(draftId)}`)
+  function continueWithDraftId(draftId: string, draftToken: string) {
+    router.push(buildDraftResumePath(draftId, draftToken))
   }
 
   async function lookupByEmail(e: React.FormEvent) {
@@ -39,25 +45,9 @@ export default function ApplyResumePage() {
       const json = await res.json()
       if (!res.ok) throw new Error(json?.error || 'Failed to find application')
 
-      if (json?.draft?.id) {
-        localStorage.setItem(DRAFT_ID_STORAGE_KEY, json.draft.id)
-        continueWithDraftId(json.draft.id)
-        return
-      }
-
-      if (json?.application?.id) {
-        toast({
-          title: 'Application already submitted',
-          description: `Latest status: ${json.application.status}. Contact support if you need help.`,
-        })
-        router.push(`/apply/success?id=${encodeURIComponent(json.application.id)}`)
-        return
-      }
-
       toast({
-        variant: 'destructive',
-        title: 'No draft found',
-        description: 'No saved draft was found for that email address.',
+        title: 'Check your email',
+        description: json?.message || 'If we found a saved application, we sent the next steps to your email.',
       })
     } catch (error: any) {
       toast({
@@ -71,26 +61,30 @@ export default function ApplyResumePage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
+    <main id="main-content" className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
       <section className="mx-auto max-w-xl space-y-4">
         <Card className="border-slate-200 bg-white">
           <CardHeader>
             <CardTitle className="text-xl">Resume application</CardTitle>
             <p className="text-sm text-slate-600">
-              Continue a previously saved draft.
+              Continue a previously saved draft with a secure resume link.
             </p>
           </CardHeader>
           <CardContent className="space-y-5">
-            {savedDraftId ? (
+            {savedDraftId && savedDraftToken ? (
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
                 <p className="text-slate-600">Saved draft found on this device</p>
                 <p className="mt-1 break-all font-mono text-xs text-slate-700">{savedDraftId}</p>
                 <Button
                   className="mt-3 w-full bg-teal-700 text-white hover:bg-teal-800"
-                  onClick={() => continueWithDraftId(savedDraftId)}
+                  onClick={() => continueWithDraftId(savedDraftId, savedDraftToken)}
                 >
                   Continue saved draft
                 </Button>
+              </div>
+            ) : savedDraftId ? (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                This saved draft needs a fresh secure resume link. Use your email below and we&apos;ll send it.
               </div>
             ) : (
               <div className="rounded-lg border border-dashed border-slate-300 p-3 text-sm text-slate-600">
@@ -109,7 +103,7 @@ export default function ApplyResumePage() {
                 required
               />
               <Button type="submit" variant="outline" className="w-full" disabled={loading}>
-                {loading ? 'Searching...' : 'Find my draft'}
+                {loading ? 'Sending...' : 'Email me a secure resume link'}
               </Button>
             </form>
 

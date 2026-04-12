@@ -51,7 +51,7 @@ export function HeroSection() {
                       className="bg-[#4c1d95] hover:bg-[#5b21b6] text-white text-lg px-8 py-6"
                       asChild
                     >
-                      <Link href="/dashboard">
+                      <Link href="/learner/dashboard">
                         <LayoutDashboard className="mr-2 h-5 w-5" />
                         Go to Dashboard
                       </Link>

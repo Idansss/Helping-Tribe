@@ -80,7 +80,7 @@ export function StudentDashboard() {
       status: 'Draft Saved',
       action: 'Resume Writing',
       icon: BookOpen,
-      href: '/journal',
+      href: '/learner/journal/entries',
     },
     {
       id: 2,
@@ -89,7 +89,7 @@ export function StudentDashboard() {
       time: 'Fri, 4:00 PM EST',
       action: 'Join Meeting',
       icon: Users,
-      href: '/peer-circles',
+      href: '/learner/circles',
       variant: 'meeting' as const,
     },
     {
@@ -100,7 +100,7 @@ export function StudentDashboard() {
       level: 'Intermediate',
       action: 'View Case',
       icon: FileSearch,
-      href: '/case-studies',
+      href: '/learner/cases',
     },
   ]
 

@@ -57,8 +57,8 @@ export function UserMenuDropdown({
       window.localStorage.setItem('ht-active-view', value)
     }
     if (value === 'learner') {
-      if (!pathname.startsWith('/dashboard') && !pathname.startsWith('/')) {
-        router.push('/')
+      if (!pathname.startsWith('/learner')) {
+        router.push('/learner/dashboard')
       }
     } else if (value === 'instructor') {
       if (!pathname.startsWith('/mentor')) {
@@ -202,7 +202,7 @@ export function UserMenuDropdown({
           {/* Action items */}
           <div className="py-1.5">
             <Link
-              href="/profile"
+              href="/learner/settings"
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
             >

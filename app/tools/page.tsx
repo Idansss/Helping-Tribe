@@ -1,10 +1,5 @@
-import { QuickReferenceTools } from '@/components/lms/QuickReferenceTools'
-import { LearnerPortalPlaceholder } from '@/components/lms/LearnerPortalPlaceholder'
+import { redirect } from 'next/navigation'
 
 export default function ToolsPage() {
-  return (
-    <LearnerPortalPlaceholder>
-      <QuickReferenceTools />
-    </LearnerPortalPlaceholder>
-  )
+  redirect('/learner/resources#quick-reference-tools')
 }

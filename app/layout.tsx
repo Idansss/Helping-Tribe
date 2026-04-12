@@ -6,6 +6,7 @@ import './globals.css'
 import { LowDataProvider } from '@/lib/contexts/LowDataContext'
 import { GroundingButton } from '@/components/lms/GroundingButton'
 import { Toaster } from '@/components/ui/toaster'
+import { getSiteUrlObject } from '@/lib/site-url'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const dmSans = DM_Sans({
@@ -15,6 +16,7 @@ const dmSans = DM_Sans({
 })
 
 export const metadata: Metadata = {
+  metadataBase: getSiteUrlObject(),
   title: 'The Helping Tribe | School of Counselling & Positive Psychology',
   description: 'Premium counsellor training - apply, learn, and grow with The Helping Tribe School of Counselling & Positive Psychology.',
   icons: {

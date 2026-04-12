@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
   }
 
   const ip = getRequestIp(request.headers)
-  const limit = checkRateLimit({ key: `setup-link:${ip}`, limit: 20, windowMs: 60 * 60 * 1000 })
+  const limit = await checkRateLimit({ key: `setup-link:${ip}`, limit: 20, windowMs: 60 * 60 * 1000 })
   if (!limit.allowed) {
     return NextResponse.json({ error: 'Too many setup link requests. Please wait an hour.' }, { status: 429 })
   }
