@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url'
 
 /** @type {import('next').NextConfig} */
 let supabaseHost = 'hfrznvvpuyrzvypekqns.supabase.co'
+const enableVercelAnalytics = process.env.ENABLE_VERCEL_ANALYTICS === 'true'
 try {
   const u = process.env.NEXT_PUBLIC_SUPABASE_URL
   if (u) supabaseHost = new URL(u).hostname
@@ -39,11 +40,15 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      `img-src 'self' data: https://${supabaseHost} https://vercel.com`,
+      `img-src 'self' data: https://${supabaseHost}`,
       "font-src 'self' https://fonts.gstatic.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // unsafe-inline + unsafe-eval are needed for Next.js RSC and Radix UI
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://js.paystack.co",
+      [
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+        enableVercelAnalytics ? 'https://va.vercel-scripts.com' : '',
+        'https://js.paystack.co',
+      ].filter(Boolean).join(' '),
       `connect-src 'self' https://${supabaseHost} https://api.openai.com https://api.paystack.co wss://${supabaseHost}`,
       "frame-src https://js.paystack.co",
       "worker-src 'self' blob:",
@@ -52,6 +57,7 @@ const securityHeaders = [
 ]
 
 const nextConfig = {
+  poweredByHeader: false,
   images: {
     remotePatterns: [
       {

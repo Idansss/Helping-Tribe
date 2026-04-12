@@ -8,20 +8,14 @@ function isLocalhostUrl(url: string) {
  * Base URL for links shown to users (emails, admin "copy link", Paystack callbacks).
  *
  * 1. BASE_URL when set and not localhost (your canonical production domain).
- * 2. https://VERCEL_URL on Vercel (so deploys work without BASE_URL).
- * 3. x-forwarded-host + x-forwarded-proto when present and not localhost.
- * 4. request.nextUrl.origin (local dev, or last resort).
+ * 2. x-forwarded-host + x-forwarded-proto when present and not localhost.
+ * 3. request.nextUrl.origin when it is not localhost.
+ * 4. https://VERCEL_URL on Vercel (last fallback only).
  */
 export function getPublicSiteBaseUrl(request: NextRequest): string {
   const envBase = (process.env.BASE_URL || '').trim().replace(/\/$/, '')
   if (envBase && !isLocalhostUrl(envBase)) {
     return envBase
-  }
-
-  const vercel = (process.env.VERCEL_URL || '').trim()
-  if (vercel && !isLocalhostUrl(vercel)) {
-    const host = vercel.replace(/^https?:\/\//, '').replace(/\/$/, '')
-    return `https://${host}`
   }
 
   const forwardedHost = request.headers.get('x-forwarded-host')?.split(',')[0]?.trim()
@@ -31,7 +25,18 @@ export function getPublicSiteBaseUrl(request: NextRequest): string {
     return `${forwardedProto}://${forwardedHost}`.replace(/\/$/, '')
   }
 
-  return request.nextUrl.origin.replace(/\/$/, '')
+  const requestOrigin = request.nextUrl.origin.replace(/\/$/, '')
+  if (!isLocalhostUrl(requestOrigin)) {
+    return requestOrigin
+  }
+
+  const vercel = (process.env.VERCEL_URL || '').trim()
+  if (vercel && !isLocalhostUrl(vercel)) {
+    const host = vercel.replace(/^https?:\/\//, '').replace(/\/$/, '')
+    return `https://${host}`
+  }
+
+  return requestOrigin
 }
 
 export function absolutePublicUrl(request: NextRequest, pathnameAndQuery: string): string {

@@ -160,7 +160,8 @@ Application journey:
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `PAYSTACK_SECRET_KEY` (for live paystack initialization/verification)
 - `PAYSTACK_WEBHOOK_SECRET` (recommended for webhook verification)
-- `BASE_URL` (recommended in production for callback/link generation)
+- `BASE_URL` (required in production for canonical Helping Tribe links and callback generation)
+- `ENABLE_VERCEL_ANALYTICS=false` unless you explicitly want Vercel analytics scripts on the public site
 
 ## New/Updated DB Tables
 
@@ -231,3 +232,10 @@ Apply all existing Supabase migrations, including the new audit migration:
 - `supabase/migrations/043_admin_action_audit_logs.sql`
 
 The `unlock-week` endpoint works without migration `043`, but audit inserts are skipped until that migration is applied.
+
+## Production Domain Privacy
+
+- Set `BASE_URL` to your real Helping Tribe domain in production so emails, copied links, and payment callbacks never fall back to a `vercel.app` URL.
+- Keep `ENABLE_VERCEL_ANALYTICS=false` unless you intentionally want Vercel analytics enabled.
+- The app now redirects direct `*.vercel.app` requests to `BASE_URL` when `BASE_URL` is configured.
+- If you see a Vercel "Access Required" page before your app loads, that is controlled in the Vercel dashboard, not in this codebase. Disable deployment protection for the production domain and keep any protection scoped to preview deployments only.
