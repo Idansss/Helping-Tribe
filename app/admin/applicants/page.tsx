@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { getApiData, getApiErrorMessage } from '@/lib/api/contracts'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
@@ -491,8 +492,19 @@ export default function ApplicantsPage() {
         body: JSON.stringify({ studentId, weekNumber }),
       })
       const json = await res.json()
-      if (!res.ok) throw new Error(json?.error || 'Failed to unlock week')
-      toast({ title: `Week ${weekNumber} unlocked`, description: `The student can now access Week ${weekNumber} and its resources.` })
+      if (!res.ok) throw new Error(getApiErrorMessage(json, 'Failed to unlock week'))
+
+      const data = getApiData<{
+        alreadyUnlocked?: boolean
+        note?: string
+        weekNumber?: number
+      }>(json)
+      const unlockedWeek = data?.weekNumber ?? weekNumber
+
+      toast({
+        title: data?.alreadyUnlocked ? `Week ${unlockedWeek} already unlocked` : `Week ${unlockedWeek} unlocked`,
+        description: data?.note || `The student can now access Week ${unlockedWeek} and its resources.`,
+      })
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Failed', description: e?.message || 'Error' })
     } finally {

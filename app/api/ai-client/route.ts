@@ -49,9 +49,8 @@ export async function POST(request: NextRequest) {
 
   try {
     // Dynamic import to avoid build-time errors
-    let OpenAI: any
+    let OpenAI: typeof import('openai').default
     try {
-      // @ts-ignore - Optional dependency
       const openaiModule = await import('openai')
       OpenAI = openaiModule.default || openaiModule
     } catch (e) {
@@ -88,9 +87,9 @@ export async function POST(request: NextRequest) {
 
     // Prepare messages for OpenAI
     const openaiMessages = [
-      { role: 'system' as const, content: systemPrompt },
+      ...(systemPrompt ? [{ role: 'system' as const, content: systemPrompt }] : []),
       ...messages.map((m: { role: string; content: string }) => ({
-        role: m.role === 'user' ? 'user' as const : 'assistant' as const,
+        role: m.role === 'user' ? ('user' as const) : ('assistant' as const),
         content: m.content,
       })),
     ]

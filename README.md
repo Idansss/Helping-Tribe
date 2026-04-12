@@ -187,3 +187,47 @@ Notes:
 - Schema and migrations are not deleted.
 - Optional `WIPE_REFERENCE_DATA=YES` also clears seeded content tables.
 - See `HANDOVER.md` for full reset scope and post-reset account notes.
+
+## Operational Additions
+
+This repo now includes the backend production-readiness baseline for the current scope:
+
+- `GET /api/health` for liveness checks
+- `GET /api/readiness` for dependency readiness checks
+- `docs/openapi.yaml` for the hardened route contract
+- `Dockerfile`, `docker-compose.yml`, and `.dockerignore`
+- `.github/workflows/ci.yml` for `lint`, `typecheck`, `test`, and `build`
+- `supabase/migrations/043_admin_action_audit_logs.sql` for admin mutation audit logging
+
+## Verification Commands
+
+Run the backend quality gates locally:
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
+
+## Docker
+
+Build and run the app container locally:
+
+```bash
+docker compose --env-file .env.local up --build
+```
+
+Notes:
+
+- `docker-compose.yml` expects `.env.local` to contain the real Supabase values.
+- `NEXT_PUBLIC_*` values are used at build time, so production image builds should pass real values as build args.
+
+## Database Migrations
+
+Apply all existing Supabase migrations, including the new audit migration:
+
+- `supabase/migrations/032_payments_paystack.sql`
+- `supabase/migrations/043_admin_action_audit_logs.sql`
+
+The `unlock-week` endpoint works without migration `043`, but audit inserts are skipped until that migration is applied.

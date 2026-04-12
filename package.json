@@ -6,8 +6,9 @@
   "scripts": {
     "build": "cross-env BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA=true next build",
     "dev": "next dev",
-    "lint": "eslint .",
+    "lint": "node scripts/lint.mjs",
     "test": "vitest run",
+    "typecheck": "tsc --noEmit",
     "update:baseline": "npm i baseline-browser-mapping@latest -D",
     "seed:admin": "node scripts/create-admin.mjs",
     "reset:test-data": "node scripts/reset-test-data.mjs",

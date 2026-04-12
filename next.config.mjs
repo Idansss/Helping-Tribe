@@ -61,6 +61,7 @@ const nextConfig = {
       },
     ],
   },
+  output: 'standalone',
   transpilePackages: ['jspdf', 'canvg'],
   turbopack: { root: path.resolve(__dirname) },
   async headers() {

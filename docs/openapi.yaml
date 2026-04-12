@@ -1,0 +1,301 @@
+openapi: 3.1.0
+info:
+  title: Helping Tribe API
+  version: 1.0.0
+  description: >
+    Partial contract for the production-hardened backend routes in the Helping Tribe
+    modular monolith.
+servers:
+  - url: https://your-domain.example
+    description: Production
+  - url: http://localhost:3000
+    description: Local
+tags:
+  - name: Auth
+  - name: Admin
+  - name: Operations
+paths:
+  /api/health:
+    get:
+      tags: [Operations]
+      summary: Liveness probe
+      responses:
+        '200':
+          description: Process is alive
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /api/readiness:
+    get:
+      tags: [Operations]
+      summary: Dependency readiness probe
+      responses:
+        '200':
+          description: Dependencies are reachable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+        '503':
+          description: Dependency is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/student/login:
+    post:
+      tags: [Auth]
+      summary: Authenticate a paid student using matric number and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [matricNumber, password]
+              properties:
+                matricNumber:
+                  type: string
+                  example: HF-CT-2026-0001
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Student authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentLoginResponse'
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Student cannot proceed until onboarding requirements are met
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many login attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/admin/students/unlock-week:
+    post:
+      tags: [Admin]
+      summary: Manually unlock a future student week by marking its prerequisite complete
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [studentId, weekNumber]
+              properties:
+                studentId:
+                  type: string
+                  format: uuid
+                weekNumber:
+                  type: integer
+                  minimum: 1
+                  maximum: 9
+      responses:
+        '200':
+          description: Unlock mutation applied or already satisfied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnlockWeekResponse'
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Caller is not an admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Student or prerequisite module not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Student payment has not been verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sb-access-token
+  schemas:
+    ApiMeta:
+      type: object
+      required: [requestId, timestamp, version]
+      properties:
+        requestId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+          example: v1
+    ErrorBody:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    ErrorResponse:
+      type: object
+      required: [success, data, error, meta]
+      properties:
+        success:
+          type: boolean
+          enum: [false]
+        data:
+          type: 'null'
+        error:
+          $ref: '#/components/schemas/ErrorBody'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    HealthData:
+      type: object
+      required: [service, status]
+      properties:
+        service:
+          type: string
+        status:
+          type: string
+          enum: [ok]
+    HealthResponse:
+      type: object
+      required: [success, data, error, meta]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        data:
+          $ref: '#/components/schemas/HealthData'
+        error:
+          type: 'null'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ReadinessData:
+      type: object
+      required: [service, status, dependencies]
+      properties:
+        service:
+          type: string
+        status:
+          type: string
+          enum: [ready]
+        dependencies:
+          type: object
+          additionalProperties:
+            type: string
+    ReadinessResponse:
+      type: object
+      required: [success, data, error, meta]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        data:
+          $ref: '#/components/schemas/ReadinessData'
+        error:
+          type: 'null'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    StudentLoginData:
+      type: object
+      required: [authenticated, portal]
+      properties:
+        authenticated:
+          type: boolean
+          enum: [true]
+        portal:
+          type: string
+          enum: [learner]
+    StudentLoginResponse:
+      type: object
+      required: [success, data, error, meta]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        data:
+          $ref: '#/components/schemas/StudentLoginData'
+        error:
+          type: 'null'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    UnlockWeekData:
+      type: object
+      required: [alreadyUnlocked, note, previousModuleId, previousWeekNumber, weekNumber]
+      properties:
+        alreadyUnlocked:
+          type: boolean
+        completedAt:
+          type: string
+          format: date-time
+        note:
+          type: string
+        previousModuleId:
+          type: string
+          format: uuid
+          nullable: true
+        previousWeekNumber:
+          type: integer
+          nullable: true
+        weekNumber:
+          type: integer
+    UnlockWeekResponse:
+      type: object
+      required: [success, data, error, meta]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        data:
+          $ref: '#/components/schemas/UnlockWeekData'
+        error:
+          type: 'null'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'

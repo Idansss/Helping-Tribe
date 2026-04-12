@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
+import { getApiErrorCode, getApiErrorMessage } from '@/lib/api/contracts'
 
 function getSafeRedirectPath(redirectTo: string | null) {
   if (!redirectTo) return '/learner/dashboard'
@@ -42,7 +43,7 @@ export function StudentLoginForm() {
       const json = await res.json()
 
       if (!res.ok) {
-        const code = String(json?.code ?? '')
+        const code = String(getApiErrorCode(json) ?? '')
         if (code === 'PAYMENT_REQUIRED') {
           throw new Error(
             'Payment required. Please pay with the Paystack link from admin, then set your password using the one-time link.'
@@ -54,7 +55,7 @@ export function StudentLoginForm() {
         if (code === 'PAYMENTS_NOT_CONFIGURED') {
           throw new Error('Payments are not configured yet. Admin must run the payments database migration.')
         }
-        throw new Error(json?.error || 'Login failed')
+        throw new Error(getApiErrorMessage(json, 'Login failed'))
       }
 
       router.push(redirectTo)
