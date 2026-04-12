@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { resolvePortalRole } from '@/lib/auth/admin'
+import { syncStudentPaymentState } from '@/lib/payments/student-status'
 import { paystackVerifyTransaction } from '@/lib/paystack/server'
 import { applyPaystackVerification } from '@/lib/paystack/apply'
 import { isMissingColumnError, isMissingRelationError, missingPaymentsSchemaMessage } from '@/lib/supabase/migrations'
@@ -81,13 +82,19 @@ export async function POST(request: NextRequest) {
           })
           .eq('id', payment.id)
       },
-      markStudentPaid: async (paidAt) => {
-        const { error: upErr } = await admin
-          .from('students')
-          .update({ is_paid: true, paid_at: paidAt, updated_at: new Date().toISOString() })
-          .eq('id', payment.student_id)
-        if (upErr && (isMissingColumnError(upErr, 'is_paid') || isMissingColumnError(upErr, 'paid_at'))) {
-          throw new Error(missingPaymentsSchemaMessage())
+      syncStudentPaymentState: async () => {
+        if (!payment.student_id) return null
+        try {
+          return await syncStudentPaymentState(admin, payment.student_id)
+        } catch (error: any) {
+          if (
+            String(error?.message ?? '').toLowerCase().includes('payment_status') ||
+            String(error?.message ?? '').toLowerCase().includes('expected_total_fee_kobo') ||
+            String(error?.message ?? '').toLowerCase().includes('is_fully_paid')
+          ) {
+            throw new Error(missingPaymentsSchemaMessage())
+          }
+          throw error
         }
       },
     })
@@ -99,7 +106,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ ok: true, status: 'SUCCESS', reference, paidAt: applied.paidAt })
+    return NextResponse.json({
+      ok: true,
+      status: 'SUCCESS',
+      reference,
+      paidAt: applied.paidAt,
+      paymentStatus: applied.paymentSummary?.paymentStatus ?? null,
+      amountPaidKobo: applied.paymentSummary?.amountPaidKobo ?? null,
+      balanceDueKobo: applied.paymentSummary?.balanceDueKobo ?? null,
+      isFullyPaid: applied.paymentSummary?.isFullyPaid ?? null,
+    })
   } catch (e: any) {
     if (e?.name === 'ZodError') {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })

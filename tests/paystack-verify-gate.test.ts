@@ -16,9 +16,9 @@ function verifyResult(overrides: Partial<any> = {}) {
 }
 
 describe('paystack verification gate', () => {
-  it('does not mark student paid when verify is not success', async () => {
+  it('does not sync student payment state when verify is not success', async () => {
     const updatePayment = vi.fn(async () => {})
-    const markStudentPaid = vi.fn(async () => {})
+    const syncStudentPaymentState = vi.fn(async () => null)
 
     const res = await applyPaystackVerification({
       payment: {
@@ -29,17 +29,17 @@ describe('paystack verification gate', () => {
       },
       verify: verifyResult({ status: 'failed' }),
       updatePayment,
-      markStudentPaid,
+      syncStudentPaymentState,
     })
 
     expect(res.ok).toBe(false)
     expect(updatePayment).toHaveBeenCalled()
-    expect(markStudentPaid).not.toHaveBeenCalled()
+    expect(syncStudentPaymentState).not.toHaveBeenCalled()
   })
 
-  it('does not mark student paid when amount mismatches', async () => {
+  it('does not sync student payment state when amount mismatches', async () => {
     const updatePayment = vi.fn(async () => {})
-    const markStudentPaid = vi.fn(async () => {})
+    const syncStudentPaymentState = vi.fn(async () => null)
 
     const res = await applyPaystackVerification({
       payment: {
@@ -50,17 +50,26 @@ describe('paystack verification gate', () => {
       },
       verify: verifyResult({ amountKobo: 19500000 }),
       updatePayment,
-      markStudentPaid,
+      syncStudentPaymentState,
     })
 
     expect(res.ok).toBe(false)
     expect(updatePayment).toHaveBeenCalled()
-    expect(markStudentPaid).not.toHaveBeenCalled()
+    expect(syncStudentPaymentState).not.toHaveBeenCalled()
   })
 
-  it('marks student paid only after verified success', async () => {
+  it('syncs student payment state only after verified success', async () => {
     const updatePayment = vi.fn(async () => {})
-    const markStudentPaid = vi.fn(async () => {})
+    const syncStudentPaymentState = vi.fn(async () => ({
+      accessGrantedAt: '2026-02-11T10:00:00.000Z',
+      amountPaidKobo: 16575000,
+      balanceDueKobo: 0,
+      expectedTotalFeeKobo: 16575000,
+      fullPaidAt: '2026-02-11T10:00:00.000Z',
+      isFullyPaid: true,
+      isPaid: true,
+      paymentStatus: 'FULL' as const,
+    }))
 
     const res = await applyPaystackVerification({
       payment: {
@@ -71,12 +80,12 @@ describe('paystack verification gate', () => {
       },
       verify: verifyResult(),
       updatePayment,
-      markStudentPaid,
+      syncStudentPaymentState,
     })
 
     expect(res.ok).toBe(true)
     expect(updatePayment).toHaveBeenCalled()
-    expect(markStudentPaid).toHaveBeenCalledTimes(1)
+    expect(syncStudentPaymentState).toHaveBeenCalledTimes(1)
+    expect(res.paymentSummary?.paymentStatus).toBe('FULL')
   })
 })
-

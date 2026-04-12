@@ -26,12 +26,22 @@ type ApplicantRow = {
 async function loadStudentByApplicantId(admin: ReturnType<typeof createAdminClient>, applicantId: string) {
   const { data, error } = await admin
     .from('students')
-    .select('id, applicant_id, matric_number, is_paid, paid_at')
+    .select(
+      'id, applicant_id, matric_number, is_paid, paid_at, is_fully_paid, full_paid_at, payment_status, amount_paid_kobo, balance_due_kobo, expected_total_fee_kobo'
+    )
     .eq('applicant_id', applicantId)
     .maybeSingle()
 
   if (error) {
-    if (isMissingColumnError(error, 'is_paid') || isMissingColumnError(error, 'paid_at')) {
+    if (
+      isMissingColumnError(error, 'is_paid') ||
+      isMissingColumnError(error, 'paid_at') ||
+      isMissingColumnError(error, 'is_fully_paid') ||
+      isMissingColumnError(error, 'payment_status') ||
+      isMissingColumnError(error, 'amount_paid_kobo') ||
+      isMissingColumnError(error, 'balance_due_kobo') ||
+      isMissingColumnError(error, 'expected_total_fee_kobo')
+    ) {
       throw new Error(missingPaymentsSchemaMessage())
     }
     throw new Error(error.message || 'Failed to load student record')
@@ -193,13 +203,22 @@ export async function POST(request: NextRequest) {
 
     let latestPayment: any = null
     if (student?.id) {
-      const { data: pay } = await admin
+      const { data: pay, error: payErr } = await admin
         .from('payments')
-        .select('reference, status, amount_kobo, currency, created_at, paid_at, discount_applied, discount_percent')
+        .select(
+          'reference, status, amount_kobo, currency, created_at, paid_at, discount_applied, discount_percent, payment_plan, expected_total_fee_kobo'
+        )
         .eq('student_id', student.id)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle()
+
+      if (
+        payErr &&
+        (isMissingColumnError(payErr, 'payment_plan') || isMissingColumnError(payErr, 'expected_total_fee_kobo'))
+      ) {
+        throw new Error(missingPaymentsSchemaMessage())
+      }
       latestPayment = pay ?? null
     }
 
@@ -233,6 +252,15 @@ export async function POST(request: NextRequest) {
             matricNumber: student.matric_number,
             isPaid: Boolean(student.is_paid),
             paidAt: student.paid_at ?? null,
+            isFullyPaid: Boolean(student.is_fully_paid),
+            fullPaidAt: student.full_paid_at ?? null,
+            paymentStatus: String(student.payment_status ?? (student.is_paid ? 'PARTIAL' : 'UNPAID')).toUpperCase(),
+            amountPaidKobo: Math.max(0, Number(student.amount_paid_kobo ?? 0)),
+            balanceDueKobo: Math.max(0, Number(student.balance_due_kobo ?? 0)),
+            expectedTotalFeeKobo:
+              Number(student.expected_total_fee_kobo ?? 0) > 0
+                ? Number(student.expected_total_fee_kobo)
+                : null,
           }
         : null,
       needsRepair: applicant.status === 'APPROVED' && !student,
@@ -246,6 +274,11 @@ export async function POST(request: NextRequest) {
             paidAt: latestPayment.paid_at,
             discountApplied: latestPayment.discount_applied,
             discountPercent: latestPayment.discount_percent,
+            paymentPlan: latestPayment.payment_plan ?? null,
+            expectedTotalFeeKobo:
+              Number(latestPayment.expected_total_fee_kobo ?? 0) > 0
+                ? Number(latestPayment.expected_total_fee_kobo)
+                : null,
           }
         : null,
     })

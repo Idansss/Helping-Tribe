@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { matricToAuthEmail } from '@/lib/auth/constants'
 import { apiError, apiSuccess, apiValidationError, getRequestId } from '@/lib/api/route'
 import { createRouteClient } from '@/lib/supabase/route'
+import { missingPaymentsSchemaMessage } from '@/lib/supabase/migrations'
 import { checkRateLimit, getRequestIp } from '@/lib/server/rate-limit'
 import { logWarn } from '@/lib/server/logger'
 
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest) {
           request,
           500,
           'PAYMENTS_NOT_CONFIGURED',
-          'Student payment state is not configured yet. Run DB migration 032_payments_paystack.sql.',
+          missingPaymentsSchemaMessage(),
           undefined,
           { requestId }
         )
@@ -102,7 +103,7 @@ export async function POST(request: NextRequest) {
         request,
         500,
         'PAYMENTS_NOT_CONFIGURED',
-        'Student payment state is not configured yet. Run DB migration 032_payments_paystack.sql.',
+        missingPaymentsSchemaMessage(),
         undefined,
         { requestId }
       )

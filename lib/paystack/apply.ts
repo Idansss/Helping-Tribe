@@ -1,5 +1,6 @@
 import type { PaystackVerifyResult } from './server'
 import { shouldMarkPaymentSuccess } from './verification'
+import type { PaymentSummary } from '@/lib/payments/student-status'
 
 export async function applyPaystackVerification(input: {
   payment: {
@@ -10,7 +11,7 @@ export async function applyPaystackVerification(input: {
   }
   verify: PaystackVerifyResult
   updatePayment: (patch: { status: 'FAILED' | 'SUCCESS'; paidAt?: string | null; raw: unknown }) => Promise<void>
-  markStudentPaid: (paidAt: string) => Promise<void>
+  syncStudentPaymentState: () => Promise<PaymentSummary | null>
 }) {
   const decision = shouldMarkPaymentSuccess({
     verify: input.verify,
@@ -26,9 +27,7 @@ export async function applyPaystackVerification(input: {
   const paidAt = input.verify.paidAt || new Date().toISOString()
 
   await input.updatePayment({ status: 'SUCCESS', paidAt, raw: input.verify.raw })
-  if (input.payment.studentId) {
-    await input.markStudentPaid(paidAt)
-  }
+  const paymentSummary = input.payment.studentId ? await input.syncStudentPaymentState() : null
 
-  return { ok: true as const, paidAt }
+  return { ok: true as const, paidAt, paymentSummary }
 }

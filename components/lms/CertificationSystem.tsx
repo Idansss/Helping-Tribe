@@ -26,9 +26,18 @@ export type CompletionSummary = {
   quizTitlesCompleted: string[]
 }
 
+type PaymentRequirementSummary = {
+  amountPaidKobo: number
+  balanceDueKobo: number
+  expectedTotalFeeKobo: number | null
+  isFullyPaid: boolean
+  paymentStatus: 'UNPAID' | 'PARTIAL' | 'FULL'
+}
+
 export function CertificationSystem() {
   const [certificate, setCertificate] = useState<Certificate | null>(null)
   const [summary, setSummary] = useState<CompletionSummary | null>(null)
+  const [paymentSummary, setPaymentSummary] = useState<PaymentRequirementSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const supabase = createClient()
@@ -46,6 +55,28 @@ export function CertificationSystem() {
           .eq('user_id', user.id)
           .maybeSingle()
         if (certData) setCertificate(certData as Certificate)
+
+        const { data: studentPaymentData } = await supabase
+          .from('students')
+          .select('payment_status, is_fully_paid, amount_paid_kobo, balance_due_kobo, expected_total_fee_kobo')
+          .eq('id', user.id)
+          .maybeSingle()
+
+        setPaymentSummary({
+          amountPaidKobo: Math.max(0, Number(studentPaymentData?.amount_paid_kobo ?? 0)),
+          balanceDueKobo: Math.max(0, Number(studentPaymentData?.balance_due_kobo ?? 0)),
+          expectedTotalFeeKobo:
+            Number(studentPaymentData?.expected_total_fee_kobo ?? 0) > 0
+              ? Number(studentPaymentData?.expected_total_fee_kobo)
+              : null,
+          isFullyPaid: Boolean(studentPaymentData?.is_fully_paid),
+          paymentStatus:
+            String(studentPaymentData?.payment_status ?? '').toUpperCase() === 'FULL'
+              ? 'FULL'
+              : String(studentPaymentData?.payment_status ?? '').toUpperCase() === 'PARTIAL'
+                ? 'PARTIAL'
+                : 'UNPAID',
+        })
 
         // Required module count from modules table (default 9)
         let requiredModules = 9
@@ -130,7 +161,8 @@ export function CertificationSystem() {
     ? summary.modulesCompleted >= summary.requiredModules
     : false
   const capstoneDone = summary?.finalExamSubmitted || summary?.finalProjectSubmitted || false
-  const eligibleForCertificate = summary && allModulesCompleted && capstoneDone
+  const fullyPaid = paymentSummary?.isFullyPaid ?? false
+  const eligibleForCertificate = summary && allModulesCompleted && capstoneDone && fullyPaid
 
   const generateCertificate = async () => {
     if (!eligibleForCertificate || !summary) return
@@ -241,6 +273,12 @@ export function CertificationSystem() {
     window.open(certificate.certificate_url, '_blank')
   }
 
+  const paymentRequirementLabel = paymentSummary?.isFullyPaid
+    ? 'Complete'
+    : paymentSummary?.paymentStatus === 'PARTIAL'
+      ? 'Balance outstanding'
+      : 'Not started'
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -332,6 +370,33 @@ export function CertificationSystem() {
               <Badge variant="default" className="bg-green-500">Submitted</Badge>
             )}
           </div>
+
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex items-center gap-3">
+              {paymentSummary?.isFullyPaid ? (
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+              ) : (
+                <AlertCircle className="h-5 w-5 text-muted-foreground" />
+              )}
+              <div>
+                <p className="font-medium">Complete full payment</p>
+                <p className="text-sm text-muted-foreground">
+                  {paymentSummary?.expectedTotalFeeKobo
+                    ? `Paid NGN ${(paymentSummary.amountPaidKobo / 100).toLocaleString()} of NGN ${(paymentSummary.expectedTotalFeeKobo / 100).toLocaleString()}`
+                    : 'Certificate release requires the full course fee to be paid.'}
+                  {!paymentSummary?.isFullyPaid && paymentSummary?.balanceDueKobo
+                    ? ` Remaining balance: NGN ${(paymentSummary.balanceDueKobo / 100).toLocaleString()}.`
+                    : ''}
+                </p>
+              </div>
+            </div>
+            <Badge
+              variant={paymentSummary?.isFullyPaid ? 'default' : 'secondary'}
+              className={paymentSummary?.isFullyPaid ? 'bg-green-500' : ''}
+            >
+              {paymentRequirementLabel}
+            </Badge>
+          </div>
         </CardContent>
       </Card>
 
@@ -383,7 +448,7 @@ export function CertificationSystem() {
               Not Yet Eligible
             </CardTitle>
             <CardDescription>
-              Complete all modules and submit the final exam or final project to earn your certificate.
+              Complete all modules, submit the final exam or final project, and ensure the course fee is fully paid before certificate release.
             </CardDescription>
           </CardHeader>
         </Card>

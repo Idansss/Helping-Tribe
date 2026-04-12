@@ -5,7 +5,15 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { resolvePortalRole } from '@/lib/auth/admin'
 import { PROGRAM_FULL_NAME } from '@/lib/brand/program'
 import { sendEmail } from '@/lib/email/send'
-import { computeHelpFoundationalCoursePricing, HELP_FOUNDATIONAL_COURSE } from '@/lib/payments/helpFoundationalCourse'
+import { HELP_FOUNDATIONAL_COURSE } from '@/lib/payments/helpFoundationalCourse'
+import {
+  getExpectedCourseTotalKobo,
+  getHalfPaymentAmountKobo,
+  getPaymentDiscountInfo,
+  resolvePaymentRequest,
+  syncStudentPaymentState,
+  type PaymentPlan,
+} from '@/lib/payments/student-status'
 import { createPaystackReference, paystackInitializeTransaction } from '@/lib/paystack/server'
 import { isMissingColumnError, isMissingRelationError, missingPaymentsSchemaMessage } from '@/lib/supabase/migrations'
 import { getRegistrationWindow, isRegistrationOpen } from '@/lib/settings/registration'
@@ -14,6 +22,7 @@ import { getPublicSiteBaseUrl } from '@/lib/server/public-site-url'
 const InitializeSchema = z.object({
   studentId: z.string().uuid().optional(),
   applicantId: z.string().uuid().optional(),
+  paymentOption: z.enum(['FULL', 'HALF', 'BALANCE']).optional(),
 })
 
 function safeBaseUrl(request: NextRequest) {
@@ -49,7 +58,6 @@ export async function POST(request: NextRequest) {
     let studentId = body.studentId
     let applicantId = body.applicantId
 
-    // Students can only initialize payments for themselves.
     if (isStudent) {
       studentId = user.id
       applicantId = undefined
@@ -75,11 +83,16 @@ export async function POST(request: NextRequest) {
     if (studentId) {
       const { data: s, error: sErr } = await admin
         .from('students')
-        .select('id, applicant_id, matric_number, is_paid')
+        .select('id, applicant_id, matric_number, is_paid, is_fully_paid, payment_status, amount_paid_kobo, expected_total_fee_kobo, balance_due_kobo')
         .eq('id', studentId)
         .maybeSingle()
 
-      if (sErr && isMissingColumnError(sErr, 'is_paid')) {
+      if (
+        sErr &&
+        (isMissingColumnError(sErr, 'is_paid') ||
+          isMissingColumnError(sErr, 'is_fully_paid') ||
+          isMissingColumnError(sErr, 'payment_status'))
+      ) {
         return NextResponse.json({ error: missingPaymentsSchemaMessage() }, { status: 500 })
       }
 
@@ -91,11 +104,16 @@ export async function POST(request: NextRequest) {
     } else if (applicantId) {
       const { data: s, error: sErr } = await admin
         .from('students')
-        .select('id, applicant_id, matric_number, is_paid')
+        .select('id, applicant_id, matric_number, is_paid, is_fully_paid, payment_status, amount_paid_kobo, expected_total_fee_kobo, balance_due_kobo')
         .eq('applicant_id', applicantId)
         .maybeSingle()
 
-      if (sErr && isMissingColumnError(sErr, 'is_paid')) {
+      if (
+        sErr &&
+        (isMissingColumnError(sErr, 'is_paid') ||
+          isMissingColumnError(sErr, 'is_fully_paid') ||
+          isMissingColumnError(sErr, 'payment_status'))
+      ) {
         return NextResponse.json({ error: missingPaymentsSchemaMessage() }, { status: 500 })
       }
 
@@ -106,8 +124,8 @@ export async function POST(request: NextRequest) {
       studentId = s.id
     }
 
-    if (student?.is_paid) {
-      return NextResponse.json({ error: 'Student is already marked as paid' }, { status: 409 })
+    if (student?.is_fully_paid) {
+      return NextResponse.json({ error: 'Student is already fully paid' }, { status: 409 })
     }
 
     if (applicantId) {
@@ -132,7 +150,41 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const pricing = computeHelpFoundationalCoursePricing()
+    const expectedTotalFeeKobo =
+      Number(student?.expected_total_fee_kobo ?? 0) > 0
+        ? Number(student.expected_total_fee_kobo)
+        : getExpectedCourseTotalKobo()
+
+    const amountPaidKobo = Math.max(0, Number(student?.amount_paid_kobo ?? 0))
+    const requestedPaymentOption: PaymentPlan =
+      body.paymentOption ??
+      (amountPaidKobo > 0 ? 'BALANCE' : 'FULL')
+
+    let paymentRequest
+    try {
+      paymentRequest = resolvePaymentRequest({
+        amountPaidKobo,
+        expectedTotalFeeKobo,
+        paymentOption: requestedPaymentOption,
+      })
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : 'Failed to initialize payment' },
+        { status: 409 }
+      )
+    }
+
+    const discountInfo = getPaymentDiscountInfo(paymentRequest.expectedTotalFeeKobo)
+
+    await admin
+      .from('students')
+      .update({
+        balance_due_kobo: Math.max(0, paymentRequest.expectedTotalFeeKobo - amountPaidKobo),
+        expected_total_fee_kobo: paymentRequest.expectedTotalFeeKobo,
+        payment_status: amountPaidKobo > 0 ? 'PARTIAL' : 'UNPAID',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', studentId)
 
     const payEmail =
       (applicant?.email && String(applicant.email).trim()) ||
@@ -145,15 +197,22 @@ export async function POST(request: NextRequest) {
       applicant_id: applicantId ?? null,
       student_id: studentId ?? null,
       reference,
-      amount_kobo: pricing.amountKobo,
+      amount_kobo: paymentRequest.amountKobo,
       currency: HELP_FOUNDATIONAL_COURSE.currency,
       status: 'PENDING',
-      discount_applied: pricing.discountApplied,
-      discount_percent: pricing.discountApplied ? pricing.discountPercent : null,
+      discount_applied: discountInfo.discountApplied,
+      discount_percent: discountInfo.discountPercent,
+      expected_total_fee_kobo: paymentRequest.expectedTotalFeeKobo,
+      payment_plan: paymentRequest.paymentPlan,
     })
 
     if (insertErr) {
-      if (isMissingRelationError(insertErr, 'payments') || isMissingColumnError(insertErr, 'amount_kobo')) {
+      if (
+        isMissingRelationError(insertErr, 'payments') ||
+        isMissingColumnError(insertErr, 'amount_kobo') ||
+        isMissingColumnError(insertErr, 'expected_total_fee_kobo') ||
+        isMissingColumnError(insertErr, 'payment_plan')
+      ) {
         return NextResponse.json({ error: missingPaymentsSchemaMessage() }, { status: 500 })
       }
       return NextResponse.json({ error: `Failed to create payment record: ${insertErr.message}` }, { status: 500 })
@@ -162,7 +221,7 @@ export async function POST(request: NextRequest) {
     try {
       const init = await paystackInitializeTransaction({
         email: payEmail,
-        amountKobo: pricing.amountKobo,
+        amountKobo: paymentRequest.amountKobo,
         currency: HELP_FOUNDATIONAL_COURSE.currency,
         reference,
         callbackUrl,
@@ -170,9 +229,12 @@ export async function POST(request: NextRequest) {
           purpose: 'HELP_FOUNDATIONAL_COURSE',
           studentId,
           applicantId,
-          discountApplied: pricing.discountApplied,
-          discountPercent: pricing.discountPercent,
-          todayLagos: pricing.todayLagos,
+          discountApplied: discountInfo.discountApplied,
+          discountPercent: discountInfo.discountPercent ?? HELP_FOUNDATIONAL_COURSE.earlyBirdDiscountPercent,
+          paymentOption: paymentRequest.paymentPlan,
+          amountPaidBeforeKobo: amountPaidKobo,
+          balanceAfterKobo: Math.max(0, paymentRequest.expectedTotalFeeKobo - amountPaidKobo - paymentRequest.amountKobo),
+          expectedTotalFeeKobo: paymentRequest.expectedTotalFeeKobo,
         },
       })
 
@@ -181,22 +243,38 @@ export async function POST(request: NextRequest) {
         .update({ raw_paystack_response: init.raw })
         .eq('reference', reference)
 
-      const recipientEmail = applicant?.email && String(applicant.email).trim() && !String(applicant.email).startsWith('noemail+')
-        ? String(applicant.email).trim()
-        : null
+      const recipientEmail =
+        applicant?.email &&
+        String(applicant.email).trim() &&
+        !String(applicant.email).startsWith('noemail+')
+          ? String(applicant.email).trim()
+          : null
+
       if (applicantId && recipientEmail && init.authorizationUrl) {
         const subject = `${PROGRAM_FULL_NAME}: your payment link`
+        const paymentLabel =
+          paymentRequest.paymentPlan === 'HALF'
+            ? 'first installment'
+            : paymentRequest.paymentPlan === 'BALANCE'
+              ? 'outstanding balance'
+              : 'full payment'
         const body = [
           applicant?.full_name_certificate ? `Hello ${applicant.full_name_certificate},` : 'Hello,',
           '',
           `Your matric number: ${student?.matric_number ?? '—'}.`,
-          `Amount to pay: NGN ${pricing.amountNgn.toLocaleString()}.`,
+          `This link is for your ${paymentLabel}: NGN ${(paymentRequest.amountKobo / 100).toLocaleString()}.`,
+          `Total course fee on your record: NGN ${(paymentRequest.expectedTotalFeeKobo / 100).toLocaleString()}.`,
+          amountPaidKobo > 0 ? `Amount already paid: NGN ${(amountPaidKobo / 100).toLocaleString()}.` : null,
           '',
           'Pay securely here:',
           init.authorizationUrl,
           '',
+          paymentRequest.paymentPlan !== 'FULL'
+            ? 'Note: your certificate will only be released after the full course fee is paid.'
+            : null,
           'If you have any questions, contact admissions.',
-        ].join('\n')
+        ].filter(Boolean).join('\n')
+
         const { data: outboxRow } = await admin.from('email_outbox').insert({
           recipient_email: recipientEmail,
           applicant_id: applicantId,
@@ -205,6 +283,7 @@ export async function POST(request: NextRequest) {
           subject,
           body,
         }).select('id').maybeSingle()
+
         const sendResult = await sendEmail({ to: recipientEmail, subject, body, outboxId: outboxRow?.id })
         if (!sendResult.ok) {
           console.warn('[paystack/initialize] Payment link email not sent:', sendResult.error)
@@ -215,21 +294,22 @@ export async function POST(request: NextRequest) {
         ok: true,
         courseTitle: HELP_FOUNDATIONAL_COURSE.title,
         currency: HELP_FOUNDATIONAL_COURSE.currency,
-        baseFeeNgn: pricing.baseFeeNgn,
-        discountApplied: pricing.discountApplied,
-        discountPercent: pricing.discountPercent,
-        amountNgn: pricing.amountNgn,
-        amountKobo: pricing.amountKobo,
-        pricingPhase: pricing.phase,
-        earlyBirdClosesDate: HELP_FOUNDATIONAL_COURSE.earlyBirdClosesDate,
-        earlyBirdClosesLabel: HELP_FOUNDATIONAL_COURSE.earlyBirdClosesLabel,
-        registrationClosesDate: HELP_FOUNDATIONAL_COURSE.registrationClosesDate,
-        registrationClosesLabel: HELP_FOUNDATIONAL_COURSE.registrationClosesLabel,
-        classBeginsDate: HELP_FOUNDATIONAL_COURSE.classBeginsDate,
-        classBeginsLabel: HELP_FOUNDATIONAL_COURSE.classBeginsLabel,
+        totalFeeNgn: paymentRequest.expectedTotalFeeKobo / 100,
+        totalFeeKobo: paymentRequest.expectedTotalFeeKobo,
+        amountNgn: paymentRequest.amountKobo / 100,
+        amountKobo: paymentRequest.amountKobo,
+        amountPaidNgn: amountPaidKobo / 100,
+        amountPaidKobo,
+        balanceDueNgn: Math.max(0, paymentRequest.expectedTotalFeeKobo - amountPaidKobo) / 100,
+        balanceDueKobo: Math.max(0, paymentRequest.expectedTotalFeeKobo - amountPaidKobo),
+        discountApplied: discountInfo.discountApplied,
+        discountPercent: discountInfo.discountPercent,
+        paymentOption: paymentRequest.paymentPlan,
+        paymentStatus: amountPaidKobo > 0 ? 'PARTIAL' : 'UNPAID',
         reference,
         authorizationUrl: init.authorizationUrl,
         accessCode: init.accessCode,
+        halfAmountNgn: getHalfPaymentAmountKobo(paymentRequest.expectedTotalFeeKobo) / 100,
       })
     } catch (error: any) {
       await admin
@@ -238,10 +318,14 @@ export async function POST(request: NextRequest) {
           status: 'FAILED',
           raw_paystack_response: {
             error: error?.message || 'Paystack initialize failed',
-            raw: (error as any)?.raw ?? null,
+            raw: error?.raw ?? null,
           },
         })
         .eq('reference', reference)
+
+      if (studentId) {
+        await syncStudentPaymentState(admin, studentId).catch(() => null)
+      }
 
       return NextResponse.json({ error: error?.message || 'Failed to initialize payment' }, { status: 502 })
     }

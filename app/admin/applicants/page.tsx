@@ -17,13 +17,23 @@ type Applicant = {
   created_at: string
 }
 
+type PaymentOption = 'FULL' | 'HALF' | 'BALANCE'
+type StudentPaymentStatus = 'UNPAID' | 'PARTIAL' | 'FULL'
+
 type ProcessedDetails = {
   applicantId: string
   studentId: string | null
   matricNumber: string | null
   isPaid: boolean
+  isFullyPaid: boolean
   paidAt: string | null
+  fullPaidAt: string | null
+  paymentStatus: StudentPaymentStatus
+  amountPaidNgn: number
+  balanceDueNgn: number | null
+  expectedTotalFeeNgn: number | null
   latestPaymentStatus: string | null
+  latestPaymentPlan: PaymentOption | null
   paymentAuthorizationUrl: string | null
   paymentReference: string | null
   paymentAmountNgn: number | null
@@ -85,6 +95,37 @@ function formatSubmissionValue(value: unknown) {
   if (typeof value === 'boolean') return value ? 'Yes' : 'No'
   const text = String(value).trim()
   return text.length > 0 ? text : '-'
+}
+
+function normalizePaymentStatus(value: unknown, fallbackIsPaid: boolean): StudentPaymentStatus {
+  const normalized = String(value ?? '').trim().toUpperCase()
+  if (normalized === 'FULL' || normalized === 'PARTIAL' || normalized === 'UNPAID') {
+    return normalized
+  }
+  return fallbackIsPaid ? 'PARTIAL' : 'UNPAID'
+}
+
+function paymentStatusClasses(status: StudentPaymentStatus) {
+  if (status === 'FULL') return 'font-semibold text-green-700'
+  if (status === 'PARTIAL') return 'font-semibold text-amber-700'
+  return 'font-semibold text-slate-600'
+}
+
+function paymentStatusLabel(status: StudentPaymentStatus) {
+  if (status === 'FULL') return 'FULLY PAID'
+  if (status === 'PARTIAL') return 'PARTIAL PAYMENT'
+  return 'UNPAID'
+}
+
+function paymentOptionLabel(option: PaymentOption) {
+  if (option === 'HALF') return 'half payment'
+  if (option === 'BALANCE') return 'balance payment'
+  return 'full payment'
+}
+
+function formatMoney(value: number | null) {
+  if (value === null || !Number.isFinite(value)) return 'NGN 0'
+  return `NGN ${value.toLocaleString()}`
 }
 
 export default function ApplicantsPage() {
@@ -161,40 +202,10 @@ export default function ApplicantsPage() {
         throw new Error(json?.error || 'Failed to approve applicant')
       }
 
-      // Approval and payment-link generation are separate steps.
-      // If payment link generation fails, keep approval success visible.
-      try {
-        const payRes = await fetch('/api/paystack/initialize', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ applicantId }),
-        })
-        const payJson = await payRes.json()
-        if (!payRes.ok) {
-          throw new Error(payJson?.error || 'Failed to generate payment link')
-        }
-
-        const fullPaymentUrl = toAbsoluteUrl(payJson.authorizationUrl)
-
-        try {
-          await navigator.clipboard.writeText(fullPaymentUrl)
-          toast({
-            title: 'Approved',
-            description: `Matric: ${json.matricNumber}. Paystack payment link copied. Amount: NGN ${Number(payJson.amountNgn).toLocaleString()}`,
-          })
-        } catch {
-          toast({
-            title: 'Approved',
-            description: `Matric: ${json.matricNumber}. Payment link: ${fullPaymentUrl}`,
-          })
-        }
-      } catch (paymentError: any) {
-        toast({
-          variant: 'destructive',
-          title: 'Approved, but payment link failed',
-          description: paymentError?.message || 'Generate the Paystack link from the processed applicant panel.',
-        })
-      }
+      toast({
+        title: 'Approved',
+        description: `Matric: ${json.matricNumber}. Open the processed applicant to issue a half or full payment link.`,
+      })
 
       await load()
     } catch (e: any) {
@@ -289,8 +300,21 @@ export default function ApplicantsPage() {
         studentId: json.student?.id ?? null,
         matricNumber: json.student?.matricNumber ?? null,
         isPaid: Boolean(json.student?.isPaid),
+        isFullyPaid: Boolean(json.student?.isFullyPaid),
         paidAt: json.student?.paidAt ?? null,
+        fullPaidAt: json.student?.fullPaidAt ?? null,
+        paymentStatus: normalizePaymentStatus(json.student?.paymentStatus, Boolean(json.student?.isPaid)),
+        amountPaidNgn: Number.isFinite(Number(json.student?.amountPaidKobo))
+          ? Number(json.student.amountPaidKobo) / 100
+          : 0,
+        balanceDueNgn: Number.isFinite(Number(json.student?.balanceDueKobo))
+          ? Number(json.student.balanceDueKobo) / 100
+          : null,
+        expectedTotalFeeNgn: Number.isFinite(Number(json.student?.expectedTotalFeeKobo))
+          ? Number(json.student.expectedTotalFeeKobo) / 100
+          : null,
         latestPaymentStatus: json.latestPayment?.status ?? null,
+        latestPaymentPlan: json.latestPayment?.paymentPlan ?? null,
         paymentAuthorizationUrl: null,
         paymentReference: json.latestPayment?.reference ?? null,
         paymentAmountNgn: Number.isFinite(Number(json.latestPayment?.amountKobo))
@@ -309,8 +333,15 @@ export default function ApplicantsPage() {
         studentId: null,
         matricNumber: null,
         isPaid: false,
+        isFullyPaid: false,
         paidAt: null,
+        fullPaidAt: null,
+        paymentStatus: 'UNPAID',
+        amountPaidNgn: 0,
+        balanceDueNgn: null,
+        expectedTotalFeeNgn: null,
         latestPaymentStatus: null,
+        latestPaymentPlan: null,
         paymentAuthorizationUrl: null,
         paymentReference: null,
         paymentAmountNgn: null,
@@ -347,8 +378,21 @@ export default function ApplicantsPage() {
         studentId: json.student?.id ?? null,
         matricNumber: json.student?.matricNumber ?? null,
         isPaid: Boolean(json.student?.isPaid),
+        isFullyPaid: Boolean(json.student?.isFullyPaid),
         paidAt: json.student?.paidAt ?? null,
+        fullPaidAt: json.student?.fullPaidAt ?? null,
+        paymentStatus: normalizePaymentStatus(json.student?.paymentStatus, Boolean(json.student?.isPaid)),
+        amountPaidNgn: Number.isFinite(Number(json.student?.amountPaidKobo))
+          ? Number(json.student.amountPaidKobo) / 100
+          : prev.amountPaidNgn,
+        balanceDueNgn: Number.isFinite(Number(json.student?.balanceDueKobo))
+          ? Number(json.student.balanceDueKobo) / 100
+          : prev.balanceDueNgn,
+        expectedTotalFeeNgn: Number.isFinite(Number(json.student?.expectedTotalFeeKobo))
+          ? Number(json.student.expectedTotalFeeKobo) / 100
+          : prev.expectedTotalFeeNgn,
         latestPaymentStatus: json.latestPayment?.status ?? null,
+        latestPaymentPlan: json.latestPayment?.paymentPlan ?? prev.latestPaymentPlan,
         paymentReference: json.latestPayment?.reference ?? prev.paymentReference,
         paymentAmountNgn: Number.isFinite(Number(json.latestPayment?.amountKobo))
           ? Number(json.latestPayment.amountKobo) / 100
@@ -395,13 +439,13 @@ export default function ApplicantsPage() {
     }
   }
 
-  async function generatePaymentLink(applicantId: string) {
+  async function generatePaymentLink(applicantId: string, paymentOption: PaymentOption) {
     setBusyId(applicantId)
     try {
       const res = await fetch('/api/paystack/initialize', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ applicantId }),
+        body: JSON.stringify({ applicantId, paymentOption }),
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json?.error || 'Failed to generate payment link')
@@ -415,6 +459,7 @@ export default function ApplicantsPage() {
               paymentAuthorizationUrl: fullPaymentUrl,
               paymentReference: json.reference ?? null,
               paymentAmountNgn: Number.isFinite(Number(json.amountNgn)) ? Number(json.amountNgn) : null,
+              latestPaymentPlan: json.paymentOption ?? paymentOption,
               discountApplied: typeof json.discountApplied === 'boolean' ? json.discountApplied : null,
               discountPercent: Number.isFinite(Number(json.discountPercent)) ? Number(json.discountPercent) : null,
             }
@@ -425,7 +470,7 @@ export default function ApplicantsPage() {
         await navigator.clipboard.writeText(fullPaymentUrl)
         toast({
           title: 'Payment link ready',
-          description: `Paystack payment link copied. Amount: NGN ${Number(json.amountNgn).toLocaleString()}`,
+          description: `${paymentOptionLabel(json.paymentOption ?? paymentOption)} link copied. Amount: NGN ${Number(json.amountNgn).toLocaleString()}`,
         })
       } catch {
         toast({ title: 'Payment link ready', description: fullPaymentUrl })
@@ -459,22 +504,30 @@ export default function ApplicantsPage() {
     }
   }
 
-  async function markManuallyPaid(applicantId: string) {
-    if (!confirm('Mark this student as manually paid? This bypasses Paystack and should only be used for confirmed bank transfers.')) return
+  async function markManuallyPaid(applicantId: string, paymentOption: PaymentOption) {
+    const confirmationLabel =
+      paymentOption === 'HALF'
+        ? 'Mark this student as having paid the first installment manually?'
+        : paymentOption === 'BALANCE'
+          ? 'Mark this student as having paid the outstanding balance manually?'
+          : 'Mark this student as manually paid in full?'
+
+    if (!confirm(`${confirmationLabel} This bypasses Paystack and should only be used for confirmed bank transfers.`)) return
+
     setBusyId(applicantId)
     try {
       const res = await fetch('/api/admin/applicants/mark-paid', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ applicantId }),
+        body: JSON.stringify({ applicantId, paymentOption }),
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json?.error || 'Failed to mark as paid')
 
       const desc = json?.setPasswordUrl
-        ? 'Payment verified and set-password link sent to student email.'
-        : 'Student payment has been manually verified.'
-      toast({ title: 'Marked as paid', description: desc })
+        ? `${paymentOptionLabel(json?.paymentOption ?? paymentOption)} recorded and set-password link sent to student email.`
+        : `${paymentOptionLabel(json?.paymentOption ?? paymentOption)} recorded successfully.`
+      toast({ title: 'Payment recorded', description: desc })
       await refreshProcessedDetails(applicantId)
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Failed', description: e?.message || 'Error' })
@@ -585,7 +638,7 @@ export default function ApplicantsPage() {
         <div>
         <h1 className="text-xl font-semibold text-slate-900">Applicants</h1>
         <p className="text-sm text-slate-600">
-          Review applications, approve to generate a matric number + set-password link.
+          Review applications, approve to generate a matric number, then manage half/full payment from the processed panel.
         </p>
         </div>
         <Button variant="outline" size="sm" asChild>
@@ -744,70 +797,151 @@ export default function ApplicantsPage() {
                             </p>
                             <p>
                               Payment status:{' '}
-                              <span
-                                className={processedDetails.isPaid ? 'font-semibold text-green-700' : 'font-semibold text-amber-700'}
-                              >
-                                {processedDetails.isPaid ? 'PAID' : 'UNPAID'}
+                              <span className={paymentStatusClasses(processedDetails.paymentStatus)}>
+                                {paymentStatusLabel(processedDetails.paymentStatus)}
                               </span>
-                              {processedDetails.paidAt ? ` (paid at ${new Date(processedDetails.paidAt).toLocaleString()})` : ''}
+                              {processedDetails.paidAt
+                                ? ` (access granted ${new Date(processedDetails.paidAt).toLocaleString()})`
+                                : ''}
+                              {processedDetails.fullPaidAt
+                                ? ` (fully paid ${new Date(processedDetails.fullPaidAt).toLocaleString()})`
+                                : ''}
                             </p>
+                            {processedDetails.expectedTotalFeeNgn !== null && (
+                              <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+                                <div className="rounded-md border border-slate-200 bg-white p-2">
+                                  <div className="text-[11px] uppercase tracking-wide text-slate-500">Total fee</div>
+                                  <div className="text-sm font-semibold text-slate-900">
+                                    {formatMoney(processedDetails.expectedTotalFeeNgn)}
+                                  </div>
+                                </div>
+                                <div className="rounded-md border border-slate-200 bg-white p-2">
+                                  <div className="text-[11px] uppercase tracking-wide text-slate-500">Amount paid</div>
+                                  <div className="text-sm font-semibold text-slate-900">
+                                    {formatMoney(processedDetails.amountPaidNgn)}
+                                  </div>
+                                </div>
+                                <div className="rounded-md border border-slate-200 bg-white p-2">
+                                  <div className="text-[11px] uppercase tracking-wide text-slate-500">Balance due</div>
+                                  <div className="text-sm font-semibold text-slate-900">
+                                    {formatMoney(processedDetails.balanceDueNgn)}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
 
-                            {!processedDetails.isPaid ? (
-                              <>
-                                <p className="text-slate-600">
-                                  Set-password link can be issued only after payment is verified.
-                                </p>
-                                {processedDetails.paymentReference && (
-                                  <p className="break-all">
-                                    Latest payment: <span className="font-mono">{processedDetails.paymentReference}</span>
-                                    {processedDetails.latestPaymentStatus ? ` (${processedDetails.latestPaymentStatus})` : ''}
-                                    {processedDetails.paymentAmountNgn ? ` - NGN ${processedDetails.paymentAmountNgn.toLocaleString()}` : ''}
-                                  </p>
-                                )}
-                                {processedDetails.paymentAuthorizationUrl && (
-                                  <p className="break-all">
-                                    Payment link:{' '}
-                                    <a
-                                      href={processedDetails.paymentAuthorizationUrl}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className="text-teal-700 hover:underline"
-                                    >
-                                      {processedDetails.paymentAuthorizationUrl}
-                                    </a>
-                                  </p>
-                                )}
-                                <div className="flex flex-wrap items-center gap-2">
+                            {processedDetails.paymentReference && (
+                              <p className="break-all">
+                                Latest payment: <span className="font-mono">{processedDetails.paymentReference}</span>
+                                {processedDetails.latestPaymentPlan ? ` (${paymentOptionLabel(processedDetails.latestPaymentPlan)})` : ''}
+                                {processedDetails.latestPaymentStatus ? ` - ${processedDetails.latestPaymentStatus}` : ''}
+                                {processedDetails.paymentAmountNgn ? ` - ${formatMoney(processedDetails.paymentAmountNgn)}` : ''}
+                              </p>
+                            )}
+
+                            {processedDetails.paymentAuthorizationUrl && (
+                              <p className="break-all">
+                                Payment link:{' '}
+                                <a
+                                  href={processedDetails.paymentAuthorizationUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-teal-700 hover:underline"
+                                >
+                                  {processedDetails.paymentAuthorizationUrl}
+                                </a>
+                              </p>
+                            )}
+
+                            {processedDetails.paymentStatus === 'UNPAID' && (
+                              <p className="text-slate-600">
+                                Set-password link can be issued only after the first payment is verified.
+                              </p>
+                            )}
+                            {processedDetails.paymentStatus === 'PARTIAL' && (
+                              <p className="text-amber-700">
+                                Student can access training after the first payment, but the outstanding balance must be paid before certificate release.
+                              </p>
+                            )}
+                            {processedDetails.paymentStatus === 'FULL' && (
+                              <p className="text-green-700">
+                                Full payment recorded. Certificate payment requirement is satisfied.
+                              </p>
+                            )}
+
+                            <div className="flex flex-wrap items-center gap-2">
+                              {processedDetails.paymentStatus === 'UNPAID' && (
+                                <>
                                   <Button
                                     size="sm"
                                     variant="outline"
                                     disabled={busyId === a.id}
-                                    onClick={() => generatePaymentLink(a.id)}
+                                    onClick={() => generatePaymentLink(a.id, 'HALF')}
                                   >
-                                    {busyId === a.id ? 'Working...' : 'Generate Paystack payment link'}
+                                    {busyId === a.id ? 'Working...' : 'Generate half payment link'}
                                   </Button>
-                                  {processedDetails.paymentReference && (
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      disabled={busyId === a.id}
-                                      onClick={() => verifyLatestPayment(a.id, processedDetails.paymentReference!)}
-                                    >
-                                      {busyId === a.id ? 'Working...' : 'Verify payment'}
-                                    </Button>
-                                  )}
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={busyId === a.id}
+                                    onClick={() => generatePaymentLink(a.id, 'FULL')}
+                                  >
+                                    {busyId === a.id ? 'Working...' : 'Generate full payment link'}
+                                  </Button>
                                   <Button
                                     size="sm"
                                     variant="outline"
                                     disabled={busyId === a.id}
                                     className="border-amber-400 text-amber-700 hover:bg-amber-50"
-                                    onClick={() => markManuallyPaid(a.id)}
+                                    onClick={() => markManuallyPaid(a.id, 'HALF')}
                                   >
-                                    {busyId === a.id ? 'Working...' : 'Mark as manually paid'}
+                                    {busyId === a.id ? 'Working...' : 'Record half payment manually'}
                                   </Button>
-                                </div>
-                              </>
-                            ) : (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={busyId === a.id}
+                                    className="border-amber-400 text-amber-700 hover:bg-amber-50"
+                                    onClick={() => markManuallyPaid(a.id, 'FULL')}
+                                  >
+                                    {busyId === a.id ? 'Working...' : 'Record full payment manually'}
+                                  </Button>
+                                </>
+                              )}
+                              {processedDetails.paymentStatus === 'PARTIAL' && (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={busyId === a.id}
+                                    onClick={() => generatePaymentLink(a.id, 'BALANCE')}
+                                  >
+                                    {busyId === a.id ? 'Working...' : 'Generate balance payment link'}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={busyId === a.id}
+                                    className="border-amber-400 text-amber-700 hover:bg-amber-50"
+                                    onClick={() => markManuallyPaid(a.id, 'BALANCE')}
+                                  >
+                                    {busyId === a.id ? 'Working...' : 'Record balance payment manually'}
+                                  </Button>
+                                </>
+                              )}
+                              {processedDetails.paymentReference && processedDetails.latestPaymentStatus !== 'SUCCESS' && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={busyId === a.id}
+                                  onClick={() => verifyLatestPayment(a.id, processedDetails.paymentReference!)}
+                                >
+                                  {busyId === a.id ? 'Working...' : 'Verify latest payment'}
+                                </Button>
+                              )}
+                            </div>
+
+                            {processedDetails.isPaid ? (
                               <>
                                 {processedDetails.setPasswordUrl && (
                                   <>
@@ -846,26 +980,27 @@ export default function ApplicantsPage() {
                                     </Button>
                                   )}
                                 </div>
-                                {processedDetails.studentId && (
-                                  <div className="pt-2 border-t border-slate-100">
-                                    <p className="text-xs font-medium text-slate-500 mb-2">Unlock weeks manually</p>
-                                    <div className="flex flex-wrap gap-1.5">
-                                      {[1,2,3,4,5,6,7,8,9].map((week) => (
-                                        <Button
-                                          key={week}
-                                          size="sm"
-                                          variant="outline"
-                                          disabled={busyId === processedDetails.studentId}
-                                          className="text-xs h-7 px-2 border-slate-300"
-                                          onClick={() => unlockWeek(processedDetails.studentId!, week)}
-                                        >
-                                          Week {week}
-                                        </Button>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
                               </>
+                            ) : null}
+
+                            {processedDetails.studentId && (
+                              <div className="pt-2 border-t border-slate-100">
+                                <p className="text-xs font-medium text-slate-500 mb-2">Unlock weeks manually</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((week) => (
+                                    <Button
+                                      key={week}
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={busyId === processedDetails.studentId}
+                                      className="text-xs h-7 px-2 border-slate-300"
+                                      onClick={() => unlockWeek(processedDetails.studentId!, week)}
+                                    >
+                                      Week {week}
+                                    </Button>
+                                  ))}
+                                </div>
+                              </div>
                             )}
                           </>
                         )}

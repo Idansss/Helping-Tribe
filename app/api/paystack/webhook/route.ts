@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { syncStudentPaymentState } from '@/lib/payments/student-status'
 import { paystackVerifyTransaction, verifyPaystackWebhookSignature } from '@/lib/paystack/server'
 import { applyPaystackVerification } from '@/lib/paystack/apply'
 
@@ -72,11 +73,9 @@ export async function POST(request: NextRequest) {
         })
         .eq('id', payment.id)
     },
-    markStudentPaid: async (paidAt) => {
-      await admin
-        .from('students')
-        .update({ is_paid: true, paid_at: paidAt, updated_at: new Date().toISOString() })
-        .eq('id', payment.student_id)
+    syncStudentPaymentState: async () => {
+      if (!payment.student_id) return null
+      return syncStudentPaymentState(admin, payment.student_id)
     },
   })
 
