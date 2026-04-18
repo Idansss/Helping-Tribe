@@ -28,6 +28,70 @@ interface ProfileRow {
   email: string | null
 }
 
+/** Split journal text on markdown-style horizontal rules (full line of ---, ***, or ___). */
+function splitJournalSections(raw: string): string[] {
+  return raw.split(/\r?\n\s*[-*_]{3,}\s*\r?\n/)
+}
+
+/** Turn `**bold**` segments into <strong>; leave everything else as text. */
+function formatInlineBold(text: string): React.ReactNode {
+  const nodes: React.ReactNode[] = []
+  const re = /\*\*(.+?)\*\*/g
+  let last = 0
+  let m: RegExpExecArray | null
+  let key = 0
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) {
+      nodes.push(<span key={key++}>{text.slice(last, m.index)}</span>)
+    }
+    nodes.push(
+      <strong key={key++} className="font-semibold text-slate-900">
+        {m[1]}
+      </strong>
+    )
+    last = m.index + m[0].length
+  }
+  if (last < text.length) {
+    nodes.push(<span key={key++}>{text.slice(last)}</span>)
+  }
+  return nodes.length > 0 ? nodes : text
+}
+
+function JournalReflectionBody({ content }: { content: string }) {
+  const trimmed = content.trim()
+  if (!trimmed) {
+    return <span className="text-slate-400">—</span>
+  }
+  const sections = splitJournalSections(trimmed).map((s) => s.trim()).filter(Boolean)
+
+  return (
+    <div className="space-y-6">
+      {sections.map((section, si) => {
+        const paragraphs = section.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)
+        return (
+          <React.Fragment key={si}>
+            {si > 0 && <hr className="border-slate-200" />}
+            <div className="space-y-4">
+              {paragraphs.map((para, pi) => (
+                <div
+                  key={pi}
+                  className="text-sm leading-relaxed text-slate-700 [&_strong]:text-slate-900"
+                >
+                  {para.split('\n').map((line, li) => (
+                    <span key={li} className="block min-h-[1.25em]">
+                      {formatInlineBold(line)}
+                    </span>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </React.Fragment>
+        )
+      })}
+    </div>
+  )
+}
+
 export default function AdminJournalsPage() {
   const supabase = createClient()
   const [entries, setEntries] = React.useState<JournalEntry[]>([])
@@ -156,8 +220,8 @@ export default function AdminJournalsPage() {
                         <FileText className="h-3.5 w-3.5" />
                         Reflection
                       </div>
-                      <div className="text-sm text-slate-700 whitespace-pre-wrap rounded-md border bg-white p-4 max-h-80 overflow-y-auto">
-                        {entry.content || '—'}
+                      <div className="rounded-md border border-slate-200 bg-white p-4 max-h-80 overflow-y-auto shadow-sm">
+                        <JournalReflectionBody content={entry.content || ''} />
                       </div>
                     </div>
                   )}
