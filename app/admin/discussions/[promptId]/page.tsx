@@ -56,15 +56,26 @@ export default function AdminDiscussionResponsesPage() {
           .eq('id', promptId)
           .maybeSingle()
         if (promptErr) throw promptErr
-        const normalizedPrompt = promptData
+        let normalizedModule: Prompt['module'] = null
+        if (promptData) {
+          const rawModule = (promptData as unknown as { module?: unknown }).module
+          if (Array.isArray(rawModule)) {
+            const first = (rawModule as { week_number: number; title: string }[])[0]
+            normalizedModule = first ?? null
+          } else if (rawModule && typeof rawModule === 'object') {
+            normalizedModule = rawModule as { week_number: number; title: string }
+          }
+        }
+        const normalizedPrompt: Prompt | null = promptData
           ? {
-              ...promptData,
-              module: Array.isArray((promptData as { module?: unknown }).module)
-                ? ((promptData as { module?: { week_number: number; title: string }[] }).module?.[0] ?? null)
-                : ((promptData as { module?: { week_number: number; title: string } | null }).module ?? null),
+              id: (promptData as { id: string }).id,
+              module_id: (promptData as { module_id: string }).module_id,
+              prompt_text: (promptData as { prompt_text: string }).prompt_text,
+              posted_at: (promptData as { posted_at: string }).posted_at,
+              module: normalizedModule,
             }
           : null
-        setPrompt(normalizedPrompt as Prompt | null)
+        setPrompt(normalizedPrompt)
 
         const { data: responseData, error: respErr } = await supabase
           .from('discussion_responses')
