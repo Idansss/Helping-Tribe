@@ -323,8 +323,8 @@ export default function AdminDiscussionsPage() {
                           <Trash2 className="h-4 w-4" aria-hidden="true" />
                         </Button>
                         <Button variant="outline" size="sm" asChild>
-                          <Link href={`/learner/discussions/${row.module_id}`} target="_blank" rel="noopener noreferrer">
-                            View
+                          <Link href={`/admin/discussions/${row.id}`}>
+                            View responses
                           </Link>
                         </Button>
                       </td>

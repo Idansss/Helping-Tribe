@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { createClient } from '@/lib/supabase/client'
-import { ArrowLeft, Plus, Pencil, Trash2, ListChecks, Loader2 } from 'lucide-react'
+import { ArrowLeft, Plus, Pencil, Trash2, ListChecks, Loader2, Users } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 type QuizRow = {
@@ -320,6 +320,12 @@ export default function AdminQuizzesPage() {
                       <Button variant="ghost" size="sm" className="h-8" onClick={() => openQuestions(row.id)}>
                         <ListChecks className="h-4 w-4 mr-1" aria-hidden="true" />
                         Questions
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-8" asChild>
+                        <Link href={`/admin/quizzes/${row.id}/responses`} className="flex items-center gap-1">
+                          <Users className="h-4 w-4" aria-hidden="true" />
+                          Responses
+                        </Link>
                       </Button>
                       <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEditQuiz(row)} aria-label={`Edit quiz: ${row.title}`}>
                         <Pencil className="h-4 w-4" aria-hidden="true" />
