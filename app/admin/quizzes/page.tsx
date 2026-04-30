@@ -32,6 +32,13 @@ type QuizRow = {
   description: string | null
   published: boolean
   created_at: string
+  module_id: string | null
+}
+
+type ModuleRow = {
+  id: string
+  week_number: number
+  title: string
 }
 
 type QuestionRow = {
@@ -52,6 +59,7 @@ export default function AdminQuizzesPage() {
   const supabase = createClient()
   const { toast } = useToast()
   const [quizzes, setQuizzes] = useState<QuizRow[]>([])
+  const [modules, setModules] = useState<ModuleRow[]>([])
   const [loading, setLoading] = useState(true)
   const [quizDialogOpen, setQuizDialogOpen] = useState(false)
   const [questionsDialogOpen, setQuestionsDialogOpen] = useState(false)
@@ -62,6 +70,7 @@ export default function AdminQuizzesPage() {
   const [quizTitle, setQuizTitle] = useState('')
   const [quizDescription, setQuizDescription] = useState('')
   const [quizPublished, setQuizPublished] = useState(false)
+  const [quizModuleId, setQuizModuleId] = useState<string | null>(null)
   const [savingQuiz, setSavingQuiz] = useState(false)
 
   const [questions, setQuestions] = useState<QuestionRow[]>([])
@@ -83,12 +92,19 @@ export default function AdminQuizzesPage() {
   const loadQuizzes = async () => {
     setLoading(true)
     try {
-      const { data, error } = await supabase
-        .from('quizzes')
-        .select('id, title, description, published, created_at')
-        .order('created_at', { ascending: false })
+      const [{ data: quizData, error }, { data: modData }] = await Promise.all([
+        supabase
+          .from('quizzes')
+          .select('id, title, description, published, created_at, module_id')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('modules')
+          .select('id, week_number, title')
+          .order('week_number', { ascending: true }),
+      ])
       if (error) throw error
-      setQuizzes((data ?? []) as QuizRow[])
+      setQuizzes((quizData ?? []) as QuizRow[])
+      setModules((modData ?? []) as ModuleRow[])
     } catch (e) {
       console.error(e)
       setQuizzes([])
@@ -106,6 +122,7 @@ export default function AdminQuizzesPage() {
     setQuizTitle('')
     setQuizDescription('')
     setQuizPublished(false)
+    setQuizModuleId(null)
     setQuizDialogOpen(true)
   }
 
@@ -114,6 +131,7 @@ export default function AdminQuizzesPage() {
     setQuizTitle(row.title)
     setQuizDescription(row.description ?? '')
     setQuizPublished(row.published)
+    setQuizModuleId(row.module_id)
     setQuizDialogOpen(true)
   }
 
@@ -125,6 +143,7 @@ export default function AdminQuizzesPage() {
         title: quizTitle.trim(),
         description: quizDescription.trim() || null,
         published: quizPublished,
+        module_id: quizModuleId || null,
         updated_at: new Date().toISOString(),
       }
       if (editingQuizId) {
@@ -302,14 +321,23 @@ export default function AdminQuizzesPage() {
               <thead>
                 <tr className="border-b border-slate-200 text-left text-slate-600">
                   <th className="py-3 pl-4 pr-4 align-middle font-medium">Title</th>
+                  <th className="py-3 pr-4 align-middle font-medium">Module</th>
                   <th className="py-3 pr-4 align-middle font-medium">Status</th>
                   <th className="py-3 pr-4 align-middle font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {quizzes.map((row) => (
+                {quizzes.map((row) => {
+                  const linkedModule = modules.find(m => m.id === row.module_id)
+                  return (
                   <tr key={row.id} className="border-b border-slate-100">
                     <td className="py-4 pl-4 pr-4 align-middle font-medium text-slate-900">{row.title}</td>
+                    <td className="py-4 pr-4 align-middle text-sm text-slate-600">
+                      {linkedModule
+                        ? <span className="inline-flex items-center gap-1"><span className="font-medium text-teal-700">Week {linkedModule.week_number}</span> <span className="text-slate-400 hidden sm:inline">— {linkedModule.title}</span></span>
+                        : <span className="text-slate-400 italic">Not linked</span>
+                      }
+                    </td>
                     <td className="py-4 pr-4 align-middle">
                       <Badge variant={row.published ? 'default' : 'secondary'}>
                         {row.published ? 'Published' : 'Draft'}
@@ -336,7 +364,8 @@ export default function AdminQuizzesPage() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -359,6 +388,28 @@ export default function AdminQuizzesPage() {
             <div>
               <Label>Description (optional)</Label>
               <Textarea value={quizDescription} onChange={(e) => setQuizDescription(e.target.value)} placeholder="Brief description for learners" rows={2} className="mt-1" />
+            </div>
+            <div>
+              <Label>Linked module</Label>
+              <Select
+                value={quizModuleId ?? 'none'}
+                onValueChange={(v) => setQuizModuleId(v === 'none' ? null : v)}
+              >
+                <SelectTrigger className="mt-1 w-full">
+                  <SelectValue placeholder="Select a module…" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— Not linked to a module —</SelectItem>
+                  {modules.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      Week {m.week_number} — {m.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-slate-500 mt-1">
+                Linking a module means completing this quiz marks that module done and shows it on the learner's progress.
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <input
