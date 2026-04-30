@@ -140,7 +140,7 @@ export function CoursePlayer({ moduleId }: CoursePlayerProps) {
 
       if (progressError) throw progressError
 
-      // Refresh progress
+      // Refresh local progress state
       const { data: progressData } = await supabase
         .from('user_progress')
         .select('*')
@@ -153,6 +153,29 @@ export function CoursePlayer({ moduleId }: CoursePlayerProps) {
           const filtered = prev.filter(up => up.lesson_id !== currentLesson.id)
           return [...filtered, progressData as UserProgress]
         })
+      }
+
+      // Mark module complete if all lessons are now done
+      const allLessonIds = lessons.map(l => l.id)
+      if (allLessonIds.length > 0) {
+        const { data: completedRows } = await supabase
+          .from('user_progress')
+          .select('lesson_id')
+          .eq('user_id', user.id)
+          .eq('module_id', module.id)
+          .eq('is_completed', true)
+
+        const completedSet = new Set(completedRows?.map(r => r.lesson_id) ?? [])
+        completedSet.add(currentLesson.id)
+
+        if (allLessonIds.every(id => completedSet.has(id))) {
+          await supabase
+            .from('module_progress')
+            .upsert(
+              { user_id: user.id, module_id: module.id, is_completed: true, completed_at: new Date().toISOString() },
+              { onConflict: 'user_id,module_id' }
+            )
+        }
       }
 
       reset()

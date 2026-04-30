@@ -88,16 +88,37 @@ export function DashboardContent() {
       if (modData?.length) {
         const { data: progressData } = await supabase
           .from('module_progress')
-          .select('module_id, progress, completed')
+          .select('module_id, is_completed')
           .eq('user_id', user.id)
 
-        if (progressData?.length) {
-          const completed = progressData.filter((p: { completed: boolean }) => p.completed).length
-          const inProgress = progressData.find((p: { completed: boolean }) => !p.completed) as { progress?: number } | undefined
-          setCompletedModulesCount(completed)
-          setCurrentWeek(Math.min(completed + 1, 9))
-          setModuleProgress(completed >= (modData?.length ?? 9) ? 100 : (inProgress?.progress ?? 0))
-          setHasStats(completed > 0 || (inProgress?.progress ?? 0) > 0)
+        const completedCount = progressData?.filter((p: { is_completed: boolean }) => p.is_completed).length ?? 0
+        setCompletedModulesCount(completedCount)
+        const weekNum = Math.min(completedCount + 1, 9)
+        setCurrentWeek(weekNum)
+        setHasStats(completedCount > 0)
+
+        // Compute partial lesson progress within the current (in-progress) module
+        const currentModule = modData.find(m => m.week_number === weekNum)
+        if (currentModule && completedCount < (modData.length ?? 9)) {
+          const { data: lessonIds } = await supabase
+            .from('lessons')
+            .select('id')
+            .eq('module_id', currentModule.id)
+
+          if (lessonIds?.length) {
+            const { data: lessonProgress } = await supabase
+              .from('user_progress')
+              .select('lesson_id, is_completed')
+              .eq('user_id', user.id)
+              .in('lesson_id', lessonIds.map((l: { id: string }) => l.id))
+
+            const completedLessons = lessonProgress?.filter((lp: { is_completed: boolean }) => lp.is_completed).length ?? 0
+            const pct = Math.round((completedLessons / lessonIds.length) * 100)
+            setModuleProgress(pct)
+            if (pct > 0) setHasStats(true)
+          }
+        } else if (completedCount >= (modData.length ?? 9)) {
+          setModuleProgress(100)
         }
       }
 
