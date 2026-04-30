@@ -124,6 +124,42 @@ export function CoursePlayer({ moduleId }: CoursePlayerProps) {
     loadData()
   }, [moduleId, supabase])
 
+  // Re-check journal + module completion whenever the learner switches back to this tab
+  // (e.g. after writing their journal in another tab)
+  useEffect(() => {
+    async function refreshCompletion() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        const [{ data: mp }, { data: jd }] = await Promise.all([
+          supabase
+            .from('module_progress')
+            .select('is_completed, quiz_passed, quiz_completed_at')
+            .eq('user_id', user.id)
+            .eq('module_id', moduleId)
+            .maybeSingle(),
+          supabase
+            .from('learning_journals')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('module_id', moduleId)
+            .maybeSingle(),
+        ])
+        const progress = mp as any
+        setIsModuleComplete(!!progress?.is_completed)
+        setQuizPassed(!!progress?.quiz_passed)
+        setQuizCompleted(!!progress?.quiz_completed_at || !!progress?.quiz_passed)
+        setHasJournal(!!jd)
+      } catch (_) {}
+    }
+
+    const handleVisibility = () => {
+      if (!document.hidden) refreshCompletion()
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+  }, [moduleId, supabase])
+
   const currentLesson = lessons[currentLessonIndex]
   const currentProgress = currentLesson
     ? userProgress.find(up => up.lesson_id === currentLesson.id)
