@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { ChevronLeft, ChevronRight, Lock, CheckCircle2, Play, Volume2, FileText } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Lock, CheckCircle2, Play, Volume2, FileText, ClipboardList, Award } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Module, Lesson, UserProgress } from '@/types'
@@ -31,6 +31,9 @@ export function CoursePlayer({ moduleId }: CoursePlayerProps) {
   const [userProgress, setUserProgress] = useState<UserProgress[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [moduleQuiz, setModuleQuiz] = useState<{ id: string; title: string } | null>(null)
+  const [isModuleComplete, setIsModuleComplete] = useState(false)
+  const [quizPassed, setQuizPassed] = useState(false)
   const supabase = createClient()
 
   const {
@@ -81,6 +84,25 @@ export function CoursePlayer({ moduleId }: CoursePlayerProps) {
         if (progressData) {
           setUserProgress(progressData as UserProgress[])
         }
+
+        // Load quiz and completion status for this module
+        const [{ data: quizData }, { data: modProgress }] = await Promise.all([
+          supabase
+            .from('quizzes')
+            .select('id, title')
+            .eq('module_id', moduleId)
+            .eq('published', true)
+            .maybeSingle(),
+          supabase
+            .from('module_progress')
+            .select('is_completed, quiz_passed')
+            .eq('user_id', user.id)
+            .eq('module_id', moduleId)
+            .maybeSingle(),
+        ])
+        if (quizData) setModuleQuiz(quizData as { id: string; title: string })
+        if ((modProgress as any)?.is_completed) setIsModuleComplete(true)
+        if ((modProgress as any)?.quiz_passed) setQuizPassed(true)
       } catch (error) {
         console.error('Error loading course data:', error)
       } finally {
@@ -202,49 +224,109 @@ export function CoursePlayer({ moduleId }: CoursePlayerProps) {
     )
   }
 
-  // Module exists but no lessons: show module content and notes only
+  // Module exists but no lessons: show checklist (notes + quiz)
   if (lessons.length === 0) {
-    const hasContent = (module.content && module.content.trim()) || module.content_url
     return (
       <div className="space-y-6 max-w-4xl">
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl flex items-center gap-2">
-              Week {module.week_number}: {module.title}
-            </CardTitle>
-            {module.description && (
-              <p className="text-sm text-muted-foreground">{module.description}</p>
-            )}
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  Week {module.week_number}: {module.title}
+                </CardTitle>
+                {module.description && (
+                  <p className="text-sm text-muted-foreground mt-1">{module.description}</p>
+                )}
+              </div>
+              {isModuleComplete && (
+                <Badge className="bg-green-100 text-green-800 border border-green-200 flex items-center gap-1 shrink-0">
+                  <Award className="h-3.5 w-3.5" />
+                  Module complete
+                </Badge>
+              )}
+            </div>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {module.content && module.content.trim() ? (
+          <CardContent className="space-y-4">
+            {module.content && module.content.trim() && (
               <div className="rounded-lg border bg-slate-50/50 p-4">
                 <h3 className="text-sm font-semibold text-slate-700 mb-2">Notes &amp; content</h3>
                 <div
                   className="prose prose-slate max-w-none text-sm whitespace-pre-wrap"
-                  dangerouslySetInnerHTML={{
-                    __html: module.content.replace(/\n/g, '<br />'),
-                  }}
+                  dangerouslySetInnerHTML={{ __html: module.content.replace(/\n/g, '<br />') }}
                 />
               </div>
-            ) : !hasContent ? (
-              <p className="text-sm text-muted-foreground">
-                No content for this module yet. Your facilitator may add notes and readings here soon.
-              </p>
-            ) : null}
-            {module.content_url && (
-              <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-teal-600" />
-                <a
-                  href={module.content_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-medium text-[var(--talent-primary)] hover:underline"
-                >
-                  Open / download notes file
-                </a>
-              </div>
             )}
+
+            <div className="rounded-lg border border-slate-200 divide-y divide-slate-100">
+              <p className="px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                Complete these steps to finish this module
+              </p>
+
+              {/* Step 1 — notes */}
+              {module.content_url ? (
+                <div className="flex items-center gap-3 px-4 py-3">
+                  <CheckCircle2 className="h-5 w-5 text-teal-500 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-800">Read the module notes</p>
+                    <p className="text-xs text-slate-500 mt-0.5">Download and read the PDF before taking the quiz.</p>
+                  </div>
+                  <a
+                    href={module.content_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0"
+                  >
+                    <Button size="sm" variant="outline" className="flex items-center gap-1.5 text-xs">
+                      <FileText className="h-3.5 w-3.5" />
+                      Open PDF
+                    </Button>
+                  </a>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 px-4 py-3 text-slate-400">
+                  <FileText className="h-5 w-5 shrink-0" />
+                  <p className="text-sm">No notes file yet — check back soon.</p>
+                </div>
+              )}
+
+              {/* Step 2 — quiz */}
+              {moduleQuiz ? (
+                <div className="flex items-center gap-3 px-4 py-3">
+                  {isModuleComplete ? (
+                    <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
+                  ) : (
+                    <ClipboardList className="h-5 w-5 text-slate-400 shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-800">{moduleQuiz.title}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {isModuleComplete
+                        ? quizPassed
+                          ? 'Passed — module marked complete.'
+                          : 'Completed — module marked complete.'
+                        : 'Complete the quiz to finish this module and unlock the next one.'}
+                    </p>
+                  </div>
+                  <Link href={`/learner/quizzes/${moduleQuiz.id}`} className="shrink-0">
+                    <Button
+                      size="sm"
+                      className={isModuleComplete
+                        ? 'bg-green-600 hover:bg-green-700 text-white text-xs flex items-center gap-1.5'
+                        : 'bg-teal-600 hover:bg-teal-700 text-white text-xs flex items-center gap-1.5'}
+                    >
+                      <ClipboardList className="h-3.5 w-3.5" />
+                      {isModuleComplete ? 'Review quiz' : 'Take quiz'}
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 px-4 py-3 text-slate-400">
+                  <ClipboardList className="h-5 w-5 shrink-0" />
+                  <p className="text-sm">No quiz published for this module yet.</p>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
