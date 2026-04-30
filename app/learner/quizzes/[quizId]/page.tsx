@@ -192,15 +192,51 @@ export default function LearnerTakeQuizPage() {
           .from('quiz_attempts')
           .update({ completed_at: new Date().toISOString() })
           .eq('id', attemptId)
+
+        // Compute score (responses state doesn't include current answer yet, add it manually)
+        const allResponses = [
+          ...responses,
+          { question_id: q.id, is_correct: data.is_correct, selected_answer_index: selectedIndex, submitted_at: new Date().toISOString() },
+        ]
+        const correctCount = allResponses.filter((r) => r.is_correct).length
+        const scorePercent = Math.round((correctCount / questions.length) * 100)
+        const passed = scorePercent >= 80
+
         const { data: { user } } = await supabase.auth.getUser()
-        if (user && quiz) {
-          await supabase.from('notifications').insert({
-            user_id: user.id,
-            type: 'quiz_results',
-            title: 'Quiz results ready',
-            body: quiz.title,
-            link: `/learner/quizzes/${quizId}/results`,
-          })
+        if (user) {
+          // Write module progress so the dashboard and modules list update
+          const { data: quizRow } = await supabase
+            .from('quizzes')
+            .select('module_id')
+            .eq('id', quizId)
+            .single()
+
+          if (quizRow?.module_id) {
+            await supabase
+              .from('module_progress')
+              .upsert(
+                {
+                  user_id: user.id,
+                  module_id: quizRow.module_id,
+                  is_completed: true,
+                  quiz_score: scorePercent,
+                  quiz_passed: passed,
+                  quiz_completed_at: new Date().toISOString(),
+                  completed_at: new Date().toISOString(),
+                },
+                { onConflict: 'user_id,module_id' }
+              )
+          }
+
+          if (quiz) {
+            await supabase.from('notifications').insert({
+              user_id: user.id,
+              type: 'quiz_results',
+              title: 'Quiz results ready',
+              body: quiz.title,
+              link: `/learner/quizzes/${quizId}/results`,
+            })
+          }
         }
         router.push(`/learner/quizzes/${quizId}/results`)
       } else {
