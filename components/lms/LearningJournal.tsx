@@ -22,10 +22,10 @@ const FALLBACK_WEEK_LABELS: Record<number, string> = {
   9: 'Final Projects & Wrap-Up',
 }
 
-export function LearningJournal() {
+export function LearningJournal({ initialModuleId }: { initialModuleId?: string } = {}) {
   const { toast } = useToast()
   const [modules, setModules] = useState<Module[]>([])
-  const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null)
+  const [selectedModuleId, setSelectedModuleId] = useState<string | null>(initialModuleId ?? null)
   const [selectedModule, setSelectedModule] = useState<Module | null>(null)
   const [resolvedModule, setResolvedModule] = useState<Module | null>(null)
   const [content, setContent] = useState('')
@@ -47,7 +47,7 @@ export function LearningJournal() {
         if (error) throw error
         if (data) {
           setModules(data as Module[])
-          if (data.length > 0 && !selectedModuleId) {
+          if (data.length > 0 && !selectedModuleId && !initialModuleId) {
             setSelectedModuleId(data[0].id)
           }
         }
@@ -57,7 +57,7 @@ export function LearningJournal() {
     }
 
     loadModules()
-  }, [supabase, selectedModuleId])
+  }, [supabase, selectedModuleId, initialModuleId])
 
   useEffect(() => {
     async function loadJournal() {
@@ -184,6 +184,23 @@ export function LearningJournal() {
         )
 
       if (error) throw error
+
+      // If the quiz for this module is already done, mark module complete
+      const { data: mp } = await supabase
+        .from('module_progress')
+        .select('id, quiz_completed_at')
+        .eq('user_id', user.id)
+        .eq('module_id', selectedModuleId)
+        .maybeSingle()
+
+      if ((mp as any)?.quiz_completed_at) {
+        await supabase
+          .from('module_progress')
+          .update({ is_completed: true, completed_at: new Date().toISOString() })
+          .eq('user_id', user.id)
+          .eq('module_id', selectedModuleId)
+      }
+
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
       toast({ title: 'Saved', description: 'Your reflection has been saved.' })

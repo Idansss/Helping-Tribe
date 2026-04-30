@@ -3,7 +3,11 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LearningJournal } from '@/components/lms/LearningJournal'
 
-export default function LearnerJournalEntriesPage() {
+export default function LearnerJournalEntriesPage({
+  searchParams,
+}: {
+  searchParams: { module?: string }
+}) {
   return (
     <div className="space-y-6 max-w-4xl px-4 sm:px-6">
       <div>
@@ -20,7 +24,7 @@ export default function LearnerJournalEntriesPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <LearningJournal />
+          <LearningJournal initialModuleId={searchParams.module} />
         </CardContent>
       </Card>
     </div>

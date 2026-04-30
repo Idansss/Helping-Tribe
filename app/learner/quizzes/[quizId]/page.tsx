@@ -212,17 +212,26 @@ export default function LearnerTakeQuizPage() {
             .single()
 
           if (quizRow?.module_id) {
+            // Module is fully complete only when quiz AND journal are both done
+            const { data: journalRow } = await supabase
+              .from('learning_journals')
+              .select('id')
+              .eq('user_id', user.id)
+              .eq('module_id', quizRow.module_id)
+              .maybeSingle()
+
+            const bothDone = !!journalRow
             await supabase
               .from('module_progress')
               .upsert(
                 {
                   user_id: user.id,
                   module_id: quizRow.module_id,
-                  is_completed: true,
+                  is_completed: bothDone,
                   quiz_score: scorePercent,
                   quiz_passed: passed,
                   quiz_completed_at: new Date().toISOString(),
-                  completed_at: new Date().toISOString(),
+                  ...(bothDone ? { completed_at: new Date().toISOString() } : {}),
                 },
                 { onConflict: 'user_id,module_id' }
               )

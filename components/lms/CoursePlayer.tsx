@@ -33,7 +33,9 @@ export function CoursePlayer({ moduleId }: CoursePlayerProps) {
   const [submitting, setSubmitting] = useState(false)
   const [moduleQuiz, setModuleQuiz] = useState<{ id: string; title: string } | null>(null)
   const [isModuleComplete, setIsModuleComplete] = useState(false)
+  const [quizCompleted, setQuizCompleted] = useState(false)
   const [quizPassed, setQuizPassed] = useState(false)
+  const [hasJournal, setHasJournal] = useState(false)
   const supabase = createClient()
 
   const {
@@ -85,8 +87,8 @@ export function CoursePlayer({ moduleId }: CoursePlayerProps) {
           setUserProgress(progressData as UserProgress[])
         }
 
-        // Load quiz and completion status for this module
-        const [{ data: quizData }, { data: modProgress }] = await Promise.all([
+        // Load quiz, completion status, and journal status for this module
+        const [{ data: quizData }, { data: modProgress }, { data: journalData }] = await Promise.all([
           supabase
             .from('quizzes')
             .select('id, title')
@@ -95,14 +97,23 @@ export function CoursePlayer({ moduleId }: CoursePlayerProps) {
             .maybeSingle(),
           supabase
             .from('module_progress')
-            .select('is_completed, quiz_passed')
+            .select('is_completed, quiz_passed, quiz_completed_at')
+            .eq('user_id', user.id)
+            .eq('module_id', moduleId)
+            .maybeSingle(),
+          supabase
+            .from('learning_journals')
+            .select('id')
             .eq('user_id', user.id)
             .eq('module_id', moduleId)
             .maybeSingle(),
         ])
         if (quizData) setModuleQuiz(quizData as { id: string; title: string })
-        if ((modProgress as any)?.is_completed) setIsModuleComplete(true)
-        if ((modProgress as any)?.quiz_passed) setQuizPassed(true)
+        const mp = modProgress as any
+        if (mp?.is_completed) setIsModuleComplete(true)
+        if (mp?.quiz_passed) setQuizPassed(true)
+        if (mp?.quiz_completed_at || mp?.quiz_passed) setQuizCompleted(true)
+        setHasJournal(!!journalData)
       } catch (error) {
         console.error('Error loading course data:', error)
       } finally {
@@ -293,7 +304,7 @@ export function CoursePlayer({ moduleId }: CoursePlayerProps) {
               {/* Step 2 — quiz */}
               {moduleQuiz ? (
                 <div className="flex items-center gap-3 px-4 py-3">
-                  {isModuleComplete ? (
+                  {quizCompleted ? (
                     <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
                   ) : (
                     <ClipboardList className="h-5 w-5 text-slate-400 shrink-0" />
@@ -301,22 +312,20 @@ export function CoursePlayer({ moduleId }: CoursePlayerProps) {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-slate-800">{moduleQuiz.title}</p>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      {isModuleComplete
-                        ? quizPassed
-                          ? 'Passed — module marked complete.'
-                          : 'Completed — module marked complete.'
-                        : 'Complete the quiz to finish this module and unlock the next one.'}
+                      {quizCompleted
+                        ? quizPassed ? 'Passed.' : 'Completed.'
+                        : 'Take the quiz to test your understanding.'}
                     </p>
                   </div>
                   <Link href={`/learner/quizzes/${moduleQuiz.id}`} className="shrink-0">
                     <Button
                       size="sm"
-                      className={isModuleComplete
+                      className={quizCompleted
                         ? 'bg-green-600 hover:bg-green-700 text-white text-xs flex items-center gap-1.5'
                         : 'bg-teal-600 hover:bg-teal-700 text-white text-xs flex items-center gap-1.5'}
                     >
                       <ClipboardList className="h-3.5 w-3.5" />
-                      {isModuleComplete ? 'Review quiz' : 'Take quiz'}
+                      {quizCompleted ? 'Review quiz' : 'Take quiz'}
                     </Button>
                   </Link>
                 </div>
@@ -326,6 +335,36 @@ export function CoursePlayer({ moduleId }: CoursePlayerProps) {
                   <p className="text-sm">No quiz published for this module yet.</p>
                 </div>
               )}
+
+              {/* Step 3 — learning journal */}
+              <div className="flex items-center gap-3 px-4 py-3">
+                {hasJournal ? (
+                  <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
+                ) : (
+                  <Award className="h-5 w-5 text-slate-400 shrink-0" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-slate-800">Submit your Learning Journal</p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {hasJournal
+                      ? isModuleComplete
+                        ? 'Submitted — module complete!'
+                        : 'Submitted — complete the quiz above to finish.'
+                      : 'Reflect on this module and save your journal entry to complete.'}
+                  </p>
+                </div>
+                <Link href={`/learner/journal/entries?module=${moduleId}`} className="shrink-0">
+                  <Button
+                    size="sm"
+                    className={hasJournal
+                      ? 'bg-green-600 hover:bg-green-700 text-white text-xs flex items-center gap-1.5'
+                      : 'bg-teal-600 hover:bg-teal-700 text-white text-xs flex items-center gap-1.5'}
+                  >
+                    <Award className="h-3.5 w-3.5" />
+                    {hasJournal ? 'View journal' : 'Write journal'}
+                  </Button>
+                </Link>
+              </div>
             </div>
           </CardContent>
         </Card>
