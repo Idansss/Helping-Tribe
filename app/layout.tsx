@@ -37,8 +37,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const enableVercelAnalytics = process.env.ENABLE_VERCEL_ANALYTICS === 'true'
-
   return (
     <html lang="en">
       <body className={`${inter.variable} ${dmSans.variable} font-sans antialiased`}>
@@ -54,9 +52,8 @@ export default function RootLayout({
           <GroundingButton />
           <Toaster />
         </LowDataProvider>
-        {enableVercelAnalytics ? <Analytics /> : null}
+        <Analytics />
       </body>
     </html>
   )
 }
-
