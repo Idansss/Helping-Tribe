@@ -1,95 +1,37 @@
 'use client'
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
-import { Badge } from '@/components/ui/badge'
-
-const modules = [
-  {
-    week: 1,
-    title: 'Helping Profession, Ethics & Cultural Competence',
-    description: 'Foundations of the helping profession, professional ethics, and the role of cultural competence in Nigerian contexts.',
-  },
-  {
-    week: 2,
-    title: 'Exploration & Insight Stages, Trauma-Informed Practice',
-    description: 'Counselling stages focused on exploration and insight, integrating trauma-informed practice with active listening skills.',
-  },
-  {
-    week: 3,
-    title: 'Action Stage & Conflict Resolution',
-    description: 'Helping clients move from awareness to action, developing coping strategies, and practicing conflict resolution.',
-  },
-  {
-    week: 4,
-    title: 'Self-Care & Supervision',
-    description: 'Importance of self-care, burnout prevention, and supervision in helping practice. Design personal self-care plans.',
-  },
-  {
-    week: 5,
-    title: 'Gender & Cultural Sensitivity',
-    description: 'Working with children, women, men, people with disabilities, and survivors of trauma. Culturally sensitive approaches.',
-  },
-  {
-    week: 6,
-    title: 'Crisis Intervention & Trauma Support',
-    description: 'Crisis intervention frameworks and trauma counselling principles. Practice grounding, reassurance, and referral.',
-  },
-  {
-    week: 7,
-    title: 'Group Counselling & Peer Support',
-    description: 'Group facilitation skills and peer support models for low-resource communities. Design peer initiatives.',
-  },
-  {
-    week: 8,
-    title: 'Practicum: Case Analysis',
-    description: 'Case analysis frameworks, feedback skills, and reflective practice tools. Analyze cases and give feedback.',
-  },
-  {
-    week: 9,
-    title: 'Final Projects & Graduation',
-    description: 'Capstone project presentations demonstrating integrated skills. Structured feedback and graduation activities.',
-  },
-]
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { CURRICULUM_MODULES } from '@/lib/brand/site-config'
 
 export function CurriculumSection() {
   return (
-    <section id="curriculum" className="py-16 md:py-24 bg-[#f3e8ff]">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-[#4c1d95] mb-4">
-            The Curriculum
+    <section id="curriculum" className="bg-[var(--surface-muted)]">
+      <div className="section-shell grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16">
+        <div className="lg:sticky lg:top-28 lg:self-start">
+          <p className="eyebrow">The learning journey</p>
+          <h2 className="mt-4 font-display text-[clamp(2.55rem,5vw,4.7rem)] font-medium leading-none tracking-[-0.035em] text-foreground">
+            Nine weeks. One connected practice.
           </h2>
-          <p className="text-lg text-gray-700">
-            A comprehensive 9-week journey from foundations to mastery
+          <p className="mt-5 max-w-lg text-base leading-7 text-muted-foreground">
+            Each week builds on the last, moving from ethical foundations to supported application and reflection.
           </p>
         </div>
 
-        <Accordion type="single" collapsible className="w-full space-y-4">
-          {modules.map((module) => (
-            <AccordionItem
-              key={module.week}
-              value={`module-${module.week}`}
-              className="bg-white rounded-lg border-2 border-[#f3e8ff] px-6"
-            >
-              <AccordionTrigger className="hover:no-underline">
-                <div className="flex items-center gap-4 text-left">
-                  <Badge className="bg-[#4c1d95] text-white text-lg px-4 py-1">
+        <Accordion type="single" collapsible className="w-full border-t border-border">
+          {CURRICULUM_MODULES.map((module) => (
+            <AccordionItem key={module.week} value={`module-${module.week}`} className="border-b border-border py-1">
+              <AccordionTrigger className="min-w-0 gap-3 py-5 text-left hover:no-underline sm:py-6">
+                <span className="flex min-w-0 flex-1 flex-col gap-2 pr-1 sm:flex-row sm:items-baseline sm:gap-5">
+                  <span className="w-fit shrink-0 rounded-full border border-primary/25 bg-background/70 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-primary">
                     Week {module.week}
-                  </Badge>
-                  <span className="text-lg font-semibold text-[#4c1d95]">
+                  </span>
+                  <span className="min-w-0 break-words text-base font-bold leading-snug text-foreground sm:text-lg">
                     {module.title}
                   </span>
-                </div>
+                </span>
               </AccordionTrigger>
-              <AccordionContent>
-                <p className="text-gray-700 leading-relaxed pl-20">
-                  {module.description}
-                </p>
+              <AccordionContent className="pb-6 pl-0 pr-8 text-sm leading-7 text-muted-foreground sm:pl-[6.75rem] sm:text-base">
+                {module.description}
               </AccordionContent>
             </AccordionItem>
           ))}

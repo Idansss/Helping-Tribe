@@ -60,11 +60,11 @@ export function PublicHome() {
   const registrationClosed = regStatus === 'closed' || regStatus === 'not_yet'
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,#d9f7f1_0%,#edf7f6_35%,#f8fbfb_65%,#ffffff_100%)] text-slate-900">
+    <div className="public-shell min-h-screen bg-[radial-gradient(circle_at_top,hsl(var(--accent))_0%,hsl(var(--background))_48%,hsl(var(--background))_100%)] text-foreground">
       <TopNav />
-      <main id="main-content" className="mx-auto max-w-6xl space-y-8 px-4 py-8 md:py-10 pb-0">
-        <Card className="overflow-hidden rounded-2xl border-teal-100/80 shadow-[0_10px_30px_rgba(15,118,110,0.12)]">
-          <div className="relative overflow-hidden bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-700 px-6 py-7 text-white md:px-10 md:py-10">
+      <main id="main-content" className="mx-auto max-w-6xl space-y-8 px-[var(--page-gutter)] pb-0 pt-8 md:pt-10">
+        <Card className="overflow-hidden rounded-[clamp(1.25rem,3vw,2.25rem)] border-primary/20 shadow-[var(--shadow-soft)]">
+          <div className="relative overflow-hidden bg-gradient-to-br from-[#0b1320] via-[#10363a] to-[#0d5e57] px-5 py-8 text-white sm:px-7 md:px-10 md:py-12">
             <div className="pointer-events-none absolute -left-24 -top-16 h-52 w-52 rounded-full bg-white/10 blur-2xl" />
             <div className="pointer-events-none absolute -bottom-16 -right-16 h-56 w-56 rounded-full bg-emerald-300/20 blur-3xl" />
 
@@ -93,16 +93,16 @@ export function PublicHome() {
                 </p>
 
                 <div className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
-                  <div className="rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
-                    <p className="text-sm font-medium text-slate-500">Students</p>
-                    <p className="mt-1.5 flex items-center gap-2 text-base font-bold text-slate-800">
+                  <div className="rounded-xl border border-white/15 bg-white/8 px-5 py-4 backdrop-blur-sm">
+                    <p className="text-sm font-medium text-slate-300">Learners</p>
+                    <p className="mt-1.5 flex items-center gap-2 text-base font-bold text-white">
                       <span className="h-2.5 w-2.5 rounded-full bg-teal-500" />
                       Matric + Password
                     </p>
                   </div>
-                  <div className="rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
-                    <p className="text-sm font-medium text-slate-500">Staff</p>
-                    <p className="mt-1.5 flex items-center gap-2 text-base font-bold text-slate-800">
+                  <div className="rounded-xl border border-white/15 bg-white/8 px-5 py-4 backdrop-blur-sm">
+                    <p className="text-sm font-medium text-slate-300">Staff</p>
+                    <p className="mt-1.5 flex items-center gap-2 text-base font-bold text-white">
                       <span className="h-2.5 w-2.5 rounded-full bg-teal-500" />
                       Email + Password
                     </p>
@@ -110,40 +110,40 @@ export function PublicHome() {
                 </div>
               </div>
 
-              <div className="rounded-2xl bg-white p-6 shadow-lg">
-                <h3 className="text-xl font-bold text-slate-900">Choose Your Portal</h3>
-                <p className="mt-1 text-sm text-slate-500">Select how you'd like to access your account</p>
+              <div className="rounded-2xl bg-card p-5 text-card-foreground shadow-lg sm:p-6">
+                <h2 className="text-xl font-bold">Choose your portal</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Use the sign-in route for your role.</p>
 
                 <div className="mt-5 space-y-3">
-                  <Link href="/student/login" className="flex items-center gap-4 rounded-2xl border border-slate-200 px-4 py-4 hover:border-teal-300 hover:bg-teal-50/40 transition-colors group">
+                  <Link href="/student/login" className="group flex min-h-16 items-center gap-4 rounded-2xl border border-border px-4 py-4 transition-colors hover:border-primary/40 hover:bg-accent">
                     <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-teal-50 border border-teal-100">
                       <UserRoundCheck className="h-6 w-6 text-teal-600" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-bold text-slate-900">Student Login</p>
-                      <p className="text-sm text-slate-500">Login with Matric Number</p>
+                      <p className="font-bold text-foreground">Learner login</p>
+                      <p className="text-sm text-muted-foreground">Matric number and password</p>
                     </div>
                     <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-600 transition-colors" />
                   </Link>
 
-                  <Link href="/mentor-login" className="flex items-center gap-4 rounded-2xl border border-slate-200 px-4 py-4 hover:border-teal-300 hover:bg-teal-50/40 transition-colors group">
+                  <Link href="/mentor-login" className="group flex min-h-16 items-center gap-4 rounded-2xl border border-border px-4 py-4 transition-colors hover:border-primary/40 hover:bg-accent">
                     <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-teal-50 border border-teal-100">
                       <Mail className="h-6 w-6 text-teal-600" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-bold text-slate-900">Facilitator Login</p>
-                      <p className="text-sm text-slate-500">Login with Email Address</p>
+                      <p className="font-bold text-foreground">Facilitator login</p>
+                      <p className="text-sm text-muted-foreground">Email address and password</p>
                     </div>
                     <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-600 transition-colors" />
                   </Link>
 
-                  <Link href="/staff/login" className="flex items-center gap-4 rounded-2xl border border-slate-200 px-4 py-4 hover:border-teal-300 hover:bg-teal-50/40 transition-colors group">
+                  <Link href="/staff/login" className="group flex min-h-16 items-center gap-4 rounded-2xl border border-border px-4 py-4 transition-colors hover:border-primary/40 hover:bg-accent">
                     <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-slate-100 border border-slate-200">
                       <ShieldCheck className="h-6 w-6 text-slate-600" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-bold text-slate-900">Admin Login</p>
-                      <p className="text-sm text-slate-500">Login with Email Address</p>
+                      <p className="font-bold text-foreground">Administrator login</p>
+                      <p className="text-sm text-muted-foreground">Authorised staff access</p>
                     </div>
                     <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
                   </Link>
@@ -168,33 +168,33 @@ export function PublicHome() {
           <CardContent className="p-6 md:p-8">
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <div className="lg:col-span-2">
-                <h2 className="text-2xl font-bold text-slate-900">How it works</h2>
+                <h2 className="font-display text-3xl font-semibold text-foreground">How it works</h2>
                 <ol className="mt-4 grid grid-cols-1 gap-4 text-sm sm:grid-cols-3">
-                  <li className="rounded-2xl bg-blue-50 p-5 shadow-sm">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 text-white text-xl font-bold shadow-md">
+                  <li className="rounded-2xl border border-border bg-muted/55 p-5">
+                    <div className="flex size-11 items-center justify-center rounded-full bg-primary text-primary-foreground text-base font-bold">
                       1
                     </div>
-                    <div className="mt-4 text-xs font-bold uppercase tracking-widest text-blue-600">Step 1</div>
-                    <div className="mt-1 text-lg font-bold text-slate-900">Apply</div>
-                    <div className="mt-1 text-slate-600">Submit your application below.</div>
+                    <div className="mt-4 text-xs font-bold uppercase tracking-widest text-primary">Step 1</div>
+                    <div className="mt-1 text-lg font-bold text-foreground">Apply</div>
+                    <div className="mt-1 text-muted-foreground">Submit your application below.</div>
                   </li>
 
-                  <li className="rounded-2xl bg-purple-50 p-5 shadow-sm">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-400 to-purple-600 text-white text-xl font-bold shadow-md">
+                  <li className="rounded-2xl border border-border bg-muted/55 p-5">
+                    <div className="flex size-11 items-center justify-center rounded-full bg-primary text-primary-foreground text-base font-bold">
                       2
                     </div>
-                    <div className="mt-4 text-xs font-bold uppercase tracking-widest text-purple-600">Step 2</div>
-                    <div className="mt-1 text-lg font-bold text-slate-900">Get approved</div>
-                    <div className="mt-1 text-slate-600">An admin reviews and approves applicants.</div>
+                    <div className="mt-4 text-xs font-bold uppercase tracking-widest text-primary">Step 2</div>
+                    <div className="mt-1 text-lg font-bold text-foreground">Get reviewed</div>
+                    <div className="mt-1 text-muted-foreground">Admissions staff review your submission.</div>
                   </li>
 
-                  <li className="rounded-2xl bg-emerald-50 p-5 shadow-sm">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-white text-xl font-bold shadow-md">
+                  <li className="rounded-2xl border border-border bg-muted/55 p-5">
+                    <div className="flex size-11 items-center justify-center rounded-full bg-primary text-primary-foreground text-base font-bold">
                       3
                     </div>
-                    <div className="mt-4 text-xs font-bold uppercase tracking-widest text-emerald-600">Step 3</div>
-                    <div className="mt-1 text-lg font-bold text-slate-900">Set password</div>
-                    <div className="mt-1 text-slate-600">Use your one-time link to set a password.</div>
+                    <div className="mt-4 text-xs font-bold uppercase tracking-widest text-primary">Step 3</div>
+                    <div className="mt-1 text-lg font-bold text-foreground">Pay and onboard</div>
+                    <div className="mt-1 text-muted-foreground">Approved learners complete payment and secure access.</div>
                   </li>
                 </ol>
               </div>

@@ -1,120 +1,49 @@
-'use client'
-
-import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Download, ArrowRight, LayoutDashboard } from 'lucide-react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { ArrowRight, BookOpenCheck, Clock3, Users2 } from 'lucide-react'
+import { OrbitOfCare } from '@/components/marketing/orbit-of-care'
+import { Button } from '@/components/ui/button'
+import { SITE_CONFIG } from '@/lib/brand/site-config'
+
+const facts = [
+  { icon: Clock3, label: `${SITE_CONFIG.programme.durationWeeks.value} guided weeks` },
+  { icon: BookOpenCheck, label: 'Practice-led modules' },
+  { icon: Users2, label: 'Peer learning and reflection' },
+] as const
 
 export function HeroSection() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const supabase = createClient()
-    
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setIsLoggedIn(!!user)
-      setLoading(false)
-    })
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsLoggedIn(!!session?.user)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
-
   return (
-    <section className="pt-24 pb-16 md:pt-32 md:pb-24 bg-gradient-to-b from-[#f3e8ff] to-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Left: Text Content */}
-          <div className="space-y-6">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#4c1d95] leading-tight">
-              School of Counselling &amp; Positive Psychology
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-700 leading-relaxed">
-              The Helping Tribe is more than a school—it&apos;s a movement. Here, you&apos;ll
-              find knowledge beyond textbooks, a tribe that uplifts you, and tools to
-              build a fulfilling practice.
-            </p>
-            <p className="text-sm md:text-base text-gray-600 italic">
-              Let&apos;s nurture excellence—together.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              {!loading && (
-                <>
-                  {isLoggedIn ? (
-                    <Button
-                      size="lg"
-                      className="bg-[#4c1d95] hover:bg-[#5b21b6] text-white text-lg px-8 py-6"
-                      asChild
-                    >
-                      <Link href="/learner/dashboard">
-                        <LayoutDashboard className="mr-2 h-5 w-5" />
-                        Go to Dashboard
-                      </Link>
-                    </Button>
-                  ) : (
-                    <Button
-                      size="lg"
-                      className="bg-[#4c1d95] hover:bg-[#5b21b6] text-white text-lg px-8 py-6"
-                      asChild
-                    >
-                      <Link href="#enrollment">
-                        Join the Tribe
-                        <ArrowRight className="ml-2 h-5 w-5" />
-                      </Link>
-                    </Button>
-                  )}
-                </>
-              )}
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-2 border-[var(--talent-primary-dark)] text-[var(--talent-primary-dark)] bg-white hover:bg-[var(--talent-primary-dark)] hover:text-white transition-colors text-lg px-8 py-6"
-                asChild
-              >
-                <Link href="/contact">
-                  <Download className="mr-2 h-5 w-5" />
-                  Request Syllabus
-                </Link>
-              </Button>
-            </div>
+    <section className="relative overflow-hidden bg-[#0b1320] pt-[calc(var(--nav-height)+2.5rem)] text-white md:pt-[calc(var(--nav-height)+4.5rem)]">
+      <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(circle_at_18%_8%,rgb(15_118_110/0.28),transparent_34%),radial-gradient(circle_at_90%_28%,rgb(91_42_134/0.24),transparent_32%)]" />
+      <div className="relative mx-auto grid max-w-7xl gap-12 px-[var(--page-gutter)] pb-16 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:pb-24">
+        <div className="max-w-3xl py-4 lg:py-12">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#9de2d8]">Counselling · positive psychology · supported practice</p>
+          <h1 className="mt-6 font-display text-[clamp(3.1rem,7vw,6.5rem)] font-medium leading-[0.88] tracking-[-0.045em] text-balance">
+            Learn to help with skill, care and confidence.
+          </h1>
+          <p className="mt-7 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
+            {SITE_CONFIG.organisation.schoolName} is a guided learning community for people building ethical, practical helping skills in Nigerian and African contexts.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Button size="lg" asChild className="min-h-12 rounded-full bg-[#68c4b8] px-6 text-[#0b1320] hover:bg-[#8bd8ce]">
+              <Link href="/apply">Start your application <ArrowRight className="ml-2 size-4" aria-hidden="true" /></Link>
+            </Button>
+            <Button size="lg" variant="outline" asChild className="min-h-12 rounded-full border-white/25 bg-white/5 px-6 text-white hover:bg-white/10 hover:text-white">
+              <Link href="#curriculum">Explore the programme</Link>
+            </Button>
           </div>
-
-          {/* Right: Visual */}
-          <div className="relative">
-            <div className="aspect-square rounded-2xl bg-gradient-to-br from-[var(--talent-primary-dark)] to-[var(--talent-primary)] p-1">
-              <div className="w-full h-full rounded-2xl bg-white flex items-center justify-center">
-                <div className="text-center space-y-4 p-8">
-                  <div className="w-32 h-32 mx-auto rounded-full bg-teal-50 flex items-center justify-center">
-                    <svg
-                      className="w-20 h-20 text-[var(--talent-primary-dark)]"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-sm text-gray-600 font-medium">
-                    Peer Learning Circle
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Diverse group of learners supporting each other
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <Link href="/student/login" className="mt-5 inline-flex min-h-11 items-center text-sm font-semibold text-slate-300 underline-offset-4 hover:text-white hover:underline">
+            Already learning with us? Open your portal.
+          </Link>
+          <ul className="mt-10 grid gap-3 border-t border-white/12 pt-6 sm:grid-cols-3">
+            {facts.map(({ icon: Icon, label }) => (
+              <li key={label} className="flex items-center gap-2 text-sm text-slate-300">
+                <Icon className="size-4 shrink-0 text-[#d8bd7a]" aria-hidden="true" />
+                <span>{label}</span>
+              </li>
+            ))}
+          </ul>
         </div>
+        <OrbitOfCare />
       </div>
     </section>
   )

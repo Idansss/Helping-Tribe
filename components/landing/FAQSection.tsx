@@ -1,77 +1,49 @@
 'use client'
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { SITE_CONFIG } from '@/lib/brand/site-config'
 
 const faqs = [
   {
-    question: 'Who is this program for?',
-    answer: 'The HELP Foundations Training is designed for anyone interested in developing foundational counseling and helping skills. This includes community workers, teachers, healthcare workers, religious leaders, and individuals who want to support others in their communities. No prior counseling experience is required.',
+    question: 'Who is the programme for?',
+    answer: 'It is designed for people who want structured foundational helping skills, including community workers, educators, caregivers, health workers, ministry leaders and aspiring counsellors.',
   },
   {
-    question: 'How long does the program take?',
-    answer: 'The program is structured as a 9-week course. Each week focuses on a specific module, with approximately 4-5 hours of content, activities, and practice. The program is designed to be flexible and can be completed at your own pace within the 9-week timeframe.',
+    question: 'How long is the learning journey?',
+    answer: `The current programme structure spans ${SITE_CONFIG.programme.durationWeeks.value} guided weeks, with modules, practice activities, reflection and peer learning.`,
   },
   {
-    question: 'Is the program fully online?',
-    answer: 'Yes, the program is 100% online and accessible through our Learning Management System. You can access all materials, participate in discussions, submit assignments, and join peer learning circles from anywhere with an internet connection.',
+    question: 'How does the application work?',
+    answer: 'You submit the secure application, receive an admissions decision, complete payment if approved, and then receive the setup path for learner access.',
   },
   {
-    question: 'What certification will I receive?',
-    answer: 'Upon successful completion of all 9 modules, assignments, and the final project, you will receive a Certificate of Completion from HELP Foundations Training. This certificate recognizes your competency in foundational counseling, ethics, and trauma support skills.',
+    question: 'Can I save an application and return later?',
+    answer: 'Yes. The application flow supports secure saving and resuming. Use the same email address and the protected resume link sent through the application process.',
   },
   {
-    question: 'What is a Peer Learning Circle?',
-    answer: 'Peer Learning Circles are small groups of 6 learners who meet weekly to discuss course content, practice skills, and support each other. These circles create a safe space for collaborative learning and peer feedback, mirroring real-world support networks.',
+    question: 'How do learners sign in?',
+    answer: 'Learners use their matric number and password. Facilitators and administrators have separate email-based sign-in routes.',
   },
   {
-    question: 'Do I need any special equipment or software?',
-    answer: 'You only need a computer or smartphone with internet access and a modern web browser. All course materials are accessible through our online platform. For voice note reflections (optional), you can use your device\'s built-in microphone.',
+    question: 'What do I need to study online?',
+    answer: 'A modern browser on a phone or computer and a dependable internet connection are sufficient for the core experience. Large resources are presented with download and low-data considerations where available.',
   },
-  {
-    question: 'What happens after I complete the program?',
-    answer: 'After graduation, you\'ll have lifetime access to the resource directory and quick reference tools. You can also join our alumni network to continue learning and connecting with other helping professionals. Many graduates go on to serve their communities or pursue further training.',
-  },
-  {
-    question: 'Is there financial assistance available?',
-    answer: 'We offer limited scholarships for individuals who demonstrate financial need and a strong commitment to serving their communities. Please contact us at support@helpingtribe.com to learn more about scholarship opportunities.',
-  },
-]
+] as const
 
 export function FAQSection() {
   return (
-    <section id="faq" className="py-16 md:py-24 bg-white">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-[#4c1d95] mb-4">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-lg text-gray-700">
-            Everything you need to know about the program
-          </p>
+    <section id="faq" className="bg-background">
+      <div className="section-shell grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16">
+        <div>
+          <p className="eyebrow">Frequently asked</p>
+          <h2 className="mt-4 font-display text-[clamp(2.55rem,5vw,4.6rem)] font-medium leading-none tracking-[-0.035em] text-foreground">Clear answers before you apply.</h2>
+          <p className="mt-5 max-w-lg text-base leading-7 text-muted-foreground">For a question about your own application or account, contact the support team without sharing passwords or payment details.</p>
         </div>
-
-        <Accordion type="single" collapsible className="w-full space-y-4">
+        <Accordion type="single" collapsible className="border-t border-border">
           {faqs.map((faq, index) => (
-            <AccordionItem
-              key={index}
-              value={`faq-${index}`}
-              className="bg-[#f3e8ff]/50 rounded-lg border-2 border-[#f3e8ff] px-6"
-            >
-              <AccordionTrigger className="hover:no-underline text-left">
-                <span className="font-semibold text-[#4c1d95]">
-                  {faq.question}
-                </span>
-              </AccordionTrigger>
-              <AccordionContent>
-                <p className="text-gray-700 leading-relaxed">
-                  {faq.answer}
-                </p>
-              </AccordionContent>
+            <AccordionItem key={faq.question} value={`faq-${index}`} className="border-b border-border py-1">
+              <AccordionTrigger className="gap-4 py-5 text-left text-base font-bold text-foreground hover:no-underline sm:py-6 sm:text-lg">{faq.question}</AccordionTrigger>
+              <AccordionContent className="pb-6 pr-8 text-sm leading-7 text-muted-foreground sm:text-base">{faq.answer}</AccordionContent>
             </AccordionItem>
           ))}
         </Accordion>

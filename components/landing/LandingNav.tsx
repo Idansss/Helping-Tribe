@@ -1,180 +1,104 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Users, Menu, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { Menu } from 'lucide-react'
+import { SITE_CONFIG } from '@/lib/brand/site-config'
+import { ThemeToggle } from '@/components/theme-toggle'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 
 export function LandingNav() {
   const [isScrolled, setIsScrolled] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20)
-    }
-    window.addEventListener('scroll', handleScroll)
+    const handleScroll = () => setIsScrolled(window.scrollY > 16)
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  useEffect(() => {
-    const supabase = createClient()
-    
-    // Check if user is logged in
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setIsLoggedIn(!!user)
-      setLoading(false)
-    })
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsLoggedIn(!!session?.user)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
-
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+    <header
+      className={`fixed inset-x-0 top-0 z-50 border-b transition-colors duration-300 ${
         isScrolled
-          ? 'bg-white shadow-md'
-          : 'bg-white/95 backdrop-blur-sm'
+          ? 'border-border/80 bg-background/94 shadow-[0_8px_30px_rgb(11_19_32/0.08)] backdrop-blur-xl'
+          : 'border-transparent bg-background/82 backdrop-blur-md'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link 
-            href="/" 
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-          >
-            <div className="w-10 h-10 rounded-lg bg-[#4c1d95] flex items-center justify-center">
-              <Users className="h-6 w-6 text-white" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-2xl font-bold font-serif text-[#1e1b4b]">Helping Tribe</span>
-              <span className="text-sm text-gray-500 -mt-1 font-sans">HELP Foundations</span>
-            </div>
-          </Link>
+      <nav aria-label="Public navigation" className="mx-auto flex h-[var(--nav-height)] max-w-7xl items-center justify-between gap-3 px-[var(--page-gutter)]">
+        <Link href="/" className="flex min-w-0 items-center gap-2.5 rounded-lg">
+          <span className="relative size-10 shrink-0 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-border">
+            <Image src="/logo.png" alt="" fill sizes="40px" className="object-contain p-0.5" priority />
+          </span>
+          <span className="min-w-0 leading-none">
+            <span className="block truncate font-display text-[1.08rem] font-semibold text-foreground sm:text-xl">Helping Tribe</span>
+            <span className="mt-1 block truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Academy</span>
+          </span>
+        </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
-            <Link href="#program" className="text-gray-700 hover:text-[#4c1d95] transition-colors">
-              Program
+        <div className="hidden items-center gap-6 lg:flex">
+          {SITE_CONFIG.publicNavigation.map((item) => (
+            <Link key={item.href} href={item.href} className="rounded-md py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+              {item.label}
             </Link>
-            <Link href="#curriculum" className="text-gray-700 hover:text-[#4c1d95] transition-colors">
-              Curriculum
-            </Link>
-            <Link href="#faculty" className="text-gray-700 hover:text-[#4c1d95] transition-colors">
-              Faculty
-            </Link>
-            <Link href="#faq" className="text-gray-700 hover:text-[#4c1d95] transition-colors">
-              FAQ
-            </Link>
-          </div>
-
-          {/* Desktop CTA Buttons */}
-          <div className="hidden md:flex items-center gap-4">
-            {!loading && (
-              <>
-                {isLoggedIn ? (
-                  <Button className="bg-[#4c1d95] hover:bg-[#5b21b6] text-white" asChild>
-                    <Link href="/learner/dashboard">Go to Dashboard</Link>
-                  </Button>
-                ) : (
-                  <>
-                    <Button variant="ghost" asChild>
-                      <Link href="/student/login">Student Login</Link>
-                    </Button>
-                    <Button className="bg-[#4c1d95] hover:bg-[#5b21b6] text-white" asChild>
-                      <Link href="#enrollment">Join Next Cohort</Link>
-                    </Button>
-                  </>
-                )}
-              </>
-            )}
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {isMobileMenuOpen ? (
-              <X className="h-6 w-6 text-[#4c1d95]" />
-            ) : (
-              <Menu className="h-6 w-6 text-[#4c1d95]" />
-            )}
-          </button>
+          ))}
         </div>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden py-4 border-t">
-            <div className="flex flex-col gap-4">
-              <Link
-                href="#program"
-                className="text-gray-700 hover:text-[#4c1d95] transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Program
-              </Link>
-              <Link
-                href="#curriculum"
-                className="text-gray-700 hover:text-[#4c1d95] transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Curriculum
-              </Link>
-              <Link
-                href="#faculty"
-                className="text-gray-700 hover:text-[#4c1d95] transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Faculty
-              </Link>
-              <Link
-                href="#faq"
-                className="text-gray-700 hover:text-[#4c1d95] transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                FAQ
-              </Link>
-              <div className="flex flex-col gap-2 pt-4 border-t">
-                {!loading && (
-                  <>
-                    {isLoggedIn ? (
-                      <Button className="bg-[#4c1d95] hover:bg-[#5b21b6] text-white w-full" asChild>
-                        <Link href="/learner/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
-                          Go to Dashboard
-                        </Link>
-                      </Button>
-                    ) : (
-                      <>
-                        <Button variant="ghost" asChild className="w-full justify-start">
-                          <Link href="/student/login" onClick={() => setIsMobileMenuOpen(false)}>
-                            Student Login
-                          </Link>
-                        </Button>
-                        <Button className="bg-[#4c1d95] hover:bg-[#5b21b6] text-white w-full" asChild>
-                          <Link href="#enrollment" onClick={() => setIsMobileMenuOpen(false)}>
-                            Join Next Cohort
-                          </Link>
-                        </Button>
-                      </>
-                    )}
-                  </>
-                )}
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Link href="/student/login" className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-accent sm:inline-flex">
+            Learner login
+          </Link>
+          <Button asChild className="hidden min-h-11 rounded-full px-5 sm:inline-flex">
+            <Link href="/apply">Apply</Link>
+          </Button>
+
+          <Dialog>
+            <DialogTrigger asChild>
+              <button type="button" className="inline-flex size-11 items-center justify-center rounded-full border border-border bg-background text-foreground lg:hidden" aria-label="Open navigation menu">
+                <Menu className="size-5" aria-hidden="true" />
+              </button>
+            </DialogTrigger>
+            <DialogContent className="left-auto right-0 top-0 h-dvh w-[min(92vw,25rem)] max-w-none translate-x-0 translate-y-0 overflow-y-auto rounded-none border-y-0 border-r-0 bg-background p-0 sm:rounded-none">
+              <DialogHeader className="border-b border-border px-6 pb-5 pt-7 text-left">
+                <DialogTitle className="font-display text-2xl">Explore Helping Tribe</DialogTitle>
+                <DialogDescription>Programme information and secure access to your learning portal.</DialogDescription>
+              </DialogHeader>
+              <div className="flex flex-col gap-2 px-4 py-5">
+                {SITE_CONFIG.publicNavigation.map((item) => (
+                  <DialogClose asChild key={item.href}>
+                    <Link href={item.href} className="flex min-h-12 items-center rounded-xl px-4 text-base font-semibold text-foreground hover:bg-accent">
+                      {item.label}
+                    </Link>
+                  </DialogClose>
+                ))}
               </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </nav>
+              <div className="mt-auto space-y-3 border-t border-border p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+                <DialogClose asChild>
+                  <Button asChild className="h-12 w-full rounded-xl"><Link href="/apply">Start an application</Link></Button>
+                </DialogClose>
+                <DialogClose asChild>
+                  <Button asChild variant="outline" className="h-12 w-full rounded-xl"><Link href="/student/login">Learner login</Link></Button>
+                </DialogClose>
+                <div className="grid grid-cols-2 gap-2 pt-2 text-center text-xs">
+                  <DialogClose asChild><Link href="/mentor-login" className="rounded-lg px-2 py-3 text-muted-foreground hover:bg-accent">Facilitator</Link></DialogClose>
+                  <DialogClose asChild><Link href="/staff/login" className="rounded-lg px-2 py-3 text-muted-foreground hover:bg-accent">Administrator</Link></DialogClose>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </nav>
+    </header>
   )
 }

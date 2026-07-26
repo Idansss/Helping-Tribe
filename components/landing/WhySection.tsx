@@ -1,99 +1,34 @@
-'use client'
-
-import { Card, CardContent } from '@/components/ui/card'
-import { Calendar, Globe, Award } from 'lucide-react'
+import { ArrowUpRight, Globe2, HeartHandshake, ShieldCheck } from 'lucide-react'
 
 export function WhySection() {
   return (
-    <section id="program" className="py-16 md:py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mb-16">
-          {/* Left: Who We Are, Vision, Mission */}
-          <div className="space-y-8">
-            <div className="space-y-3">
-              <h2 className="text-3xl md:text-4xl font-bold text-[#4c1d95]">
-                Who We Are
-              </h2>
-              <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                A premier learning community for emerging and practicing
-                therapists, counsellors, and mental health professionals.
-                Powered by BlakMoh Consulting, we bridge the gap between theory
-                &amp; practice with training, mentorship, and collaborative
-                growth.
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <h3 className="text-xl md:text-2xl font-bold text-[#4c1d95]">
-                Our Vision
-              </h3>
-              <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                To revolutionize the helping profession by cultivating a
-                generation of skilled, compassionate, and ethically grounded
-                therapists who transform lives through evidence-based practice.
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <h3 className="text-xl md:text-2xl font-bold text-[#4c1d95]">
-                Our Mission
-              </h3>
-              <ul className="list-disc list-inside text-sm md:text-base text-gray-700 space-y-1.5">
-                <li>Holistic professional development.</li>
-                <li>Supportive peer ecosystem.</li>
-                <li>Innovative mental health solutions.</li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Right: Why Join Us & Stats */}
-          <div className="space-y-6">
-            <Card className="border-2 border-[#f3e8ff] bg-[#f3e8ff]/40">
-              <CardContent className="pt-6 pb-4">
-                <h3 className="text-xl font-bold text-[#4c1d95] mb-3">
-                  Why Join Us?
-                </h3>
-                <ul className="list-disc list-inside text-sm md:text-base text-gray-700 space-y-1.5">
-                  <li>Career growth &amp; CPD opportunities.</li>
-                  <li>Exclusive networking with fellow helpers.</li>
-                  <li>Therapist well-being support.</li>
-                  <li>Access to resources &amp; research.</li>
-                  <li>Member discounts &amp; perks.</li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <Card className="border-2 border-[#f3e8ff] bg-[#f3e8ff]/50">
-                <CardContent className="pt-6 text-center">
-                  <Calendar className="h-12 w-12 mx-auto mb-4 text-[#4c1d95]" />
-                  <div className="text-3xl font-bold text-[#4c1d95] mb-2">9</div>
-                  <div className="text-sm text-gray-700 font-medium">
-                    Weeks of Training
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-[#f3e8ff] bg-[#f3e8ff]/50">
-                <CardContent className="pt-6 text-center">
-                  <Globe className="h-12 w-12 mx-auto mb-4 text-[#4c1d95]" />
-                  <div className="text-3xl font-bold text-[#4c1d95] mb-2">100%</div>
-                  <div className="text-sm text-gray-700 font-medium">
-                    Online &amp; Flexible
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-[#f3e8ff] bg-[#f3e8ff]/50">
-                <CardContent className="pt-6 text-center">
-                  <Award className="h-12 w-12 mx-auto mb-4 text-[#4c1d95]" />
-                  <div className="text-3xl font-bold text-[#4c1d95] mb-2">✓</div>
-                  <div className="text-sm text-gray-700 font-medium">
-                    Recognized Certification
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+    <section id="about" className="bg-background">
+      <div className="section-shell grid gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:gap-20">
+        <div>
+          <p className="eyebrow">A school built around human practice</p>
+          <h2 className="mt-4 max-w-xl font-display text-[clamp(2.65rem,6vw,5.4rem)] font-medium leading-[0.96] tracking-[-0.035em] text-foreground">
+            Knowledge matters. How you hold it matters more.
+          </h2>
+        </div>
+        <div className="space-y-8 lg:pt-16">
+          <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
+            Helping work asks for more than theory. It asks for ethics, reflection, cultural awareness and the steady confidence to know when to listen, act, supervise or refer.
+          </p>
+          <div className="grid gap-6 border-t border-border pt-8 sm:grid-cols-3">
+            {[
+              { icon: ShieldCheck, title: 'Ethical grounding', text: 'Safeguarding and professional responsibility are part of the learning journey.' },
+              { icon: Globe2, title: 'Context matters', text: 'Examples and practice are shaped for Nigerian and African communities.' },
+              { icon: HeartHandshake, title: 'Supported growth', text: 'Reflection, peer learning and feedback connect knowledge to practice.' },
+            ].map(({ icon: Icon, title, text }) => (
+              <article key={title} className="group">
+                <div className="flex items-center justify-between">
+                  <Icon className="size-5 text-primary" aria-hidden="true" />
+                  <ArrowUpRight className="size-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+                </div>
+                <h3 className="mt-5 text-base font-bold text-foreground">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{text}</p>
+              </article>
+            ))}
           </div>
         </div>
       </div>

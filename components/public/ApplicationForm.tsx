@@ -249,10 +249,10 @@ function Option({
     <label
       htmlFor={id}
       className={cn(
-        'flex w-full items-center gap-3 rounded-lg border bg-white px-3 py-2.5 text-sm shadow-sm transition-colors',
+        'flex min-h-11 w-full min-w-0 items-center gap-3 rounded-lg border bg-card px-3 py-2.5 text-left text-sm text-card-foreground shadow-sm transition-colors',
         'cursor-pointer select-none',
         'focus-within:outline-none focus-within:ring-2 focus-within:ring-teal-600/25',
-        active ? 'border-teal-600 bg-teal-50/70' : 'border-slate-200 hover:bg-slate-50',
+        active ? 'border-primary bg-accent' : 'border-border hover:bg-muted',
         className
       )}
     >
@@ -267,7 +267,7 @@ function Option({
         )}
         {...rest}
       />
-      <span className="leading-snug text-slate-900">{children}</span>
+      <span className="min-w-0 break-words leading-snug text-foreground">{children}</span>
     </label>
   )
 }
@@ -282,7 +282,7 @@ function SectionCard({
   children: ReactNode
 }) {
   return (
-    <Card className="border-slate-200 bg-white">
+    <Card className="border-border bg-card">
       <CardHeader className="pb-4">
         <CardTitle className="text-base md:text-lg">{title}</CardTitle>
         {description ? <CardDescription className="text-sm">{description}</CardDescription> : null}
@@ -596,14 +596,14 @@ export function ApplicationForm() {
 
   if (loadingDraft) {
     return (
-      <Card className="border-slate-200 bg-white">
+      <Card className="border-border bg-card">
         <CardContent className="p-6 text-sm text-slate-600">Loading saved application...</CardContent>
       </Card>
     )
   }
 
   return (
-    <Card className="border-slate-200 bg-white">
+    <Card className="border-border bg-card shadow-[var(--shadow-soft)]">
       <div ref={formTopRef} />
       <CardHeader className="pb-4">
         <CardTitle className="text-xl md:text-2xl">{PROGRAM_FULL_NAME} Application</CardTitle>
@@ -736,7 +736,7 @@ export function ApplicationForm() {
                 name="highestQualification"
                 render={({ field }) => (
                   <Select value={field.value || undefined} onValueChange={field.onChange}>
-                    <SelectTrigger className="bg-white">
+                    <SelectTrigger className="bg-background">
                       <SelectValue placeholder="Select..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -1060,7 +1060,7 @@ export function ApplicationForm() {
                 name="hearAbout"
                 render={({ field }) => (
                   <Select value={field.value || undefined} onValueChange={field.onChange}>
-                    <SelectTrigger className="bg-white">
+                    <SelectTrigger className="bg-background">
                       <SelectValue placeholder="Select..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -1124,7 +1124,7 @@ export function ApplicationForm() {
               </div>
             </div>
 
-            <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <div className="space-y-2 rounded-lg border border-border bg-muted/55 p-3">
               <Option
                 id="consent-privacy"
                 active={!!consentPrivacy}
@@ -1154,21 +1154,21 @@ export function ApplicationForm() {
           {currentStep === 7 && (
             <SectionCard title="REVIEW & SUBMIT" description="Confirm key details before final submission.">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <div className="min-w-0 rounded-lg border border-border bg-muted/55 p-3">
                   <div className="text-xs uppercase tracking-wide text-slate-500">Full name</div>
-                  <div className="mt-1 text-slate-900">{watchedValues.fullNameCertificate || '-'}</div>
+                  <div className="mt-1 break-words text-foreground">{watchedValues.fullNameCertificate || '-'}</div>
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <div className="min-w-0 rounded-lg border border-border bg-muted/55 p-3">
                   <div className="text-xs uppercase tracking-wide text-slate-500">Email</div>
-                  <div className="mt-1 text-slate-900">{watchedValues.email || '-'}</div>
+                  <div className="mt-1 break-words text-foreground">{watchedValues.email || '-'}</div>
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <div className="min-w-0 rounded-lg border border-border bg-muted/55 p-3">
                   <div className="text-xs uppercase tracking-wide text-slate-500">Phone</div>
-                  <div className="mt-1 text-slate-900">{watchedValues.phoneWhatsApp || '-'}</div>
+                  <div className="mt-1 break-words text-foreground">{watchedValues.phoneWhatsApp || '-'}</div>
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <div className="min-w-0 rounded-lg border border-border bg-muted/55 p-3">
                   <div className="text-xs uppercase tracking-wide text-slate-500">Training mode</div>
-                  <div className="mt-1 text-slate-900">{watchedValues.trainingMode || '-'}</div>
+                  <div className="mt-1 break-words text-foreground">{watchedValues.trainingMode || '-'}</div>
                 </div>
               </div>
               <div className="rounded-lg border border-teal-100 bg-teal-50 p-3 text-sm text-teal-900">
@@ -1198,7 +1198,7 @@ export function ApplicationForm() {
         </form>
       </CardContent>
 
-      <CardFooter className="border-t bg-slate-50/60">
+      <CardFooter className="border-t bg-muted/45">
         <div className="text-xs text-slate-600">
           After submission: your application is saved as <span className="font-medium text-slate-800">PENDING</span> until an admin reviews it. Need to continue later? Use{' '}
           <Link href="/apply/resume" className="font-medium text-teal-700 hover:underline">Resume application</Link>.
