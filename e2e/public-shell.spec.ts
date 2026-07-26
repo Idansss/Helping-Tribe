@@ -35,6 +35,7 @@ test.describe('public experience', () => {
   test('mobile menu is a keyboard-managed dialog', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name.startsWith('desktop'), 'Mobile navigation check')
     await page.goto('/', { waitUntil: 'domcontentloaded' })
+    await expect(page.getByRole('navigation', { name: 'Public navigation' })).toHaveAttribute('data-hydrated', 'true')
     const trigger = page.getByRole('button', { name: 'Open navigation menu' })
     await trigger.click()
     await expect(page.getByRole('dialog')).toBeVisible()

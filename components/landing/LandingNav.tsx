@@ -19,8 +19,10 @@ import {
 
 export function LandingNav() {
   const [isScrolled, setIsScrolled] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {
+    setIsHydrated(true)
     const handleScroll = () => setIsScrolled(window.scrollY > 16)
     handleScroll()
     window.addEventListener('scroll', handleScroll, { passive: true })
@@ -35,7 +37,7 @@ export function LandingNav() {
           : 'border-transparent bg-background/82 backdrop-blur-md'
       }`}
     >
-      <nav aria-label="Public navigation" className="mx-auto flex h-[var(--nav-height)] max-w-7xl items-center justify-between gap-3 px-[var(--page-gutter)]">
+      <nav aria-label="Public navigation" data-hydrated={isHydrated} className="mx-auto flex h-[var(--nav-height)] max-w-7xl items-center justify-between gap-3 px-[var(--page-gutter)]">
         <Link href="/" className="flex min-w-0 items-center gap-2.5 rounded-lg">
           <span className="relative size-10 shrink-0 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-border">
             <Image src="/logo.png" alt="" fill sizes="40px" className="object-contain p-0.5" priority />
