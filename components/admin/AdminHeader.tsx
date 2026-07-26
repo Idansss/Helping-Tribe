@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { isAllowedAdmin, resolvePortalRole } from '@/lib/auth/admin'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 interface AdminHeaderProps {
   title?: string
@@ -321,17 +322,17 @@ export function AdminHeader({
     currentRole === 'mentor' ? 'Mentor' : currentRole === 'learner' ? 'Learner' : 'Admin'
 
   return (
-    <header className="h-16 border-b bg-white/70 backdrop-blur-sm flex items-center justify-between px-6 md:px-8 gap-4 sticky top-0 z-20">
+    <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-border bg-background/88 px-3 backdrop-blur-xl sm:px-5 md:px-8">
       <div className="flex items-center min-w-0 gap-6">
         {leftSlot}
         {leftSlot && (
           <div className="hidden sm:block w-px h-8 bg-slate-200 flex-shrink-0" aria-hidden />
         )}
         <div className="min-w-0">
-          <h1 className="text-lg font-semibold text-slate-900 truncate">
+          <h1 className="truncate text-lg font-semibold text-foreground">
             {getRoleTitle()}
           </h1>
-          <p className="text-xs text-slate-500 truncate max-w-lg">
+          <p className="max-w-lg truncate text-xs text-muted-foreground">
             {getRoleDescription()}
           </p>
         </div>
@@ -339,7 +340,7 @@ export function AdminHeader({
 
       <div className="flex items-center gap-3 min-w-0">
         <div className="hidden md:block relative w-64" data-dropdown>
-          <div className="flex items-center gap-2 bg-slate-50 border rounded-md px-2 py-1.5">
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/55 px-2 py-1.5">
             <Search className="h-4 w-4 text-slate-400" />
             <Input
               placeholder={searchPlaceholder}
@@ -383,7 +384,8 @@ export function AdminHeader({
           )}
         </div>
 
-        <NotificationBell className="relative rounded-full hover:bg-slate-100 p-2 text-slate-600" iconSize="sm" />
+        <ThemeToggle />
+        <NotificationBell className="relative rounded-full p-2 text-muted-foreground hover:bg-accent" iconSize="sm" />
 
         {false && (
           <div className="relative" data-dropdown>
@@ -461,7 +463,7 @@ export function AdminHeader({
             aria-label="Profile menu"
             aria-expanded={isProfileOpen}
             aria-haspopup="menu"
-            className="flex items-center gap-2 rounded-full border-slate-200 pl-1 pr-3"
+            className="flex min-h-11 items-center gap-2 rounded-full border-border bg-background pl-1 pr-3"
             onClick={() => {
               setIsProfileOpen(open => !open)
               setIsRoleSwitcherOpen(false)
@@ -484,7 +486,7 @@ export function AdminHeader({
           </Button>
 
           {isProfileOpen && (
-            <div className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-200 bg-white shadow-lg text-[11px] z-30">
+            <div className="absolute right-0 z-30 mt-2 w-48 rounded-xl border border-border bg-popover text-[11px] text-popover-foreground shadow-lg">
               <div className="px-3 py-2 border-b border-slate-100">
                 <p className="font-semibold text-slate-900">
                   {profileName ?? profileFallbackLabel}

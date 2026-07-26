@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { isAllowedAdmin } from '@/lib/auth/admin'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 type UserRole = 'admin' | 'mentor' | 'learner'
 
@@ -162,7 +163,7 @@ export function LearnerHeader({ onMenuClick }: LearnerHeaderProps) {
     visibleRoleOptions.find((r) => r.id === currentRole) || ROLE_OPTIONS[2]
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 sm:h-16 flex-shrink-0 items-center gap-2 sm:gap-4 border-b border-slate-200 bg-white px-3 sm:px-4 md:px-6">
+    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-2 border-b border-border bg-background/90 px-3 backdrop-blur-xl sm:gap-4 sm:px-4 md:px-6">
       {/* Mobile menu button */}
       {onMenuClick && (
         <button
@@ -176,10 +177,10 @@ export function LearnerHeader({ onMenuClick }: LearnerHeaderProps) {
       )}
       {/* Left: title */}
       <div className="min-w-0 hidden sm:block">
-        <h1 className="text-lg font-bold text-slate-900 truncate">
+        <h1 className="truncate text-lg font-bold text-foreground">
           My Training
         </h1>
-        <p className="text-xs text-slate-500 truncate">
+        <p className="truncate text-xs text-muted-foreground">
           Track your progress...
         </p>
       </div>
@@ -187,7 +188,7 @@ export function LearnerHeader({ onMenuClick }: LearnerHeaderProps) {
       {/* Center: search bar (quick nav to pages) */}
       <div className="flex-1 min-w-0 max-w-xl mx-2 md:mx-4">
         <div className="hidden md:block relative w-full max-w-md" data-dropdown>
-          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-md px-2 py-1.5">
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/55 px-2 py-1.5">
             <Search className="h-4 w-4 text-slate-400 flex-shrink-0" />
             <Input
               placeholder="Search courses, resources, discussions..."
@@ -233,6 +234,7 @@ export function LearnerHeader({ onMenuClick }: LearnerHeaderProps) {
 
       {/* Right: Notifications + Role + Profile */}
       <div className="flex items-center gap-2 flex-shrink-0">
+        <ThemeToggle />
         <div className="relative" data-dropdown>
           <NotificationBell className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 transition-colors touch-manipulation" iconSize="md" />
         </div>

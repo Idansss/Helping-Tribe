@@ -30,6 +30,7 @@ import { cn } from '@/lib/utils/cn'
 import { createClient } from '@/lib/supabase/client'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { AdminHeader } from '@/components/admin/AdminHeader'
+import Image from 'next/image'
 
 interface MentorLayoutProps {
   children: ReactNode
@@ -81,26 +82,35 @@ export function MentorLayout({ children }: MentorLayoutProps) {
     }
   }
 
-  const navItems = [
+  const navGroups = [
+    { label: 'Overview', items: [
     { href: '/mentor', label: 'Home', icon: Home },
+    { href: '/mentor/students', label: 'Learners', icon: Users },
+    { href: '/mentor/grading', label: 'Review & feedback', icon: ClipboardList },
+    { href: '/mentor/reports', label: 'Reports', icon: BarChart3 },
+    ] },
+    { label: 'Learning', items: [
     { href: '/mentor/courses', label: 'Courses', icon: BookOpen },
     { href: '/mentor/journals', label: 'Journals', icon: FileText },
     { href: '/mentor/learning-paths', label: 'Learning paths', icon: Layers3 },
-    { href: '/mentor/groups', label: 'Groups (Peer Circles)', icon: Users },
     { href: '/mentor/case-studies', label: 'Case Studies', icon: Briefcase },
     { href: '/mentor/resources', label: 'Resources', icon: FolderOpen },
     { href: '/mentor/catalog', label: 'Catalog', icon: LayoutGrid },
-    { href: '/mentor/grading', label: 'Grading Hub', icon: ClipboardList },
     { href: '/mentor/practice', label: 'Practice Client', icon: UserCircle },
-    { href: '/mentor/conferences', label: 'Conferences', icon: Video },
-    { href: '/mentor/reports', label: 'Reports', icon: BarChart3 },
-    { href: '/mentor/calendar', label: 'Calendar', icon: CalendarDays },
+    { href: '/mentor/quizzes', label: 'Quizzes', icon: ListChecks },
     { href: '/mentor/skills', label: 'Skills', icon: Sparkles },
     { href: '/mentor/cpd-snippets', label: 'CPD Snippets', icon: GraduationCap },
+    ] },
+    { label: 'Community', items: [
+    { href: '/mentor/groups', label: 'Peer Circles', icon: Users },
+    { href: '/mentor/conferences', label: 'Conferences', icon: Video },
+    { href: '/mentor/calendar', label: 'Calendar', icon: CalendarDays },
     { href: '/mentor/discussions', label: 'Discussions', icon: MessageSquare },
-    { href: '/mentor/quizzes', label: 'Quizzes', icon: ListChecks },
     { href: '/mentor/messages', label: 'Messages', icon: MessageCircle },
+    ] },
+    { label: 'Account', items: [
     { href: '/mentor/settings', label: 'Settings', icon: Settings },
+    ] },
   ]
 
   const showSidebar = isDesktop ? sidebarOpen : mobileMenuOpen
@@ -117,7 +127,7 @@ export function MentorLayout({ children }: MentorLayoutProps) {
   )
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="flex min-h-screen bg-background text-foreground">
       {!isDesktop && mobileMenuOpen && (
         <button
           type="button"
@@ -140,7 +150,7 @@ export function MentorLayout({ children }: MentorLayoutProps) {
         <div className={cn('h-14 flex-shrink-0 flex items-center px-3', !isDesktop && 'justify-between')}>
           <div className="flex items-center gap-2 min-w-0">
             <div className="h-8 w-8 rounded-xl bg-white/10 flex items-center justify-center overflow-hidden ring-1 ring-white/20 flex-shrink-0">
-              <img src="/logo.png" alt="Helping Tribe" className="h-full w-full object-contain" />
+              <Image src="/logo.png" alt="" width={32} height={32} className="h-full w-full object-contain" />
             </div>
             {showSidebar && (
               <div className="leading-tight min-w-0">
@@ -162,8 +172,11 @@ export function MentorLayout({ children }: MentorLayoutProps) {
         </div>
 
         <nav className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden py-2 px-2 overscroll-contain">
+          {navGroups.map((group, groupIndex) => (
+          <section key={group.label} className={cn('pb-4', groupIndex > 0 && 'border-t border-white/10 pt-4')}>
+            {showSidebar && <h2 className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-white/50">{group.label}</h2>}
           <ul className="space-y-0.5">
-            {navItems.map((item) => {
+            {group.items.map((item) => {
               const Icon = item.icon
               const isActive =
                 item.href === '/mentor'
@@ -189,6 +202,8 @@ export function MentorLayout({ children }: MentorLayoutProps) {
               )
             })}
           </ul>
+          </section>
+          ))}
         </nav>
 
         {showSidebar && (

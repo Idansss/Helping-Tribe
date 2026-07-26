@@ -6,6 +6,8 @@ import { cn } from '@/lib/utils/cn'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { LearnerSidebar } from './LearnerSidebar'
 import { LearnerHeader } from './LearnerHeader'
+import { MobileBottomNav } from '@/components/navigation/mobile-bottom-nav'
+import { GroundingSupportLauncher } from '@/components/lms/GroundingSupportLauncher'
 
 interface LearnerLayoutProps {
   children: ReactNode
@@ -22,7 +24,7 @@ export function LearnerLayout({ children }: LearnerLayoutProps) {
   }, [pathname])
 
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-900">
+    <div className="flex min-h-screen bg-background text-foreground">
       {/* Mobile drawer backdrop */}
       {!isDesktop && mobileMenuOpen && (
         <button
@@ -43,17 +45,19 @@ export function LearnerLayout({ children }: LearnerLayoutProps) {
 
       <div
         className={cn(
-          'flex flex-1 flex-col min-w-0 transition-[margin] duration-200',
+          'flex min-w-0 flex-1 flex-col transition-[margin] duration-200',
           isDesktop ? (sidebarOpen ? 'ml-64' : 'ml-16') : 'ml-0'
         )}
       >
         <LearnerHeader
           onMenuClick={!isDesktop ? () => setMobileMenuOpen(true) : undefined}
         />
-        <main id="main-content" className="flex-1 overflow-y-auto p-4 sm:p-6 bg-white">
+        <main id="main-content" className="flex-1 overflow-y-auto bg-background p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:p-6 sm:pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-6">
           {children}
         </main>
       </div>
+      {!isDesktop && <MobileBottomNav />}
+      <GroundingSupportLauncher />
     </div>
   )
 }

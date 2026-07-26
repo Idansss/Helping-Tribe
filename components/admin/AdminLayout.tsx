@@ -48,7 +48,7 @@ export function AdminLayout({
   )
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex">
+    <div className="flex min-h-screen bg-background text-foreground">
       {!isDesktop && mobileMenuOpen && (
         <button
           type="button"
@@ -72,7 +72,7 @@ export function AdminLayout({
           description={description}
         />
 
-        <main id="main-content" className="flex-1 p-4 md:p-6 space-y-4 overflow-y-auto">
+        <main id="main-content" className="flex-1 space-y-4 overflow-y-auto bg-background p-4 md:p-6">
           {children}
         </main>
       </div>
