@@ -22,6 +22,11 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local browser-control runtime
+.joyride/
+playwright-report/
+test-results/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
