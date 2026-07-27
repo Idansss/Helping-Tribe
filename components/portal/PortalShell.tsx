@@ -5,15 +5,13 @@ import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { MobileBottomNav } from '@/components/navigation/mobile-bottom-nav'
 import { GroundingSupportLauncher } from '@/components/lms/GroundingSupportLauncher'
+import { isFullViewportRoute } from '@/lib/portal/full-viewport-routes'
 import { cn } from '@/lib/utils/cn'
 import { PortalHeader } from './PortalHeader'
 import { PortalSidebar } from './PortalSidebar'
 import type { PortalRole } from './portal-config'
 
 const SIDEBAR_PREFERENCE_KEY = 'ht-portal-sidebar-collapsed'
-
-/** Routes that own the full viewport beneath the portal header (no document scroll). */
-const FULL_VIEWPORT_ROUTES = new Set(['/learner/practice/chat'])
 
 type PortalShellProps = {
   role: PortalRole
@@ -25,7 +23,7 @@ export function PortalShell({ role, children }: PortalShellProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [transitionsReady, setTransitionsReady] = useState(false)
-  const isFullViewport = FULL_VIEWPORT_ROUTES.has(pathname)
+  const isFullViewport = isFullViewportRoute(pathname)
 
   useEffect(() => {
     try {
@@ -82,7 +80,12 @@ export function PortalShell({ role, children }: PortalShellProps) {
           className={cn(
             'portal-main min-w-0 flex-1 bg-background',
             isFullViewport
-              ? 'flex min-h-0 flex-col overflow-hidden p-0'
+              ? cn(
+                  'flex min-h-0 flex-col overflow-hidden p-0',
+                  // Learner mobile bottom nav (h-16) must not cover workspace composers.
+                  role === 'learner' &&
+                    'pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0'
+                )
               : 'px-4 py-5 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-6 lg:px-8 lg:pb-8'
           )}
         >

@@ -2,49 +2,66 @@
 
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { MessageInbox } from '@/components/lms/MessageInbox'
+import { MessagingWorkspace } from '@/components/messaging'
+import type { MessageRecipientOption } from '@/components/messaging'
 import { createClient } from '@/lib/supabase/client'
 
 function AdminMessagesContent() {
   const searchParams = useSearchParams()
   const toId = searchParams.get('to')
-  const supabase = createClient()
-  const [recipientOptions, setRecipientOptions] = useState<{ id: string; label: string }[]>([])
+  const [recipientOptions, setRecipientOptions] = useState<MessageRecipientOption[]>([])
 
   useEffect(() => {
+    let active = true
+    const supabase = createClient()
     async function loadUsers() {
       const { data } = await supabase
         .from('profiles')
-        .select('id, full_name, role')
+        .select('id, full_name, role, avatar_url')
         .order('full_name')
-      const opts = (data ?? []).map((p: { id: string; full_name: string | null; role: string }) => ({
-        id: p.id,
-        label: `${p.full_name || 'Unnamed'} (${p.role})`,
-      }))
+      if (!active) return
+      const opts = (data ?? []).map(
+        (profile: {
+          id: string
+          full_name: string | null
+          role: string
+          avatar_url: string | null
+        }) => ({
+          id: profile.id,
+          name: profile.full_name || 'Unnamed',
+          role: profile.role,
+          avatarUrl: profile.avatar_url,
+          label: `${profile.full_name || 'Unnamed'} (${profile.role})`,
+        })
+      )
       setRecipientOptions(opts)
     }
-    loadUsers()
+    void loadUsers()
+    return () => {
+      active = false
+    }
   }, [])
 
   return (
-    <div className="space-y-4">
-      <p className="text-slate-600 text-sm">
-        Message any user (learners, mentors, admins). They will see your messages in their Messages inbox and can reply.
-      </p>
-      <MessageInbox
-        canCompose
-        initialToId={toId}
-        recipientOptions={recipientOptions}
-        title="Messages"
-        emptyMessage="No conversations yet. Use &quot;New message&quot; to start a conversation."
-      />
-    </div>
+    <MessagingWorkspace
+      canCompose
+      initialToId={toId}
+      recipientOptions={recipientOptions}
+      roleVariant="admin"
+      emptyMessage="No conversations yet. Start a message with a learner or staff member."
+    />
   )
 }
 
 export default function AdminMessagesPage() {
   return (
-    <Suspense fallback={<div className="text-slate-500 py-6">Loading…</div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-0 flex-1 items-center justify-center text-sm text-muted-foreground">
+          Loading messages…
+        </div>
+      }
+    >
       <AdminMessagesContent />
     </Suspense>
   )
