@@ -1,11 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "regions": ["dub1"],
-  "redirects": [
-    {
-      "source": "/",
-      "destination": "/apply",
-      "permanent": false
-    }
-  ]
+  "regions": ["dub1"]
 }
