@@ -25,16 +25,41 @@ const TOOL_TYPE_CONFIG: Record<string, { label: string; color: string; icon: any
   final_evaluation: { label: 'Final Evaluation', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200', icon: AlertCircle }
 }
 
+function getErrorMessage(error: unknown) {
+  if (!error) return 'Unknown error'
+  if (typeof error === 'string') return error
+  if (error instanceof Error && error.message) return error.message
+  const maybe = error as { message?: string; code?: string; details?: string; hint?: string }
+  return [maybe.message, maybe.code, maybe.details, maybe.hint].filter(Boolean).join(' | ') || 'Unknown error'
+}
+
+function isMissingRelationError(error: unknown) {
+  const message = getErrorMessage(error).toLowerCase()
+  const code = String((error as { code?: string } | null)?.code || '')
+  return (
+    code === '42P01' ||
+    code === 'PGRST205' ||
+    message.includes('does not exist') ||
+    message.includes('schema cache') ||
+    message.includes('could not find the table')
+  )
+}
+
 export function AssessmentList() {
   const [assessments, setAssessments] = useState<AssessmentTool[]>([])
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
 
   useEffect(() => {
+    const supabase = createClient()
+    let cancelled = false
+
     async function loadAssessments() {
       try {
         const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
+        if (!user) {
+          if (!cancelled) setAssessments([])
+          return
+        }
 
         const { data, error } = await supabase
           .from('assessment_tools')
@@ -42,18 +67,27 @@ export function AssessmentList() {
           .eq('is_active', true)
           .order('created_at', { ascending: true })
 
-        if (error) throw error
+        if (error) {
+          if (isMissingRelationError(error)) {
+            if (!cancelled) setAssessments([])
+            return
+          }
+          throw error
+        }
 
         if (data) {
-          // Check which assessments have responses
           const assessmentsWithResponses = await Promise.all(
             data.map(async (assessment) => {
-              const { data: responseData } = await supabase
+              const { data: responseData, error: responseError } = await supabase
                 .from('assessment_responses')
                 .select('id')
                 .eq('assessment_id', assessment.id)
                 .eq('user_id', user.id)
                 .maybeSingle()
+
+              if (responseError && !isMissingRelationError(responseError)) {
+                console.warn('Assessment response lookup failed:', getErrorMessage(responseError))
+              }
 
               return {
                 ...assessment,
@@ -62,17 +96,21 @@ export function AssessmentList() {
             })
           )
 
-          setAssessments(assessmentsWithResponses as AssessmentTool[])
+          if (!cancelled) setAssessments(assessmentsWithResponses as AssessmentTool[])
         }
       } catch (error) {
-        console.error('Error loading assessments:', error)
+        console.warn('Error loading assessments:', getErrorMessage(error))
+        if (!cancelled) setAssessments([])
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
 
     loadAssessments()
-  }, [supabase])
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   if (loading) {
     return (

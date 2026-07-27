@@ -307,15 +307,16 @@ export default function MentorDashboardPage() {
 
           {/* Quick actions */}
           <div className="space-y-4">
-            <Card className="p-5 bg-teal-50 border-teal-200">
-              <h2 className="text-sm font-semibold text-teal-800 mb-3">
+            <Card className="border-primary/25 bg-primary/10 p-5">
+              <h2 className="mb-3 text-sm font-semibold text-foreground">
                 Quick actions
               </h2>
               <div className="flex flex-col gap-2">
                 <Link href="/mentor/courses">
                   <Button
                     size="sm"
-                    className="w-full justify-start gap-2 bg-white text-teal-800 hover:bg-teal-100"
+                    variant="secondary"
+                    className="w-full justify-start gap-2"
                   >
                     <Plus className="h-4 w-4" />
                     Add course
@@ -324,7 +325,8 @@ export default function MentorDashboardPage() {
                 <Link href="/mentor/groups">
                   <Button
                     size="sm"
-                    className="w-full justify-start gap-2 bg-white text-teal-800 hover:bg-teal-100"
+                    variant="secondary"
+                    className="w-full justify-start gap-2"
                   >
                     <Users className="h-4 w-4" />
                     Add group
@@ -333,7 +335,8 @@ export default function MentorDashboardPage() {
                 <Link href="/mentor/conferences">
                   <Button
                     size="sm"
-                    className="w-full justify-start gap-2 bg-white text-teal-800 hover:bg-teal-100"
+                    variant="secondary"
+                    className="w-full justify-start gap-2"
                   >
                     <CalendarDays className="h-4 w-4" />
                     Add conference
@@ -342,7 +345,8 @@ export default function MentorDashboardPage() {
                 <Link href="/mentor/learning-paths">
                   <Button
                     size="sm"
-                    className="w-full justify-start gap-2 bg-white text-teal-800 hover:bg-teal-100"
+                    variant="secondary"
+                    className="w-full justify-start gap-2"
                   >
                     <Layers3 className="h-4 w-4" />
                     Training matrix

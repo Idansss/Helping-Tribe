@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { createClient } from '@/lib/supabase/client'
+import { isMissingRelationError } from '@/lib/supabase/migrations'
 import { FileText, Calendar, CheckCircle2, Clock, ArrowRight } from 'lucide-react'
 import { format } from 'date-fns'
 import Link from 'next/link'
@@ -45,18 +46,28 @@ export function FinalProjectList() {
           .eq('is_active', true)
           .order('created_at', { ascending: false })
 
-        if (error) throw error
+        if (error) {
+          if (isMissingRelationError(error, 'final_projects')) {
+            setProjects([])
+            return
+          }
+          throw error
+        }
 
         if (data) {
           // Check which projects have submissions
           const projectsWithSubmissions = await Promise.all(
             data.map(async (project) => {
-              const { data: submissionData } = await supabase
+              const { data: submissionData, error: submissionError } = await supabase
                 .from('final_project_submissions')
                 .select('id')
                 .eq('project_id', project.id)
                 .eq('user_id', user.id)
                 .maybeSingle()
+
+              if (submissionError && isMissingRelationError(submissionError)) {
+                return { ...project, hasSubmission: false }
+              }
 
               return {
                 ...project,
@@ -68,7 +79,8 @@ export function FinalProjectList() {
           setProjects(projectsWithSubmissions as FinalProject[])
         }
       } catch (error) {
-        console.error('Error loading final projects:', error)
+        console.warn('Final projects unavailable:', error)
+        setProjects([])
       } finally {
         setLoading(false)
       }

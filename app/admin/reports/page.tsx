@@ -159,7 +159,7 @@ export default function AdminReportsPage() {
                 ))}
               </div>
               <p className="mt-2 text-[11px] text-slate-500">
-                Progress is trending upward for this cohort. Wire a full chart library here when real data is available.
+                Weekly completion activity appears here as learner progress is recorded.
               </p>
             </Card>
           </section>

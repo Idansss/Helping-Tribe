@@ -323,16 +323,16 @@ export default function MentorGradingHubPage() {
 
         <Card className="p-4 border-[#e2e8f0]">
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as GradingType)}>
-            <TabsList className="flex flex-nowrap md:flex-wrap justify-start gap-2 bg-slate-50 rounded-lg p-2 overflow-x-auto md:overflow-visible mb-4">
+            <TabsList className="mb-4 flex h-auto min-h-10 w-full flex-wrap items-center justify-start gap-2 rounded-lg bg-muted p-2">
               {(Object.keys(TYPE_LABELS) as GradingType[]).map((key) => (
                 <TabsTrigger
                   key={key}
                   value={key}
-                  className="text-xs px-3 py-1.5 whitespace-nowrap"
+                  className="h-8 shrink-0 whitespace-nowrap px-3 py-1.5 text-xs"
                 >
                   <span className="mr-2">{TYPE_LABELS[key]}</span>
                   {countsByType[key].pending > 0 && (
-                    <span className="inline-flex items-center justify-center rounded-full bg-teal-600 text-white text-[10px] h-5 min-w-5 px-1">
+                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] text-primary-foreground">
                       {countsByType[key].pending}
                     </span>
                   )}

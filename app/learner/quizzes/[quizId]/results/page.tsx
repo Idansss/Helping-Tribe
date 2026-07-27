@@ -135,18 +135,18 @@ export default function LearnerQuizResultsPage() {
         </Button>
       </div>
 
-      <Card className="border-teal-200 bg-gradient-to-br from-teal-50/80 to-white">
+      <Card className="border-primary/25 bg-gradient-to-br from-primary/10 via-card to-card">
         <CardHeader>
-          <CardTitle className="text-xl flex items-center gap-2">
-            <ListChecks className="h-6 w-6 text-teal-600" />
+          <CardTitle className="flex items-center gap-2 text-xl text-foreground">
+            <ListChecks className="size-6 text-primary" aria-hidden="true" />
             {quiz.title} — Results
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-2xl font-semibold text-slate-900">
+          <p className="text-2xl font-semibold text-foreground">
             {correctCount} / {total} correct
           </p>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-muted-foreground">
             Your answers are locked. You cannot change them after submitting.
           </p>
         </CardContent>

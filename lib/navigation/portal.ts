@@ -37,7 +37,7 @@ export const LEARNER_NAV_GROUPS = [
       { label: 'Quizzes', href: '/learner/quizzes', icon: 'quizzes', description: 'Knowledge checks and results' },
       { label: 'Skills', href: '/learner/skills', icon: 'skills', description: 'Skills and development' },
       { label: 'Learning Journal', href: '/learner/journal/entries', icon: 'journal', description: 'Private reflective entries' },
-      { label: 'Practice Client', href: '/learner/practice/chat', icon: 'practice', description: 'Guided practice conversations' },
+      { label: 'Practice Client', href: '/learner/practice/chat', icon: 'practice', description: 'AI Practice Studio simulations' },
     ],
   },
   {

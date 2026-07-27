@@ -10,7 +10,7 @@ export function Calendar({ className, classNames, showOutsideDays = true, ...pro
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn('p-4', className)}
+      className={cn('p-4 text-popover-foreground', className)}
       classNames={{
         months: 'flex flex-col',
         month: 'space-y-3',
@@ -19,46 +19,42 @@ export function Calendar({ className, classNames, showOutsideDays = true, ...pro
         caption_label: 'sr-only',
         dropdowns: 'flex items-center gap-2',
         dropdown: cn(
-          'appearance-none rounded-lg border border-slate-200 bg-white px-3 py-1.5',
-          'text-sm font-semibold text-slate-800 shadow-sm cursor-pointer',
-          'hover:border-teal-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-200',
-          'transition-colors'
+          'appearance-none rounded-lg border border-border bg-background px-3 py-1.5',
+          'cursor-pointer text-sm font-semibold text-foreground shadow-sm',
+          'transition-colors hover:border-primary/50 focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30'
         ),
         dropdown_root: 'relative',
         nav: 'flex items-center gap-1',
         button_previous: cn(
-          'absolute left-0 h-7 w-7 flex items-center justify-center rounded-lg',
-          'border border-slate-200 bg-white hover:bg-slate-50 text-slate-600',
-          'transition-colors cursor-pointer'
+          'absolute left-0 flex size-7 cursor-pointer items-center justify-center rounded-lg',
+          'border border-border bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground'
         ),
         button_next: cn(
-          'absolute right-0 h-7 w-7 flex items-center justify-center rounded-lg',
-          'border border-slate-200 bg-white hover:bg-slate-50 text-slate-600',
-          'transition-colors cursor-pointer'
+          'absolute right-0 flex size-7 cursor-pointer items-center justify-center rounded-lg',
+          'border border-border bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground'
         ),
         month_grid: 'w-full border-collapse',
         weekdays: 'flex',
-        weekday: 'text-slate-400 text-xs font-medium w-9 text-center py-1',
-        week: 'flex w-full mt-1',
+        weekday: 'w-9 py-1 text-center text-xs font-medium text-muted-foreground',
+        week: 'mt-1 flex w-full',
         day: cn(
-          'h-9 w-9 text-center text-sm relative rounded-lg',
-          'hover:bg-slate-100 transition-colors cursor-pointer',
-          'focus:outline-none focus:ring-2 focus:ring-teal-500'
+          'relative size-9 cursor-pointer rounded-lg text-center text-sm transition-colors',
+          'hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring'
         ),
-        day_button: 'h-9 w-9 flex items-center justify-center rounded-lg font-normal',
-        selected: '!bg-teal-600 !text-white hover:!bg-teal-700 rounded-lg',
-        today: 'bg-slate-100 font-semibold text-teal-700',
-        outside: 'text-slate-300',
-        disabled: 'text-slate-300 cursor-not-allowed hover:bg-transparent',
+        day_button: 'flex size-9 items-center justify-center rounded-lg font-normal',
+        selected: '!rounded-lg !bg-primary !text-primary-foreground hover:!bg-primary/90',
+        today: 'bg-accent font-semibold text-primary',
+        outside: 'text-muted-foreground/50',
+        disabled: 'cursor-not-allowed text-muted-foreground/40 hover:bg-transparent',
         hidden: 'invisible',
         ...classNames,
       }}
       components={{
         Chevron: ({ orientation }) =>
           orientation === 'left' ? (
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="size-4" aria-hidden="true" />
           ) : (
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="size-4" aria-hidden="true" />
           ),
       }}
       {...props}

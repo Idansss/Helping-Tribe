@@ -31,7 +31,14 @@
     --accent-foreground: 166 72% 22%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
+    --success: 153 72% 28%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 45%;
+    --warning-foreground: 30 80% 12%;
+    --information: 199 88% 40%;
+    --information-foreground: 0 0% 100%;
     --border: 168 19% 84%;
+    --border-strong: 168 22% 67%;
     --input: 168 19% 80%;
     --ring: 166 72% 28%;
     --chart-1: 166 72% 28%;
@@ -48,11 +55,22 @@
     --sidebar-accent-foreground: 166 72% 22%;
     --sidebar-border: 214 18% 90%;
     --sidebar-ring: 166 72% 28%;
+    --sidebar: 176 75% 21%;
+    --sidebar-muted: 176 43% 27%;
+    --sidebar-active: 0 0% 100%;
+    --sidebar-active-foreground: 176 75% 21%;
+    --header: 40 33% 97%;
+    --header-foreground: 215 49% 8%;
+    --table-header: 162 33% 93%;
+    --table-row: 0 0% 100%;
+    --table-row-hover: 164 31% 95%;
+    --table-row-selected: 166 42% 90%;
 
     --canvas: #faf8f4;
     --surface: #ffffff;
     --surface-elevated: #ffffff;
     --surface-muted: #eef7f4;
+    --surface-inverse: #0b1320;
     --text-primary: #0b1320;
     --text-secondary: #334155;
     --text-tertiary: #64748b;
@@ -65,6 +83,14 @@
     --page-gutter: clamp(1rem, 3vw, 2rem);
     --section-space: clamp(4rem, 9vw, 7.5rem);
     --nav-height: 4.5rem;
+    --portal-header-height: var(--nav-height);
+    --mobile-bottom-nav-height: 4rem;
+    --practice-mobile-nav-offset: calc(var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+    --motion-fast: 160ms;
+    --motion-standard: 220ms;
+    --motion-panel: 280ms;
+    --motion-page: 360ms;
+    --ease-standard: cubic-bezier(.2, .8, .2, 1);
 
     --talent-primary: #0f766e;
     --talent-primary-dark: #115e59;
@@ -87,7 +113,16 @@
     --muted-foreground: 215 15% 70%;
     --accent: 176 35% 20%;
     --accent-foreground: 165 48% 84%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 153 56% 46%;
+    --success-foreground: 216 43% 9%;
+    --warning: 42 85% 61%;
+    --warning-foreground: 30 80% 10%;
+    --information: 199 75% 58%;
+    --information-foreground: 216 43% 9%;
     --border: 215 20% 24%;
+    --border-strong: 214 19% 36%;
     --input: 215 20% 28%;
     --ring: 168 50% 52%;
     --sidebar-background: 215 42% 8%;
@@ -95,10 +130,21 @@
     --sidebar-accent: 176 35% 20%;
     --sidebar-accent-foreground: 165 48% 84%;
     --sidebar-border: 215 20% 24%;
+    --sidebar: 176 73% 16%;
+    --sidebar-muted: 176 40% 23%;
+    --sidebar-active: 165 38% 93%;
+    --sidebar-active-foreground: 176 73% 16%;
+    --header: 216 43% 9%;
+    --header-foreground: 40 33% 96%;
+    --table-header: 215 26% 17%;
+    --table-row: 215 33% 13%;
+    --table-row-hover: 176 28% 17%;
+    --table-row-selected: 176 35% 20%;
     --canvas: #101924;
     --surface: #17222f;
     --surface-elevated: #1d2a39;
     --surface-muted: #152a2a;
+    --surface-inverse: #f7f3ec;
     --text-primary: #f7f3ec;
     --text-secondary: #cbd5e1;
     --text-tertiary: #94a3b8;
@@ -130,6 +176,12 @@
     text-wrap: balance;
   }
 
+  /* Newsreader’s large optical size exaggerates comma tails — keep punctuation compact. */
+  .font-display {
+    font-optical-sizing: none;
+    font-feature-settings: 'swsh' 0, 'ss01' 0, 'ss02' 0;
+  }
+
   :where(p, li) {
     text-wrap: pretty;
   }
@@ -142,6 +194,73 @@
   :where(section[id]) {
     scroll-margin-top: calc(var(--nav-height) + 1rem);
   }
+
+  @media (min-width: 768px) {
+    :root {
+      --practice-mobile-nav-offset: 0px;
+    }
+  }
+}
+
+/* Full-height AI Practice Studio workspace inside the shared portal shell */
+.practice-workspace {
+  height: calc(100dvh - var(--portal-header-height) - var(--practice-mobile-nav-offset));
+  max-height: calc(100dvh - var(--portal-header-height) - var(--practice-mobile-nav-offset));
+}
+
+/* Thin brand scrollbars everywhere (outside layers so they always win). */
+html,
+body,
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--brand-primary) 50%, transparent) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+  background: transparent;
+}
+
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track-piece {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: color-mix(in srgb, var(--brand-primary) 42%, transparent);
+  background-clip: padding-box;
+  border: 1px solid transparent;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in srgb, var(--brand-primary) 72%, transparent);
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background-color: var(--brand-primary);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-button,
+*::-webkit-scrollbar-button:single-button,
+*::-webkit-scrollbar-button:start:decrement,
+*::-webkit-scrollbar-button:end:increment,
+*::-webkit-scrollbar-button:vertical:start:decrement,
+*::-webkit-scrollbar-button:vertical:end:increment,
+*::-webkit-scrollbar-button:horizontal:start:decrement,
+*::-webkit-scrollbar-button:horizontal:end:increment {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+  border: none !important;
 }
 
 /* Compatibility layer for data-heavy legacy views while they migrate to semantic tokens. */
@@ -149,7 +268,242 @@
 .dark :where(.text-slate-900, .text-gray-900) { color: hsl(var(--foreground)); }
 .dark :where(.text-slate-800, .text-slate-700, .text-gray-800, .text-gray-700) { color: hsl(var(--card-foreground)); }
 .dark :where(.text-slate-600, .text-slate-500, .text-gray-600, .text-gray-500) { color: hsl(var(--muted-foreground)); }
-.dark :where(.border-slate-200, .border-gray-200, .border-slate-300, .border-gray-300) { border-color: hsl(var(--border)); }
+.dark :where(.text-slate-400, .text-gray-400) { color: hsl(var(--muted-foreground) / 0.85); }
+.dark :where(
+  .border-slate-100,
+  .border-gray-100,
+  .border-slate-200,
+  .border-gray-200,
+  .border-slate-300,
+  .border-gray-300,
+  .divide-slate-100,
+  .divide-slate-200,
+  .divide-gray-100,
+  .divide-gray-200,
+  [class~='border-[#e2e8f0]'],
+  [class*='border-[#e2e8f0]']
+) {
+  border-color: hsl(var(--border));
+}
+
+.dark :where(.divide-slate-100, .divide-slate-200, .divide-gray-100, .divide-gray-200) > :not([hidden]) ~ :not([hidden]) {
+  border-color: hsl(var(--border));
+}
+
+/* Portal compatibility is intentionally scoped to the content canvas. It lets
+   legacy data views inherit semantic dark surfaces without changing the white
+   active navigation treatment in the shared sidebar. */
+.dark .portal-main :where(.bg-white) {
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+}
+
+.dark .portal-main :where(
+  [class~="bg-white/60"],
+  [class~="bg-white/70"],
+  [class~="bg-white/80"],
+  [class~="bg-white/90"],
+  [class~="bg-white/95"]
+) {
+  background-color: hsl(var(--muted) / 0.88);
+  color: hsl(var(--card-foreground));
+}
+
+.dark .portal-main :where(.bg-slate-100, .bg-gray-100, .bg-slate-50, .bg-gray-50) {
+  background-color: hsl(var(--muted));
+}
+
+.dark .portal-main :where(
+  [class~="bg-slate-50/50"],
+  [class~="bg-slate-50/60"],
+  [class~="bg-slate-50/70"],
+  [class~="bg-slate-50/80"],
+  [class~="bg-gray-50/50"],
+  [class~="bg-gray-50/70"]
+) {
+  background-color: hsl(var(--muted) / 0.72);
+}
+
+.dark .portal-main :where(
+  [class~="bg-teal-50"],
+  [class~="bg-green-50"],
+  [class~="bg-blue-50"],
+  [class~="bg-amber-50"],
+  [class~="bg-orange-50"],
+  [class~="bg-indigo-50"],
+  [class~="bg-teal-50/50"],
+  [class~="bg-teal-50/60"],
+  [class~="bg-teal-50/70"],
+  [class~="bg-teal-50/80"],
+  [class~="bg-green-50/50"],
+  [class~="bg-amber-50/50"]
+) {
+  background-color: hsl(var(--accent));
+}
+
+/*
+  Light marketing gradients (from-teal-50 → white, etc.) stay pale in dark mode
+  while text tokens remap to light ink — causing unreadable chips/cards.
+  Neutralize those gradients onto elevated surfaces.
+*/
+.dark .portal-main :where(
+  [class*="from-teal-50"],
+  [class*="from-green-50"],
+  [class*="from-emerald-50"],
+  [class*="from-blue-50"],
+  [class*="from-amber-50"],
+  [class*="from-orange-50"],
+  [class*="from-slate-50"],
+  [class*="from-slate-100"],
+  [class*="from-teal-100"],
+  [class*="from-green-100"]
+) {
+  background-image: none !important;
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+}
+
+.dark .portal-main :where(
+  .border-teal-100,
+  .border-teal-200,
+  .border-green-200,
+  .border-amber-200,
+  .border-blue-200,
+  [class~="border-teal-200/50"],
+  [class~="border-teal-200/60"],
+  [class~="border-teal-200/80"]
+) {
+  border-color: hsl(var(--border));
+}
+
+.dark .portal-main :where(
+  .text-teal-600,
+  .text-teal-700,
+  .text-teal-800,
+  .text-green-600,
+  .text-green-700,
+  .text-blue-600,
+  .text-blue-700,
+  .text-amber-700,
+  .text-indigo-600
+) {
+  color: hsl(var(--primary));
+}
+
+/*
+  Hover/selected rows often use light slate/white washes. In dark mode those
+  backgrounds stay pale while text remaps to light ink — unreadable.
+  Force interactive washes onto accent surfaces (and keep text readable).
+*/
+.dark .portal-main :where(
+  .hover\:bg-slate-50:hover,
+  .hover\:bg-gray-50:hover,
+  .hover\:bg-slate-100:hover,
+  .hover\:bg-gray-100:hover,
+  .hover\:bg-teal-50:hover,
+  .hover\:bg-teal-100:hover,
+  [class*='hover:bg-slate-50']:hover,
+  [class*='hover:bg-slate-100']:hover,
+  [class*='hover:bg-gray-50']:hover,
+  [class*='hover:bg-gray-100']:hover
+) {
+  background-color: hsl(var(--accent)) !important;
+  color: hsl(var(--accent-foreground));
+}
+
+.dark .portal-main :where(
+  [class*='hover:bg-slate-50']:hover,
+  [class*='hover:bg-slate-100']:hover,
+  [class*='hover:bg-gray-50']:hover,
+  [class*='hover:bg-gray-100']:hover
+) :where(
+  .text-slate-900,
+  .text-slate-800,
+  .text-slate-700,
+  .text-slate-600,
+  .text-slate-500,
+  .text-slate-400,
+  .text-gray-900,
+  .text-gray-800,
+  .text-gray-700,
+  .text-gray-600,
+  .text-gray-500,
+  .text-muted-foreground
+) {
+  color: hsl(var(--accent-foreground));
+}
+
+.dark .portal-main :where(
+  [class~='bg-teal-100'],
+  [class~='bg-teal-100/80'],
+  [class*='group-hover:bg-teal-100']:hover,
+  .group:hover [class*='group-hover:bg-teal-100']
+) {
+  background-color: hsl(var(--accent));
+}
+
+/*
+  Radix select/menu/popover portals mount on document.body (outside .portal-main).
+  Keep any remaining legacy white/slate utilities readable in dark mode.
+*/
+.dark :where(
+  [data-radix-select-viewport],
+  [data-radix-menu-content],
+  [data-radix-dropdown-menu-content],
+  [data-radix-popover-content],
+  [role="listbox"],
+  [role="menu"]
+):where(.bg-white),
+.dark :where(
+  [data-radix-select-viewport],
+  [data-radix-menu-content],
+  [data-radix-dropdown-menu-content],
+  [data-radix-popover-content],
+  [role="listbox"],
+  [role="menu"]
+) :where(.bg-white) {
+  background-color: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+}
+
+.dark :where([role="listbox"], [role="menu"], [data-radix-select-viewport]) :where(
+  .text-slate-950,
+  .text-slate-900,
+  .text-slate-800,
+  .text-slate-700,
+  .text-gray-900,
+  .text-gray-800,
+  .text-gray-700
+) {
+  color: hsl(var(--popover-foreground));
+}
+
+.dark :where([role="option"], [role="menuitem"]) {
+  color: hsl(var(--popover-foreground));
+}
+
+.dark :where([role="option"]:focus, [role="menuitem"]:focus, [role="option"][data-highlighted], [role="menuitem"][data-highlighted], [role="option"][data-state="checked"]) {
+  background-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+.portal-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / .24) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 1ms;
+    --motion-standard: 1ms;
+    --motion-panel: 1ms;
+    --motion-page: 1ms;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}
 
 .public-shell {
   background: var(--canvas);
@@ -171,89 +525,6 @@
   text-transform: uppercase;
 }
 
-.orbit-stage {
-  position: relative;
-  isolation: isolate;
-  min-height: clamp(25rem, 48vw, 38rem);
-  overflow: hidden;
-  border: 1px solid rgb(255 255 255 / .16);
-  border-radius: clamp(1.5rem, 4vw, 3rem);
-  background:
-    radial-gradient(circle at 50% 45%, rgb(105 203 188 / .28), transparent 23%),
-    radial-gradient(circle at 82% 18%, rgb(198 163 101 / .18), transparent 24%),
-    linear-gradient(145deg, #0b252a 0%, #0b1320 56%, #211631 100%);
-  box-shadow: var(--shadow-elevated);
-}
-
-.orbit-grid {
-  position: absolute;
-  inset: 0;
-  opacity: .18;
-  background-image: linear-gradient(rgb(255 255 255 / .12) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / .12) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(circle, black, transparent 72%);
-}
-
-.orbit-ring {
-  position: absolute;
-  left: 50%;
-  top: 47%;
-  border: 1px solid rgb(180 239 229 / .38);
-  border-radius: 999px;
-  transform: translate(-50%, -50%) rotate(-14deg);
-}
-
-.orbit-ring-one { width: 72%; height: 44%; }
-.orbit-ring-two { width: 48%; height: 70%; transform: translate(-50%, -50%) rotate(34deg); }
-
-.orbit-core {
-  position: absolute;
-  left: 50%;
-  top: 47%;
-  display: flex;
-  width: min(64%, 17rem);
-  aspect-ratio: 1;
-  transform: translate(-50%, -50%);
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgb(255 255 255 / .2);
-  border-radius: 50%;
-  background: radial-gradient(circle at 38% 28%, rgb(255 255 255 / .2), transparent 28%), rgb(13 94 87 / .78);
-  box-shadow: 0 0 70px rgb(89 204 188 / .24), inset 0 1px 0 rgb(255 255 255 / .2);
-  color: white;
-  text-align: center;
-}
-
-.orbit-core strong { font-family: var(--font-newsreader); font-size: clamp(1.6rem, 4vw, 2.35rem); font-weight: 600; }
-.orbit-core > span:last-child { color: rgb(220 239 234 / .84); font-size: .8rem; }
-.orbit-core-kicker { margin-bottom: .45rem; color: #d8bd7a; font-size: .65rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
-
-.orbit-node {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  gap: .55rem;
-  border: 1px solid rgb(255 255 255 / .17);
-  border-radius: 999px;
-  background: rgb(11 19 32 / .64);
-  padding: .55rem .75rem .55rem .55rem;
-  color: rgb(255 255 255 / .9);
-  font-size: .75rem;
-  font-weight: 600;
-  backdrop-filter: blur(12px);
-  animation: orbit-float 7s ease-in-out infinite;
-}
-
-.orbit-node:nth-of-type(even) { animation-delay: -2.5s; }
-.orbit-node-icon { display: grid; width: 2rem; height: 2rem; place-items: center; border-radius: 50%; background: rgb(104 196 184 / .17); color: #9de2d8; }
-.orbit-caption { position: absolute; inset-inline: 1rem; bottom: 1rem; color: rgb(255 255 255 / .62); font-size: .72rem; text-align: center; }
-
-@keyframes orbit-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {
@@ -262,4 +533,25 @@
     scroll-behavior: auto !important;
     transition-duration: .01ms !important;
   }
+}
+
+/* Helping Tribe AI Practice Studio — restrained motion tokens */
+@keyframes studio-orbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes studio-wave {
+  0%, 100% { opacity: .72; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-1px); }
+}
+
+@keyframes studio-pulse {
+  0%, 100% { opacity: .55; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+@keyframes studio-typing {
+  0%, 80%, 100% { opacity: .35; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-2px); }
 }

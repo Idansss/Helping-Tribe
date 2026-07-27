@@ -297,7 +297,7 @@ export default function MentorQuizzesPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-200 text-left text-slate-600">
+                <tr className="border-b border-border text-left text-muted-foreground">
                   <th className="py-3 pl-4 pr-4 align-middle font-medium">Title</th>
                   <th className="py-3 pr-4 align-middle font-medium">Status</th>
                   <th className="py-3 pr-4 align-middle font-medium">Actions</th>
@@ -305,7 +305,7 @@ export default function MentorQuizzesPage() {
               </thead>
               <tbody>
                 {quizzes.map((row) => (
-                  <tr key={row.id} className="border-b border-slate-100">
+                  <tr key={row.id} className="border-b border-border/70">
                     <td className="py-4 pl-4 pr-4 align-middle font-medium text-slate-900">{row.title}</td>
                     <td className="py-4 pr-4 align-middle">
                       <Badge variant={row.published ? 'default' : 'secondary'}>

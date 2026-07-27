@@ -123,12 +123,14 @@ export function NotificationBell({ className, iconSize = 'md' }: NotificationBel
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className={className ?? 'rounded-lg p-2 text-slate-600 hover:bg-slate-100 transition-colors'}
+        className={className ?? 'rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground'}
         aria-label="Notifications"
+        aria-expanded={open}
+        aria-haspopup="dialog"
       >
         <Bell className={iconClass} />
         {unreadCount > 0 && (
-          <span className="absolute top-0.5 right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-teal-500 text-[10px] font-medium text-white ring-2 ring-white">
+          <span className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground ring-2 ring-background">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -141,15 +143,15 @@ export function NotificationBell({ className, iconSize = 'md' }: NotificationBel
             aria-hidden
             onClick={() => setOpen(false)}
           />
-          <div className="absolute right-0 mt-1 w-80 rounded-xl border border-slate-200 bg-white shadow-lg z-50 overflow-hidden">
-            <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100">
-              <span className="text-xs font-semibold text-slate-900">Notifications</span>
+          <div role="dialog" aria-label="Notifications" className="absolute right-0 z-50 mt-2 w-[min(20rem,calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-xl">
+            <div className="flex items-center justify-between border-b border-border px-3 py-2">
+              <span className="text-xs font-semibold text-popover-foreground">Notifications</span>
               {unreadCount > 0 && (
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-6 px-2 text-[10px] text-slate-500"
+                  className="h-7 px-2 text-[10px] text-muted-foreground"
                   onClick={markAllRead}
                 >
                   Mark all read
@@ -158,11 +160,11 @@ export function NotificationBell({ className, iconSize = 'md' }: NotificationBel
             </div>
             <div className="max-h-72 overflow-y-auto">
               {loading ? (
-                <div className="flex items-center justify-center py-8 text-slate-500">
+                <div className="flex items-center justify-center py-8 text-muted-foreground">
                   <Loader2 className="h-5 w-5 animate-spin" />
                 </div>
               ) : list.length === 0 ? (
-                <div className="px-3 py-6 text-center text-xs text-slate-500">
+                <div className="px-3 py-6 text-center text-xs text-muted-foreground">
                   No notifications yet.
                 </div>
               ) : (
@@ -171,15 +173,15 @@ export function NotificationBell({ className, iconSize = 'md' }: NotificationBel
                     key={n.id}
                     type="button"
                     onClick={() => goToNotification(n)}
-                    className={`w-full text-left px-3 py-2.5 hover:bg-slate-50 border-b border-slate-50 last:border-b-0 transition-colors ${
-                      !n.read_at ? 'bg-teal-50/50' : ''
+                    className={`w-full border-b border-border px-3 py-2.5 text-left transition-colors last:border-b-0 hover:bg-accent ${
+                      !n.read_at ? 'bg-primary/10' : ''
                     }`}
                   >
-                    <p className="text-[11px] font-medium text-slate-900">{n.title}</p>
+                    <p className="text-[11px] font-medium text-popover-foreground">{n.title}</p>
                     {n.body && (
-                      <p className="text-[11px] text-slate-600 mt-0.5 line-clamp-2">{n.body}</p>
+                      <p className="mt-0.5 line-clamp-2 text-[11px] text-muted-foreground">{n.body}</p>
                     )}
-                    <p className="mt-0.5 text-[10px] text-slate-400">
+                    <p className="mt-0.5 text-[10px] text-muted-foreground">
                       {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
                     </p>
                   </button>

@@ -239,7 +239,7 @@ export default function AdminUsersPage() {
                 {filtered.map((p) => (
                   <tr
                     key={p.id}
-                    className="border-b last:border-0 hover:bg-slate-50/80"
+                    className="border-b border-border last:border-0 hover:bg-table-hover"
                   >
                     <td className="px-3 py-2 align-middle">{p.email ?? '—'}</td>
                     <td className="px-3 py-2 align-middle">{p.full_name ?? '—'}</td>
@@ -303,7 +303,7 @@ export default function AdminUsersPage() {
           <div className="overflow-x-auto rounded-md border border-slate-200">
             <table className="w-full text-[11px]">
               <thead>
-                <tr className="bg-slate-50 text-slate-500">
+                <tr className="bg-table-header text-muted-foreground">
                   <th className="px-3 py-2 text-left font-medium">Role</th>
                   <th className="px-3 py-2 text-left font-medium">Access</th>
                 </tr>

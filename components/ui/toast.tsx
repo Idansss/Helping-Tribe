@@ -13,11 +13,14 @@ export interface ToastProps {
 export function Toast({ id, title, description, variant = "default", onDismiss }: ToastProps) {
   return (
     <div
+      id={id}
+      role={variant === "destructive" ? "alert" : "status"}
+      aria-live={variant === "destructive" ? "assertive" : "polite"}
       className={cn(
-        "pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg shadow-lg ring-1 ring-black ring-opacity-5",
-        variant === "destructive" 
-          ? "bg-red-600 text-white" 
-          : "bg-white text-gray-900"
+        "pointer-events-auto w-full max-w-sm overflow-hidden rounded-xl border shadow-xl",
+        variant === "destructive"
+          ? "border-destructive/35 bg-popover text-popover-foreground"
+          : "border-border bg-popover text-popover-foreground"
       )}
     >
       <div className="p-4">
@@ -29,7 +32,7 @@ export function Toast({ id, title, description, variant = "default", onDismiss }
               </p>
             )}
             {description && (
-              <p className={cn("mt-1 text-sm", variant === "destructive" ? "text-red-100" : "text-gray-500")}>
+              <p className="mt-1 text-sm text-muted-foreground">
                 {description}
               </p>
             )}
@@ -38,10 +41,11 @@ export function Toast({ id, title, description, variant = "default", onDismiss }
             onClick={onDismiss}
             className={cn(
               "ml-4 inline-flex rounded-md focus:outline-none focus:ring-2",
-              variant === "destructive" 
-                ? "text-red-100 hover:text-white focus:ring-white" 
-                : "text-gray-400 hover:text-gray-500 focus:ring-gray-500"
+              variant === "destructive"
+                ? "text-destructive hover:bg-destructive/10 focus:ring-destructive"
+                : "text-muted-foreground hover:bg-accent hover:text-foreground focus:ring-ring"
             )}
+            aria-label="Dismiss notification"
           >
             <X className="h-5 w-5" />
           </button>

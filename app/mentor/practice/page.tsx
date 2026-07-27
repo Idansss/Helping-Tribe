@@ -7,48 +7,53 @@ import Link from 'next/link'
 
 export default function MentorPracticePage() {
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="max-w-4xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-          <UserCircle className="h-7 w-7 text-teal-600" />
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-foreground">
+          <UserCircle className="size-7 text-primary" aria-hidden="true" />
           Practice Client
         </h1>
-        <p className="text-slate-600 mt-1">
-          Learners use the Practice Client to have simulated conversations with AI personas (e.g. Temi, Amara, Tobi) and build helping skills. You don’t run sessions here—you review their work in Grading.
+        <p className="mt-1 text-muted-foreground">
+          Learners use the Practice Client to have simulated conversations with AI personas (e.g.
+          Temi, Amara, Tobi) and build helping skills. You don’t run sessions here—you review their
+          work in Grading.
         </p>
       </div>
 
-      <Card className="border-teal-200 bg-gradient-to-br from-teal-50/80 to-white">
+      <Card className="border-primary/25 bg-gradient-to-br from-primary/10 via-card to-card">
         <CardHeader>
-          <CardTitle className="text-xl flex items-center gap-2">
-            <MessageCircle className="h-5 w-5 text-teal-700" />
+          <CardTitle className="flex items-center gap-2 text-xl text-foreground">
+            <MessageCircle className="size-5 text-primary" aria-hidden="true" />
             What learners see
           </CardTitle>
-          <CardDescription className="text-slate-600">
-            In the learner portal, Practice Client offers scenario-based conversations with simulated clients. Learners practice active listening, empathy, and ethical boundaries. Conversations are for practice only; no real client data is used.
+          <CardDescription className="text-muted-foreground">
+            In the learner portal, Practice Client offers scenario-based conversations with simulated
+            clients. Learners practice active listening, empathy, and ethical boundaries.
+            Conversations are for practice only; no real client data is used.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-slate-700">
+          <p className="text-sm text-foreground/90">
             To review practice submissions, recordings, or related assignments, use the Grading Hub.
           </p>
-          <Button asChild className="bg-teal-600 hover:bg-teal-700 text-white">
+          <Button asChild>
             <Link href="/mentor/grading">
               Open Grading Hub
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <ArrowRight className="ml-2 size-4" aria-hidden="true" />
             </Link>
           </Button>
         </CardContent>
       </Card>
 
-      <Card className="border-slate-200">
+      <Card className="border-border">
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <ClipboardList className="h-4 w-4" />
+          <CardTitle className="flex items-center gap-2 text-base text-foreground">
+            <ClipboardList className="size-4" aria-hidden="true" />
             Grading Hub
           </CardTitle>
           <CardDescription>
-            Grade assignments, view practice recordings, and track learner submissions—including work that stems from Practice Client activities.
+            Grade assignments, view practice recordings, and track learner submissions—including work
+            that stems from Practice Client activities.
           </CardDescription>
         </CardHeader>
         <CardContent>

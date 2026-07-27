@@ -31,6 +31,11 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key
 
 # ADD THESE NEW ONES:
 OPENAI_API_KEY=sk-...your_key_here
+
+# Optional — enables Quick / Balanced / Deep reasoning in Practice Client.
+# Use a Responses-API reasoning model your account can access (e.g. gpt-5-mini).
+# When unset, Practice Client keeps gpt-4o-mini and hides the reasoning selector.
+# OPENAI_PRACTICE_MODEL=gpt-5-mini
 ```
 
 **Optional (for WhatsApp notifications):**

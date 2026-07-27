@@ -9,8 +9,14 @@ import { Button } from '@/components/ui/button'
 import { UserCircle2, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
+import { PORTAL_CONFIG } from '@/components/portal/portal-config'
+import {
+  readPortalProfileCache,
+  writePortalProfileCache,
+} from '@/lib/portal-profile-cache'
 
 const PROFILE_EXTRA_KEY = 'ht-admin-profile-extra'
+const ADMIN_PORTAL_KEY = PORTAL_CONFIG.admin.storageKey
 
 type AdminProfile = {
   name: string
@@ -63,13 +69,18 @@ export default function AdminProfilePage() {
           if (raw) extra = JSON.parse(raw)
         } catch { /* ignore */ }
 
+        const cached = readPortalProfileCache(ADMIN_PORTAL_KEY)
+        const avatarUrl = data?.avatar_url?.trim() || cached.avatar || null
+        const name = data?.full_name?.trim() || cached.name || extra.name || ''
+
         setProfile({
           ...DEFAULT_PROFILE,
           ...extra,
-          name: data?.full_name ?? extra.name ?? '',
+          name,
           email: user.email ?? '',
-          avatarUrl: data?.avatar_url ?? null,
+          avatarUrl,
         })
+        writePortalProfileCache(ADMIN_PORTAL_KEY, { name, avatar: avatarUrl }, { silent: true })
       } catch (e) {
         console.error(e)
         toast({ title: 'Failed to load profile.', variant: 'destructive' })
@@ -106,6 +117,11 @@ export default function AdminProfilePage() {
           JSON.stringify({ role: profile.role, timezone: profile.timezone, bio: profile.bio }),
         )
       } catch { /* ignore */ }
+
+      writePortalProfileCache(ADMIN_PORTAL_KEY, {
+        name: profile.name.trim(),
+        avatar: profile.avatarUrl,
+      })
 
       toast({ title: 'Profile updated successfully.' })
     } catch (e) {
@@ -162,7 +178,7 @@ export default function AdminProfilePage() {
       }
 
       const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
-      const publicUrl = urlData.publicUrl
+      const publicUrl = `${urlData.publicUrl}?v=${Date.now()}`
 
       const { error: updateError } = await supabase
         .from('profiles')
@@ -171,6 +187,10 @@ export default function AdminProfilePage() {
       if (updateError) throw updateError
 
       setProfile(prev => ({ ...prev, avatarUrl: publicUrl }))
+      writePortalProfileCache(ADMIN_PORTAL_KEY, {
+        name: profile.name.trim() || undefined,
+        avatar: publicUrl,
+      })
       toast({ title: 'Profile photo updated.' })
     } catch (e) {
       console.error(e)

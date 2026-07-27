@@ -21,26 +21,26 @@ export function StatsCard({
   return (
     <div
       className={cn(
-        'rounded-xl border bg-white/80 backdrop-blur-sm p-4 flex items-start gap-3',
+        'flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-sm',
         className
       )}
     >
       {icon && (
-        <div className="h-9 w-9 rounded-lg bg-[color-mix(in_srgb,var(--talent-primary)_12%,transparent)] text-[var(--talent-primary-dark)] flex items-center justify-center shrink-0">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/12 text-primary">
           {icon}
         </div>
       )}
 
       <div className="space-y-1">
-        <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+        <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           {label}
         </div>
-        <div className="text-2xl font-semibold text-slate-900">{value}</div>
+        <div className="text-2xl font-semibold text-foreground">{value}</div>
         {sublabel && (
-          <div className="text-xs text-slate-500 leading-snug">{sublabel}</div>
+          <div className="text-xs leading-snug text-muted-foreground">{sublabel}</div>
         )}
         {trend && (
-          <div className="text-[11px] text-emerald-600 font-medium">
+          <div className="text-[11px] font-medium text-success">
             {trend}
           </div>
         )}

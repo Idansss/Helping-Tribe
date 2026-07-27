@@ -50,6 +50,12 @@ type QuestionRow = {
   sort_order: number
 }
 
+function isMissingColumnError(error: unknown, columnName: string) {
+  const e = error as { code?: string; message?: string; details?: string } | null
+  const text = `${e?.message ?? ''} ${e?.details ?? ''}`.toLowerCase()
+  return e?.code === '42703' || text.includes(`column "${columnName.toLowerCase()}"`) || text.includes(columnName.toLowerCase())
+}
+
 function optionLetter(index: number) {
   if (index >= 0 && index < 26) return String.fromCharCode(65 + index)
   return String(index + 1)
@@ -102,8 +108,22 @@ export default function AdminQuizzesPage() {
           .select('id, week_number, title')
           .order('week_number', { ascending: true }),
       ])
-      if (error) throw error
-      setQuizzes((quizData ?? []) as QuizRow[])
+      if (error && isMissingColumnError(error, 'module_id')) {
+        const { data: fallbackQuizData, error: fallbackError } = await supabase
+          .from('quizzes')
+          .select('id, title, description, published, created_at')
+          .order('created_at', { ascending: false })
+        if (fallbackError) throw fallbackError
+        setQuizzes(
+          ((fallbackQuizData ?? []) as Omit<QuizRow, 'module_id'>[]).map((quiz) => ({
+            ...quiz,
+            module_id: null,
+          }))
+        )
+      } else {
+        if (error) throw error
+        setQuizzes((quizData ?? []) as QuizRow[])
+      }
       setModules((modData ?? []) as ModuleRow[])
     } catch (e) {
       console.error(e)
@@ -148,13 +168,31 @@ export default function AdminQuizzesPage() {
       }
       if (editingQuizId) {
         const { error } = await supabase.from('quizzes').update(payload).eq('id', editingQuizId)
-        if (error) throw error
+        if (error && isMissingColumnError(error, 'module_id')) {
+          const { module_id: _ignored, ...fallbackPayload } = payload
+          const { error: fallbackError } = await supabase
+            .from('quizzes')
+            .update(fallbackPayload)
+            .eq('id', editingQuizId)
+          if (fallbackError) throw fallbackError
+        } else if (error) {
+          throw error
+        }
       } else {
         const { error } = await supabase.from('quizzes').insert({
           ...payload,
           created_by: (await supabase.auth.getUser()).data.user?.id ?? null,
         })
-        if (error) throw error
+        if (error && isMissingColumnError(error, 'module_id')) {
+          const { module_id: _ignored, ...fallbackPayload } = payload
+          const { error: fallbackError } = await supabase.from('quizzes').insert({
+            ...fallbackPayload,
+            created_by: (await supabase.auth.getUser()).data.user?.id ?? null,
+          })
+          if (fallbackError) throw fallbackError
+        } else if (error) {
+          throw error
+        }
       }
       setQuizDialogOpen(false)
       loadQuizzes()
@@ -319,7 +357,7 @@ export default function AdminQuizzesPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-200 text-left text-slate-600">
+                <tr className="border-b border-border text-left text-muted-foreground">
                   <th className="py-3 pl-4 pr-4 align-middle font-medium">Title</th>
                   <th className="py-3 pr-4 align-middle font-medium">Module</th>
                   <th className="py-3 pr-4 align-middle font-medium">Status</th>
@@ -330,7 +368,7 @@ export default function AdminQuizzesPage() {
                 {quizzes.map((row) => {
                   const linkedModule = modules.find(m => m.id === row.module_id)
                   return (
-                  <tr key={row.id} className="border-b border-slate-100">
+                  <tr key={row.id} className="border-b border-border/70">
                     <td className="py-4 pl-4 pr-4 align-middle font-medium text-slate-900">{row.title}</td>
                     <td className="py-4 pr-4 align-middle text-sm text-slate-600">
                       {linkedModule

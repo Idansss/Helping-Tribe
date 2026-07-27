@@ -18,6 +18,11 @@ import { UserCircle2, Loader2, Bell, Eye, EyeOff, LogOut, Trash2 } from 'lucide-
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { useRouter } from 'next/navigation'
+import { PORTAL_CONFIG } from '@/components/portal/portal-config'
+import {
+  readPortalProfileCache,
+  writePortalProfileCache,
+} from '@/lib/portal-profile-cache'
 
 type LearnerProfile = {
   fullName: string
@@ -27,6 +32,7 @@ type LearnerProfile = {
 }
 
 const NOTIF_KEY = 'ht-learner-notif-prefs'
+const LEARNER_PORTAL_KEY = PORTAL_CONFIG.learner.storageKey
 
 type NotifPrefs = {
   emailDigest: boolean
@@ -80,12 +86,17 @@ export default function LearnerSettingsPage() {
 
         if (error && error.code !== 'PGRST116') throw error
 
+        const cached = readPortalProfileCache(LEARNER_PORTAL_KEY)
+        const avatarUrl = data?.avatar_url?.trim() || cached.avatar || null
+        const fullName = data?.full_name?.trim() || cached.name || ''
+
         setProfile({
-          fullName: data?.full_name ?? '',
+          fullName,
           email: user.email ?? '',
-          avatarUrl: data?.avatar_url ?? null,
+          avatarUrl,
           role: data?.role ?? 'student',
         })
+        writePortalProfileCache(LEARNER_PORTAL_KEY, { name: fullName, avatar: avatarUrl }, { silent: true })
 
         // Load notification preferences from localStorage
         try {
@@ -114,6 +125,10 @@ export default function LearnerSettingsPage() {
         .update({ full_name: profile.fullName.trim() || null, updated_at: new Date().toISOString() })
         .eq('id', userId)
       if (error) throw error
+      writePortalProfileCache(LEARNER_PORTAL_KEY, {
+        name: profile.fullName.trim(),
+        avatar: profile.avatarUrl,
+      })
       toast({ title: 'Profile saved.' })
     } catch (e) {
       console.error(e)
@@ -148,7 +163,7 @@ export default function LearnerSettingsPage() {
       if (uploadErr) throw uploadErr
 
       const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
-      const publicUrl = urlData.publicUrl
+      const publicUrl = `${urlData.publicUrl}?v=${Date.now()}`
 
       const { error: updateErr } = await supabase
         .from('profiles')
@@ -157,6 +172,10 @@ export default function LearnerSettingsPage() {
       if (updateErr) throw updateErr
 
       setProfile(prev => ({ ...prev, avatarUrl: publicUrl }))
+      writePortalProfileCache(LEARNER_PORTAL_KEY, {
+        name: profile.fullName.trim() || undefined,
+        avatar: publicUrl,
+      })
       toast({ title: 'Profile photo updated.' })
     } catch (e) {
       console.error(e)
