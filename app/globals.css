@@ -525,6 +525,11 @@ body,
   text-transform: uppercase;
 }
 
+@keyframes admissions-scroll-nudge {
+  0%, 100% { transform: translateY(0); opacity: .72; }
+  50% { transform: translateY(4px); opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {

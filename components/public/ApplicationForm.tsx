@@ -282,7 +282,7 @@ function SectionCard({
   children: ReactNode
 }) {
   return (
-    <Card className="border-border bg-card">
+    <Card className="rounded-2xl border-border/80 bg-card shadow-none">
       <CardHeader className="pb-4">
         <CardTitle className="text-base md:text-lg">{title}</CardTitle>
         {description ? <CardDescription className="text-sm">{description}</CardDescription> : null}
@@ -596,38 +596,48 @@ export function ApplicationForm() {
 
   if (loadingDraft) {
     return (
-      <Card className="border-border bg-card">
-        <CardContent className="p-6 text-sm text-slate-600">Loading saved application...</CardContent>
+      <Card className="overflow-hidden rounded-[1.5rem] border-border/80 bg-card shadow-[var(--shadow-soft)]">
+        <CardContent className="space-y-3 p-6 sm:p-8">
+          <div className="h-5 w-48 animate-pulse rounded bg-muted" />
+          <div className="h-4 w-full max-w-md animate-pulse rounded bg-muted" />
+          <p className="text-sm text-muted-foreground">Loading saved application…</p>
+        </CardContent>
       </Card>
     )
   }
 
   return (
-    <Card className="border-border bg-card shadow-[var(--shadow-soft)]">
+    <Card className="overflow-hidden rounded-[1.5rem] border-border/80 bg-card shadow-[var(--shadow-elevated)]">
       <div ref={formTopRef} />
-      <CardHeader className="pb-4">
-        <CardTitle className="text-xl md:text-2xl">{PROGRAM_FULL_NAME} Application</CardTitle>
-        <CardDescription className="text-sm md:text-base">
-          Complete all steps accurately. Estimated completion time: {APPLICATION_ESTIMATED_MINUTES} minutes.
-        </CardDescription>
-        <div className="rounded-lg border border-teal-100 bg-teal-50 px-3 py-2 text-xs text-teal-900">
-          Applications are reviewed within {APPLICATION_REVIEW_DAYS} working days.
+      <CardHeader className="space-y-4 border-b border-border/70 bg-muted/35 pb-5">
+        <div>
+          <p className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-primary">Secure application</p>
+          <CardTitle className="mt-1 font-display text-xl font-semibold tracking-tight md:text-2xl">
+            {PROGRAM_FULL_NAME} Application
+          </CardTitle>
+          <CardDescription className="mt-1.5 text-sm md:text-base">
+            Complete all steps accurately. Estimated completion time: {APPLICATION_ESTIMATED_MINUTES} minutes.
+          </CardDescription>
+        </div>
+        <div className="rounded-xl border border-primary/15 bg-primary/8 px-3.5 py-2.5 text-xs leading-5 text-foreground">
+          Applications are reviewed within {APPLICATION_REVIEW_DAYS} working days. You can save and resume later.
         </div>
         <div className="space-y-2 pt-1">
-          <div className="flex items-center justify-between text-xs font-medium text-slate-600">
+          <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
             <span>Step {currentStep} of {totalSteps}</span>
             <span>{STEP_TITLES[currentStep - 1]}</span>
           </div>
           <Progress value={progressValue} className="h-2" />
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-          <div className="text-slate-500">
+          <div className="text-muted-foreground">
             {lastSavedAt ? `Last saved: ${new Date(lastSavedAt).toLocaleString()}` : 'Draft not saved yet'}
           </div>
           <Button
             type="button"
             variant="outline"
             size="sm"
+            className="rounded-full"
             onClick={saveAndExit}
             disabled={savingDraft || isSubmitting}
           >
@@ -635,7 +645,7 @@ export function ApplicationForm() {
           </Button>
         </div>
         {submitted ? (
-          <div className="mt-2 text-sm rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 p-3">
+          <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-200">
             Application submitted successfully.
           </div>
         ) : null}
