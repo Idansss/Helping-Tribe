@@ -55,3 +55,7 @@ CREATE POLICY "Recipient can mark as read"
   WITH CHECK (auth.uid() = recipient_id);
 
 COMMENT ON TABLE public.messages IS 'Direct messages between users (learner, mentor, admin)';
+
+-- Optional Realtime (Dashboard → Database → Publications, or run when safe):
+-- ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
+-- The UI subscribes with recipient/sender filters and still works without Realtime.
