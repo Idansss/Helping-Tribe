@@ -20,7 +20,7 @@ export function DashboardSkeleton() {
       <PageTitleSkeleton />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[1, 2, 3, 4].map((i) => (
-          <Card key={i} className="p-4 border-slate-200">
+          <Card key={i} className="p-4">
             <div className="flex items-center gap-2">
               <Skeleton className="h-9 w-9 rounded-lg" />
               <div className="space-y-1">
@@ -33,12 +33,12 @@ export function DashboardSkeleton() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <Card className="p-5 border-slate-200">
+          <Card className="p-5">
             <Skeleton className="h-6 w-48 mb-2" />
             <Skeleton className="h-4 w-full mb-4" />
             <Skeleton className="h-32 w-full rounded-lg" />
           </Card>
-          <Card className="p-5 border-slate-200">
+          <Card className="p-5">
             <Skeleton className="h-6 w-56 mb-2" />
             <div className="flex gap-2 mt-4">
               {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
@@ -48,7 +48,7 @@ export function DashboardSkeleton() {
           </Card>
         </div>
         <div className="space-y-6">
-          <Card className="p-5 border-slate-200">
+          <Card className="p-5">
             <Skeleton className="h-6 w-40 mb-2" />
             <div className="space-y-3 mt-4">
               {[1, 2, 3].map((i) => (
@@ -68,7 +68,7 @@ export function ModuleListSkeleton() {
     <ul className="space-y-3 list-none p-0 m-0">
       {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
         <li key={i}>
-          <Card className="p-4 border-slate-200">
+          <Card className="p-4">
             <div className="flex items-center gap-3">
               <Skeleton className="h-10 w-10 rounded-lg shrink-0" />
               <div className="flex-1 space-y-2 min-w-0">
@@ -112,7 +112,7 @@ export function QuizListSkeleton() {
       <PageTitleSkeleton />
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
-          <Card key={i} className="border-slate-200">
+          <Card key={i}>
             <CardHeader className="pb-2">
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-2 flex-1">
@@ -133,7 +133,7 @@ export function QuizListSkeleton() {
 export function MessageListSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <Card className="md:col-span-1 border-slate-200">
+      <Card className="md:col-span-1">
         <CardHeader className="pb-2">
           <Skeleton className="h-6 w-24" />
         </CardHeader>
@@ -149,7 +149,7 @@ export function MessageListSkeleton() {
           ))}
         </CardContent>
       </Card>
-      <Card className="md:col-span-2 border-slate-200">
+      <Card className="md:col-span-2">
         <CardHeader className="pb-2">
           <Skeleton className="h-5 w-32" />
           <Skeleton className="h-3 w-48" />
@@ -191,7 +191,7 @@ export function DiscussionListSkeleton() {
       </div>
       <div className="space-y-4">
         {[1, 2, 3, 4].map((i) => (
-          <Card key={i} className="border-slate-200">
+          <Card key={i}>
             <CardContent className="p-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-2 flex-1 min-w-0">
@@ -217,7 +217,7 @@ export function CatalogSkeleton() {
   return (
     <div className="space-y-8 max-w-4xl">
       <PageTitleSkeleton />
-      <Card className="border-slate-200 p-6">
+      <Card className="p-6">
         <Skeleton className="h-7 w-56 mb-2" />
         <Skeleton className="h-4 w-full mb-4" />
         <div className="flex flex-wrap gap-2">

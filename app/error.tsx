@@ -18,12 +18,12 @@ export default function GlobalError({
   }, [error])
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center p-6">
-      <Card className="max-w-md w-full border-slate-200 shadow-lg">
+    <div className="flex min-h-[60vh] items-center justify-center p-6" role="alert">
+      <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
-              <AlertCircle className="h-6 w-6 text-red-600" />
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-950">
+              <AlertCircle className="h-6 w-6 text-red-700 dark:text-red-300" aria-hidden="true" />
             </div>
             <div>
               <CardTitle className="text-xl">Something went wrong</CardTitle>
@@ -35,12 +35,12 @@ export default function GlobalError({
         </CardHeader>
         <CardContent className="space-y-4">
           {process.env.NODE_ENV === 'development' && (
-            <pre className="text-xs bg-slate-100 rounded-lg p-3 overflow-auto max-h-32 text-slate-700">
+            <pre className="max-h-32 overflow-auto rounded-lg bg-muted p-3 text-xs text-muted-foreground">
               {error.message}
             </pre>
           )}
           <div className="flex flex-wrap gap-2">
-            <Button onClick={reset} className="bg-teal-600 hover:bg-teal-700 text-white">
+            <Button onClick={reset}>
               Try again
             </Button>
             <Button asChild variant="outline">

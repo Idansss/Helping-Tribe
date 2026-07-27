@@ -1,50 +1,48 @@
 'use client'
 
 import Link from 'next/link'
-import { Lock, Loader2 } from 'lucide-react'
+import { AlertTriangle, Lock, Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
 interface ActivityGateProps {
   locked: boolean
   loading: boolean
+  degraded?: boolean
+  degradedMessage?: string
   prerequisiteName: string
   prerequisiteHref: string
   children: React.ReactNode
 }
 
-/**
- * Wraps an activity page.
- * - While checking: shows a centered spinner (avoids blank-page flash)
- * - When locked:    shows a lock card pointing to the prerequisite
- * - When unlocked:  renders children normally
- */
-export function ActivityGate({ locked, loading, prerequisiteName, prerequisiteHref, children }: ActivityGateProps) {
+export function ActivityGate({ locked, loading, degraded, degradedMessage, prerequisiteName, prerequisiteHref, children }: ActivityGateProps) {
   if (loading) {
+    return <div className="flex items-center justify-center py-20 text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin" aria-label="Checking access" /></div>
+  }
+
+  if (!locked) {
     return (
-      <div className="flex items-center justify-center py-20 text-slate-400">
-        <Loader2 className="h-6 w-6 animate-spin" />
-      </div>
+      <>
+        {degraded ? (
+          <div role="status" className="mb-4 flex items-start gap-2 rounded-xl border border-warning/35 bg-warning/10 px-3 py-2.5 text-sm text-foreground">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden="true" />
+            <span>{degradedMessage}</span>
+          </div>
+        ) : null}
+        {children}
+      </>
     )
   }
 
-  if (!locked) return <>{children}</>
-
   return (
-    <Card className="border-slate-200">
+    <Card>
       <CardContent className="py-16 text-center">
-        <div className="mx-auto mb-4 h-14 w-14 rounded-full bg-slate-100 flex items-center justify-center">
-          <Lock className="h-7 w-7 text-slate-400" />
-        </div>
-        <h3 className="font-semibold text-slate-900 text-lg">Complete this week&apos;s earlier activity first</h3>
-        <p className="text-slate-500 mt-2 max-w-sm mx-auto text-sm">
-          You need to finish{' '}
-          <span className="font-medium text-slate-700">{prerequisiteName}</span>{' '}
-          before this activity unlocks.
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-muted"><Lock className="h-7 w-7 text-muted-foreground" aria-hidden="true" /></div>
+        <h3 className="text-lg font-semibold text-foreground">Complete this week&apos;s earlier activity first</h3>
+        <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+          You need to finish <span className="font-medium text-foreground">{prerequisiteName}</span> before this activity unlocks.
         </p>
-        <Button asChild className="mt-6 bg-teal-600 hover:bg-teal-700 text-white">
-          <Link href={prerequisiteHref}>Go to {prerequisiteName}</Link>
-        </Button>
+        <Button asChild className="mt-6"><Link href={prerequisiteHref}>Go to {prerequisiteName}</Link></Button>
       </CardContent>
     </Card>
   )

@@ -12,8 +12,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
-        display: ['var(--font-dm-sans)', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-dm-sans)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-newsreader)', 'Georgia', 'serif'],
       },
       colors: {
         background: 'hsl(var(--background))',
@@ -46,7 +46,42 @@ const config: Config = {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
         },
+        success: {
+          DEFAULT: 'hsl(var(--success))',
+          foreground: 'hsl(var(--success-foreground))',
+        },
+        warning: {
+          DEFAULT: 'hsl(var(--warning))',
+          foreground: 'hsl(var(--warning-foreground))',
+        },
+        information: {
+          DEFAULT: 'hsl(var(--information))',
+          foreground: 'hsl(var(--information-foreground))',
+        },
+        surface: 'var(--surface)',
+        'surface-muted': 'var(--surface-muted)',
+        'surface-elevated': 'var(--surface-elevated)',
+        'surface-inverse': 'var(--surface-inverse)',
+        header: {
+          DEFAULT: 'hsl(var(--header))',
+          foreground: 'hsl(var(--header-foreground))',
+        },
+        sidebar: {
+          DEFAULT: 'hsl(var(--sidebar))',
+          foreground: 'hsl(var(--sidebar-foreground))',
+          muted: 'hsl(var(--sidebar-muted))',
+          active: 'hsl(var(--sidebar-active))',
+          'active-foreground': 'hsl(var(--sidebar-active-foreground))',
+        },
+        table: {
+          header: 'hsl(var(--table-header))',
+          row: 'hsl(var(--table-row))',
+          hover: 'hsl(var(--table-row-hover))',
+          selected: 'hsl(var(--table-row-selected))',
+        },
+        overlay: 'var(--overlay)',
         border: 'hsl(var(--border))',
+        'border-strong': 'hsl(var(--border-strong))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
       },

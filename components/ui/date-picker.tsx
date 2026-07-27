@@ -35,13 +35,13 @@ export function DatePicker({
           className={cn(
             'flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm',
             'ring-offset-background transition-colors',
-            'hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+            'hover:border-border focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
             'disabled:cursor-not-allowed disabled:opacity-50',
             !validSelected && 'text-muted-foreground'
           )}
         >
           <span>{validSelected ? format(validSelected, 'dd MMM yyyy') : placeholder}</span>
-          <CalendarIcon className="h-4 w-4 text-slate-400 flex-shrink-0" />
+          <CalendarIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-auto">

@@ -462,8 +462,8 @@ export default function MentorReportsPage() {
               handleGlobalExport(value)
             }}
           >
-            <SelectTrigger className="h-9 w-40 text-xs border-[#e2e8f0] bg-teal-600 text-white hover:bg-teal-700">
-              <Download className="h-3 w-3 mr-1" />
+            <SelectTrigger className="h-9 w-44 gap-1 border-primary bg-primary text-xs text-primary-foreground hover:bg-primary/90 [&>svg]:text-primary-foreground">
+              <Download className="mr-1 size-3 shrink-0" aria-hidden="true" />
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

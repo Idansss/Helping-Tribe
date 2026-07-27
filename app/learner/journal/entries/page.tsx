@@ -1,13 +1,14 @@
 'use client'
 
+import { Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LearningJournal } from '@/components/lms/LearningJournal'
 
-export default function LearnerJournalEntriesPage({
-  searchParams,
-}: {
-  searchParams: { module?: string }
-}) {
+function JournalEntriesContent() {
+  const searchParams = useSearchParams()
+  const initialModuleId = searchParams.get('module') ?? undefined
+
   return (
     <div className="space-y-6 max-w-4xl px-4 sm:px-6">
       <div>
@@ -24,9 +25,17 @@ export default function LearnerJournalEntriesPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <LearningJournal initialModuleId={searchParams.module} />
+          <LearningJournal initialModuleId={initialModuleId} />
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function LearnerJournalEntriesPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Loading journal…</div>}>
+      <JournalEntriesContent />
+    </Suspense>
   )
 }

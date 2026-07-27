@@ -322,12 +322,13 @@ export function LearningJournal({ initialModuleId }: { initialModuleId?: string 
                       : 'Your private reflections and notes'}
                   </CardDescription>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex shrink-0 items-center gap-2">
                   {displayModule && modulePrompts && (
-                    <div className="flex gap-1 border rounded-md p-1">
+                    <div className="flex shrink-0 gap-1 rounded-md border border-border p-1">
                       <button
+                        type="button"
                         onClick={() => setViewMode('prompts')}
-                        className={`px-3 py-1 text-sm rounded transition-colors ${
+                        className={`shrink-0 whitespace-nowrap rounded px-3 py-1 text-sm transition-colors ${
                           viewMode === 'prompts'
                             ? 'bg-primary text-primary-foreground'
                             : 'hover:bg-accent'
@@ -336,8 +337,9 @@ export function LearningJournal({ initialModuleId }: { initialModuleId?: string 
                         Prompts
                       </button>
                       <button
+                        type="button"
                         onClick={() => setViewMode('freeform')}
-                        className={`px-3 py-1 text-sm rounded transition-colors ${
+                        className={`shrink-0 whitespace-nowrap rounded px-3 py-1 text-sm transition-colors ${
                           viewMode === 'freeform'
                             ? 'bg-primary text-primary-foreground'
                             : 'hover:bg-accent'

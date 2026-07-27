@@ -77,7 +77,7 @@ export default function LearnerCourseModulesPage() {
           }
         }
       } catch (e) {
-        console.error(e)
+        console.warn('Course modules fell back to static list:', e)
       } finally {
         setLoading(false)
       }
@@ -120,10 +120,10 @@ export default function LearnerCourseModulesPage() {
       />
 
       {/* Program requirements reminder */}
-      <Card className="border-teal-200 bg-teal-50/50">
+      <Card className="border-primary/25 bg-primary/10">
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Target className="h-4 w-4 text-teal-700" />
+          <CardTitle className="flex items-center gap-2 text-base text-foreground">
+            <Target className="size-4 text-primary" aria-hidden="true" />
             To graduate you will need to:
           </CardTitle>
           <CardDescription>

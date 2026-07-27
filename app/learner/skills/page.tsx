@@ -17,15 +17,15 @@ const SKILL_AREAS = [
 
 export default function LearnerSkillsPage() {
   return (
-    <div className="space-y-8 max-w-4xl">
+    <div className="max-w-4xl space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Skills</h1>
-        <p className="text-slate-600 mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Skills</h1>
+        <p className="mt-1 text-muted-foreground">
           The HELP Foundations Training builds skills and ethical practice for mental health and psychosocial support. Track how each module contributes to your development as an effective, ethical helper.
         </p>
       </div>
 
-      <Card className="border-slate-200">
+      <Card>
         <CardHeader>
           <CardTitle className="text-base">Skill areas</CardTitle>
           <CardDescription>
@@ -34,23 +34,23 @@ export default function LearnerSkillsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {SKILL_AREAS.map(({ icon: Icon, name, desc, module }) => (
-            <div key={name} className="flex items-start gap-3 p-3 rounded-lg border border-slate-100 hover:bg-slate-50/50">
-              <div className="h-9 w-9 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center shrink-0">
+            <div key={name} className="flex items-start gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-accent/55">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/12 text-primary">
                 <Icon className="h-4 w-4" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-slate-900">{name}</span>
+                  <span className="font-semibold text-foreground">{name}</span>
                   <Badge variant="outline" className="text-[10px]">{module}</Badge>
                 </div>
-                <p className="text-sm text-slate-600 mt-0.5">{desc}</p>
+                <p className="mt-0.5 text-sm text-muted-foreground">{desc}</p>
               </div>
             </div>
           ))}
         </CardContent>
       </Card>
 
-      <Card className="border-slate-200">
+      <Card>
         <CardHeader>
           <CardTitle className="text-base">Keep building</CardTitle>
           <CardDescription>

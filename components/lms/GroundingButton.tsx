@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Heart, X } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { BreathingExercise } from './BreathingExercise'
 import { Grounding54321 } from './Grounding54321'
 import { SafePlaceVisualization } from './SafePlaceVisualization'
@@ -12,8 +11,6 @@ import { SafePlaceVisualization } from './SafePlaceVisualization'
 export function GroundingButton() {
   const [isOpen, setIsOpen] = useState(false)
   const [selectedTool, setSelectedTool] = useState<'breathing' | '54321' | 'safe_place' | null>(null)
-  const supabase = createClient()
-
   const handleOpen = () => {
     setIsOpen(true)
     // Track usage
@@ -22,6 +19,9 @@ export function GroundingButton() {
 
   const trackUsage = async (toolType: string) => {
     try {
+      // Keep the Supabase client out of the public page's critical JavaScript path.
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 

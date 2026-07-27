@@ -1,0 +1,38 @@
+import {
+  Backpack,
+  BookMarked,
+  BookOpen,
+  Briefcase,
+  Calendar,
+  FolderOpen,
+  GraduationCap,
+  Home,
+  LayoutGrid,
+  ListChecks,
+  Mail,
+  MessageCircle,
+  MessageSquare,
+  Settings,
+  Sparkles,
+  Users,
+} from 'lucide-react'
+import type { PortalIconName } from '@/lib/navigation/portal'
+
+export const PORTAL_ICONS = {
+  home: Home,
+  course: BookOpen,
+  journal: BookMarked,
+  practice: MessageCircle,
+  circles: Users,
+  cases: Briefcase,
+  resources: FolderOpen,
+  backpack: Backpack,
+  calendar: Calendar,
+  catalog: LayoutGrid,
+  quizzes: ListChecks,
+  skills: Sparkles,
+  discussions: MessageSquare,
+  cpd: GraduationCap,
+  messages: Mail,
+  settings: Settings,
+} satisfies Record<PortalIconName, typeof Home>

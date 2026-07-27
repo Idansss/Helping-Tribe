@@ -13,10 +13,16 @@ CREATE TABLE IF NOT EXISTS public.quizzes (
   title TEXT NOT NULL,
   description TEXT,
   published BOOLEAN DEFAULT false,
+  module_id UUID REFERENCES public.modules(id) ON DELETE SET NULL,
   created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Backward compatibility: if quizzes table already exists from an older setup,
+-- ensure module_id exists so admin can link quizzes to modules.
+ALTER TABLE public.quizzes
+  ADD COLUMN IF NOT EXISTS module_id UUID REFERENCES public.modules(id) ON DELETE SET NULL;
 
 -- 2. Quiz questions (options = array of choice texts; correct_answer_index = 0-based)
 CREATE TABLE IF NOT EXISTS public.quiz_questions (

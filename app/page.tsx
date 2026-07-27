@@ -6,6 +6,7 @@ import { CurriculumSection } from '@/components/landing/CurriculumSection'
 import { TribeExperienceSection } from '@/components/landing/TribeExperienceSection'
 import { FacultySection } from '@/components/landing/FacultySection'
 import { EnrollmentSection } from '@/components/landing/EnrollmentSection'
+import { FAQSection } from '@/components/landing/FAQSection'
 import { LandingFooter } from '@/components/landing/LandingFooter'
 import { PROGRAM_FULL_NAME, SCHOOL_NAME } from '@/lib/brand/program'
 
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="public-shell min-h-screen">
       <LandingNav />
       <main id="main-content">
         <HeroSection />
@@ -29,6 +30,7 @@ export default function HomePage() {
         <TribeExperienceSection />
         <FacultySection />
         <EnrollmentSection />
+        <FAQSection />
       </main>
       <LandingFooter />
     </div>

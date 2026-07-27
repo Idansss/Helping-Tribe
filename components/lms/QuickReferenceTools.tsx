@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Search } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { isMissingRelationError } from '@/lib/supabase/migrations'
 import { QuickReferenceToolCard } from './QuickReferenceTool'
 
 interface QuickReferenceTool {
@@ -35,17 +36,23 @@ export function QuickReferenceTools() {
           .order('display_order', { ascending: true })
           .order('title', { ascending: true })
 
-        if (error) throw error
+        if (error) {
+          // Missing table / schema: show empty tools, don't trip the Next.js error overlay.
+          if (isMissingRelationError(error, 'quick_reference_tools')) {
+            setTools([])
+            setFilteredTools([])
+            return
+          }
+          throw error
+        }
         if (data) {
           setTools(data as QuickReferenceTool[])
           setFilteredTools(data as QuickReferenceTool[])
         }
-      } catch (error: any) {
-        console.error('Error loading tools:', error)
-        // Check if it's a database table missing error
-        if (error?.message?.includes('Could not find the table') || error?.code === 'PGRST205') {
-          console.error('⚠️ DATABASE SETUP REQUIRED: Please run the migrations in Supabase SQL Editor. See RUN_MIGRATIONS.md for instructions.')
-        }
+      } catch (error) {
+        console.warn('Quick reference tools unavailable:', error)
+        setTools([])
+        setFilteredTools([])
       } finally {
         setLoading(false)
       }

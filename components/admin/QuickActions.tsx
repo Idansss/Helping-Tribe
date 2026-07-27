@@ -49,12 +49,12 @@ export function QuickActions() {
   const router = useRouter()
 
   return (
-    <div className="rounded-xl border bg-white/80 backdrop-blur-sm p-4 space-y-3">
+    <div className="space-y-3 rounded-xl border border-border bg-muted/45 p-4">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold text-slate-900">
+        <h2 className="text-sm font-semibold text-foreground">
           Quick actions
         </h2>
-        <span className="text-[11px] text-slate-500">
+        <span className="text-[11px] text-muted-foreground">
           9-week counseling program admin
         </span>
       </div>
@@ -65,7 +65,7 @@ export function QuickActions() {
             key={action.label}
             variant="outline"
             size="sm"
-            className="w-full justify-start gap-2 text-xs border-slate-200 text-slate-800 hover:bg-slate-100"
+            className="w-full justify-start gap-2 border-border bg-background text-xs text-foreground hover:bg-accent"
             onClick={() => router.push(action.href)}
           >
             {action.icon}

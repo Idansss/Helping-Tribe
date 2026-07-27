@@ -1,78 +1,35 @@
-'use client'
+import { BookOpenText, MessagesSquare, NotebookPen, Route } from 'lucide-react'
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Users, BookOpen, HeartHandshake, Laptop } from 'lucide-react'
-
-const features = [
-  {
-    icon: BookOpen,
-    title: 'Education & Training',
-    description:
-      'Certificate courses, CPD workshops & webinars, and confidential case review circles that deepen your counseling practice.',
-  },
-  {
-    icon: HeartHandshake,
-    title: 'Community Programs',
-    description:
-      'Mobile mental health clinics, collaborative research projects, and advocacy campaigns that take support into communities.',
-  },
-  {
-    icon: Users,
-    title: 'Mentorship & Support',
-    description:
-      '1‑on‑1 career guidance and group supervision sessions so you are never practising in isolation.',
-  },
-  {
-    icon: Laptop,
-    title: 'Digital Resources',
-    description:
-      'Mental health talks podcast, resource library, and therapy toolkit to keep learning accessible anytime.',
-  },
+const experiences = [
+  { icon: Route, number: '01', title: 'Structured modules', description: 'A connected weekly pathway makes the next learning action clear.' },
+  { icon: NotebookPen, number: '02', title: 'Reflective journals', description: 'Private reflection connects new ideas to lived and professional experience.' },
+  { icon: MessagesSquare, number: '03', title: 'Peer learning', description: 'Circles and discussions create space for questions, feedback and shared growth.' },
+  { icon: BookOpenText, number: '04', title: 'Practice resources', description: 'Case studies, tools and saved resources stay available inside the learning workspace.' },
 ] as const
 
 export function TribeExperienceSection() {
   return (
-    <section className="py-16 md:py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-[#4c1d95] mb-4">
-            What We Offer
-          </h2>
-          <p className="text-lg text-gray-700">
-            A full ecosystem for growing, supported helping professionals
+    <section id="experience" className="bg-[#0b1320] text-white">
+      <div className="section-shell">
+        <div className="grid gap-8 lg:grid-cols-[1fr_1fr] lg:items-end">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#9de2d8]">The learner experience</p>
+            <h2 className="mt-4 max-w-3xl font-display text-[clamp(2.7rem,6vw,5.2rem)] font-medium leading-[0.96] tracking-[-0.04em]">
+              Built for the work between knowing and doing.
+            </h2>
+          </div>
+          <p className="max-w-xl text-base leading-7 text-slate-300 lg:justify-self-end">
+            The platform brings modules, practice, reflection, feedback and community into one calm learning rhythm.
           </p>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {features.map((feature) => {
-            const Icon = feature.icon
-            return (
-              <Card
-                key={feature.title}
-                className="border-2 border-[#f3e8ff] hover:border-[#4c1d95] transition-colors"
-              >
-                <CardHeader>
-                  <div className="w-16 h-16 rounded-lg bg-[#f3e8ff] flex items-center justify-center mb-4">
-                    <Icon className="h-8 w-8 text-[#4c1d95]" />
-                  </div>
-                  <CardTitle className="text-xl text-[#4c1d95]">
-                    {feature.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-gray-700 leading-relaxed">
-                    {feature.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            )
-          })}
+        <div className="mt-14 grid border-y border-white/12 sm:grid-cols-2 lg:grid-cols-4">
+          {experiences.map(({ icon: Icon, number, title, description }, index) => (
+            <article key={title} className={`min-w-0 py-8 sm:p-7 ${index > 0 ? 'border-t border-white/12 sm:border-l sm:border-t-0' : ''} ${index === 2 ? 'sm:border-l-0 lg:border-l' : ''}`}>
+              <div className="flex items-center justify-between text-[#9de2d8]"><Icon className="size-5" aria-hidden="true" /><span className="text-xs font-bold tracking-[0.16em]">{number}</span></div>
+              <h3 className="mt-10 text-lg font-bold">{title}</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-400">{description}</p>
+            </article>
+          ))}
         </div>
       </div>
     </section>

@@ -88,34 +88,34 @@ export default function MentorJournalsPage() {
     <div className="space-y-6 max-w-5xl mx-auto">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/mentor" className="flex items-center gap-2 text-muted-foreground hover:text-slate-900">
+          <Link href="/mentor" className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" />
             Back to Dashboard
           </Link>
         </Button>
       </div>
       <div>
-        <h1 className="text-3xl font-bold text-[var(--talent-primary-dark)]">
+        <h1 className="text-3xl font-bold text-primary">
           Learning journals
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="mt-1 text-sm text-muted-foreground">
           View learner reflections and notes submitted in the Learning Journal.
         </p>
       </div>
 
       <Card className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-slate-900">Journal entries</h2>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-foreground">Journal entries</h2>
           <Badge variant="outline">{entries.length} entries</Badge>
         </div>
 
         {loading ? (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground py-8">
+          <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
             Loading journals…
           </div>
         ) : entries.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-6">
+          <p className="py-6 text-sm text-muted-foreground">
             No journal entries yet. Learners will appear here once they save reflections from the Learning Journal.
           </p>
         ) : (
@@ -129,34 +129,35 @@ export default function MentorJournalsPage() {
               return (
                 <div
                   key={entry.id}
-                  className="border rounded-lg overflow-hidden bg-slate-50/50"
+                  className="overflow-hidden rounded-lg border border-border bg-muted/40"
                 >
                   <button
                     type="button"
-                    className="w-full flex items-center gap-3 p-4 text-left hover:bg-slate-100/80 transition-colors"
+                    className="flex w-full items-center gap-3 p-4 text-left text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
                     onClick={() => setExpandedId(isExpanded ? null : entry.id)}
                   >
-                    <div className="w-9 h-9 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
-                      <User className="h-4 w-4 text-[var(--talent-primary-dark)]" />
+                    <div className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+                      <User className="size-4" aria-hidden="true" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="font-medium text-slate-900 truncate">{name}</div>
-                      <div className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
-                        <BookOpen className="h-3 w-3" />
-                        {week != null ? `Week ${week}: ` : ''}{moduleTitle}
+                      <div className="truncate font-medium">{name}</div>
+                      <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
+                        <BookOpen className="size-3" aria-hidden="true" />
+                        {week != null ? `Week ${week}: ` : ''}
+                        {moduleTitle}
                       </div>
                     </div>
-                    <div className="text-xs text-slate-500 shrink-0">
+                    <div className="shrink-0 text-xs text-muted-foreground">
                       {formatDate(entry.updated_at)}
                     </div>
                   </button>
                   {isExpanded && (
                     <div className="px-4 pb-4 pt-0">
-                      <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
-                        <FileText className="h-3.5 w-3.5" />
+                      <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground">
+                        <FileText className="size-3.5" aria-hidden="true" />
                         Reflection
                       </div>
-                      <div className="text-sm text-slate-700 whitespace-pre-wrap rounded-md border bg-white p-4 max-h-80 overflow-y-auto">
+                      <div className="max-h-80 overflow-y-auto whitespace-pre-wrap rounded-md border border-border bg-background p-4 text-sm text-foreground">
                         {entry.content || '—'}
                       </div>
                     </div>

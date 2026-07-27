@@ -139,20 +139,20 @@ export default function AdminDiscussionResponsesPage() {
         </Card>
       ) : (
         <>
-          <Card className="border-teal-200 bg-gradient-to-br from-teal-50/70 to-white">
+          <Card className="border-primary/25 bg-gradient-to-br from-primary/10 via-card to-card">
             <CardHeader>
-              <div className="flex flex-wrap items-center gap-2 mb-2">
+              <div className="mb-2 flex flex-wrap items-center gap-2">
                 {prompt.module && (
-                  <Badge variant="outline" className="bg-white">
+                  <Badge variant="outline" className="bg-background">
                     Week {prompt.module.week_number}
                   </Badge>
                 )}
                 {prompt.module && (
-                  <span className="text-sm text-slate-600">{prompt.module.title}</span>
+                  <span className="text-sm text-muted-foreground">{prompt.module.title}</span>
                 )}
               </div>
-              <CardTitle className="text-xl flex items-start gap-2">
-                <MessageSquare className="h-6 w-6 text-teal-600 mt-0.5 shrink-0" />
+              <CardTitle className="flex items-start gap-2 text-xl text-foreground">
+                <MessageSquare className="mt-0.5 size-6 shrink-0 text-primary" aria-hidden="true" />
                 <span>{prompt.prompt_text}</span>
               </CardTitle>
               <CardDescription>

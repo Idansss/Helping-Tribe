@@ -22,23 +22,23 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'border border-dashed rounded-xl bg-slate-50/60 p-8 flex flex-col items-center justify-center text-center gap-3',
+        'flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border-strong bg-muted/55 p-8 text-center',
         className
       )}
     >
       {icon && (
-        <div className="h-10 w-10 rounded-full bg-[color-mix(in_srgb,var(--talent-primary)_12%,transparent)] text-[var(--talent-primary-dark)] flex items-center justify-center">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/12 text-primary">
           {icon}
         </div>
       )}
       <div className="space-y-1 max-w-md">
-        <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
-        <p className="text-xs text-slate-500 leading-relaxed">{description}</p>
+        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        <p className="text-xs leading-relaxed text-muted-foreground">{description}</p>
       </div>
       {actionLabel && (
         <Button
           size="sm"
-          className="mt-1 rounded-full bg-[var(--talent-primary)] text-white hover:bg-[var(--talent-primary-dark)]"
+          className="mt-1 rounded-full"
           onClick={onActionClick}
         >
           {actionLabel}

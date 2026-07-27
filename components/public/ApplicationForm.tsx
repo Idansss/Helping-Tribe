@@ -249,10 +249,10 @@ function Option({
     <label
       htmlFor={id}
       className={cn(
-        'flex w-full items-center gap-3 rounded-lg border bg-white px-3 py-2.5 text-sm shadow-sm transition-colors',
+        'flex min-h-11 w-full min-w-0 items-center gap-3 rounded-lg border bg-card px-3 py-2.5 text-left text-sm text-card-foreground shadow-sm transition-colors',
         'cursor-pointer select-none',
         'focus-within:outline-none focus-within:ring-2 focus-within:ring-teal-600/25',
-        active ? 'border-teal-600 bg-teal-50/70' : 'border-slate-200 hover:bg-slate-50',
+        active ? 'border-primary bg-accent' : 'border-border hover:bg-muted',
         className
       )}
     >
@@ -267,7 +267,7 @@ function Option({
         )}
         {...rest}
       />
-      <span className="leading-snug text-slate-900">{children}</span>
+      <span className="min-w-0 break-words leading-snug text-foreground">{children}</span>
     </label>
   )
 }
@@ -282,7 +282,7 @@ function SectionCard({
   children: ReactNode
 }) {
   return (
-    <Card className="border-slate-200 bg-white">
+    <Card className="rounded-2xl border-border/80 bg-card shadow-none">
       <CardHeader className="pb-4">
         <CardTitle className="text-base md:text-lg">{title}</CardTitle>
         {description ? <CardDescription className="text-sm">{description}</CardDescription> : null}
@@ -596,38 +596,48 @@ export function ApplicationForm() {
 
   if (loadingDraft) {
     return (
-      <Card className="border-slate-200 bg-white">
-        <CardContent className="p-6 text-sm text-slate-600">Loading saved application...</CardContent>
+      <Card className="overflow-hidden rounded-[1.5rem] border-border/80 bg-card shadow-[var(--shadow-soft)]">
+        <CardContent className="space-y-3 p-6 sm:p-8">
+          <div className="h-5 w-48 animate-pulse rounded bg-muted" />
+          <div className="h-4 w-full max-w-md animate-pulse rounded bg-muted" />
+          <p className="text-sm text-muted-foreground">Loading saved application…</p>
+        </CardContent>
       </Card>
     )
   }
 
   return (
-    <Card className="border-slate-200 bg-white">
+    <Card className="overflow-hidden rounded-[1.5rem] border-border/80 bg-card shadow-[var(--shadow-elevated)]">
       <div ref={formTopRef} />
-      <CardHeader className="pb-4">
-        <CardTitle className="text-xl md:text-2xl">{PROGRAM_FULL_NAME} Application</CardTitle>
-        <CardDescription className="text-sm md:text-base">
-          Complete all steps accurately. Estimated completion time: {APPLICATION_ESTIMATED_MINUTES} minutes.
-        </CardDescription>
-        <div className="rounded-lg border border-teal-100 bg-teal-50 px-3 py-2 text-xs text-teal-900">
-          Applications are reviewed within {APPLICATION_REVIEW_DAYS} working days.
+      <CardHeader className="space-y-4 border-b border-border/70 bg-muted/35 pb-5">
+        <div>
+          <p className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-primary">Secure application</p>
+          <CardTitle className="mt-1 font-display text-xl font-semibold tracking-tight md:text-2xl">
+            {PROGRAM_FULL_NAME} Application
+          </CardTitle>
+          <CardDescription className="mt-1.5 text-sm md:text-base">
+            Complete all steps accurately. Estimated completion time: {APPLICATION_ESTIMATED_MINUTES} minutes.
+          </CardDescription>
+        </div>
+        <div className="rounded-xl border border-primary/15 bg-primary/8 px-3.5 py-2.5 text-xs leading-5 text-foreground">
+          Applications are reviewed within {APPLICATION_REVIEW_DAYS} working days. You can save and resume later.
         </div>
         <div className="space-y-2 pt-1">
-          <div className="flex items-center justify-between text-xs font-medium text-slate-600">
+          <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
             <span>Step {currentStep} of {totalSteps}</span>
             <span>{STEP_TITLES[currentStep - 1]}</span>
           </div>
           <Progress value={progressValue} className="h-2" />
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-          <div className="text-slate-500">
+          <div className="text-muted-foreground">
             {lastSavedAt ? `Last saved: ${new Date(lastSavedAt).toLocaleString()}` : 'Draft not saved yet'}
           </div>
           <Button
             type="button"
             variant="outline"
             size="sm"
+            className="rounded-full"
             onClick={saveAndExit}
             disabled={savingDraft || isSubmitting}
           >
@@ -635,7 +645,7 @@ export function ApplicationForm() {
           </Button>
         </div>
         {submitted ? (
-          <div className="mt-2 text-sm rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 p-3">
+          <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-200">
             Application submitted successfully.
           </div>
         ) : null}
@@ -736,7 +746,7 @@ export function ApplicationForm() {
                 name="highestQualification"
                 render={({ field }) => (
                   <Select value={field.value || undefined} onValueChange={field.onChange}>
-                    <SelectTrigger className="bg-white">
+                    <SelectTrigger className="bg-background">
                       <SelectValue placeholder="Select..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -1060,7 +1070,7 @@ export function ApplicationForm() {
                 name="hearAbout"
                 render={({ field }) => (
                   <Select value={field.value || undefined} onValueChange={field.onChange}>
-                    <SelectTrigger className="bg-white">
+                    <SelectTrigger className="bg-background">
                       <SelectValue placeholder="Select..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -1124,7 +1134,7 @@ export function ApplicationForm() {
               </div>
             </div>
 
-            <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <div className="space-y-2 rounded-lg border border-border bg-muted/55 p-3">
               <Option
                 id="consent-privacy"
                 active={!!consentPrivacy}
@@ -1154,21 +1164,21 @@ export function ApplicationForm() {
           {currentStep === 7 && (
             <SectionCard title="REVIEW & SUBMIT" description="Confirm key details before final submission.">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <div className="min-w-0 rounded-lg border border-border bg-muted/55 p-3">
                   <div className="text-xs uppercase tracking-wide text-slate-500">Full name</div>
-                  <div className="mt-1 text-slate-900">{watchedValues.fullNameCertificate || '-'}</div>
+                  <div className="mt-1 break-words text-foreground">{watchedValues.fullNameCertificate || '-'}</div>
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <div className="min-w-0 rounded-lg border border-border bg-muted/55 p-3">
                   <div className="text-xs uppercase tracking-wide text-slate-500">Email</div>
-                  <div className="mt-1 text-slate-900">{watchedValues.email || '-'}</div>
+                  <div className="mt-1 break-words text-foreground">{watchedValues.email || '-'}</div>
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <div className="min-w-0 rounded-lg border border-border bg-muted/55 p-3">
                   <div className="text-xs uppercase tracking-wide text-slate-500">Phone</div>
-                  <div className="mt-1 text-slate-900">{watchedValues.phoneWhatsApp || '-'}</div>
+                  <div className="mt-1 break-words text-foreground">{watchedValues.phoneWhatsApp || '-'}</div>
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <div className="min-w-0 rounded-lg border border-border bg-muted/55 p-3">
                   <div className="text-xs uppercase tracking-wide text-slate-500">Training mode</div>
-                  <div className="mt-1 text-slate-900">{watchedValues.trainingMode || '-'}</div>
+                  <div className="mt-1 break-words text-foreground">{watchedValues.trainingMode || '-'}</div>
                 </div>
               </div>
               <div className="rounded-lg border border-teal-100 bg-teal-50 p-3 text-sm text-teal-900">
@@ -1198,7 +1208,7 @@ export function ApplicationForm() {
         </form>
       </CardContent>
 
-      <CardFooter className="border-t bg-slate-50/60">
+      <CardFooter className="border-t bg-muted/45">
         <div className="text-xs text-slate-600">
           After submission: your application is saved as <span className="font-medium text-slate-800">PENDING</span> until an admin reviews it. Need to continue later? Use{' '}
           <Link href="/apply/resume" className="font-medium text-teal-700 hover:underline">Resume application</Link>.

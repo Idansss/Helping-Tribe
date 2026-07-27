@@ -92,16 +92,16 @@ export default function AdminQuizResponsesClient({
         </Button>
       </div>
 
-      <Card className="border-teal-200 bg-gradient-to-br from-teal-50/70 to-white">
+      <Card className="border-primary/25 bg-gradient-to-br from-primary/10 via-card to-card">
         <CardHeader>
-          <CardTitle className="text-xl flex items-start gap-2">
-            <ListChecks className="h-6 w-6 text-teal-600 mt-0.5 shrink-0" />
+          <CardTitle className="flex items-start gap-2 text-xl text-foreground">
+            <ListChecks className="mt-0.5 size-6 shrink-0 text-primary" aria-hidden="true" />
             <span>{quiz.title} - Student responses</span>
           </CardTitle>
           <CardDescription>
             {quiz.description || 'View every student attempt and see which answer they chose for each question.'}
           </CardDescription>
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-slate-600">
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
             <Badge variant={quiz.published ? 'default' : 'secondary'}>
               {quiz.published ? 'Published' : 'Draft'}
             </Badge>

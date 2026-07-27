@@ -1,40 +1,27 @@
-import Link from 'next/link'
 import Image from 'next/image'
+import Link from 'next/link'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export function TopNav() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/60 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        <Link href="/apply" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl overflow-hidden">
-            <Image src="/logo.png" alt="The Helping Tribe" width={48} height={48} className="object-contain" />
-          </div>
-          <span className="font-display text-lg font-bold tracking-tight text-foreground">
-            The Helping Tribe
+    <header className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/90 backdrop-blur-xl">
+      <div className="mx-auto flex h-[var(--nav-height)] max-w-7xl items-center justify-between gap-3 px-[var(--page-gutter)]">
+        <Link href="/" className="flex min-w-0 items-center gap-2.5 rounded-lg transition-opacity hover:opacity-80">
+          <span className="relative size-10 shrink-0 overflow-hidden rounded-xl bg-white ring-1 ring-border">
+            <Image src="/logo.png" alt="" fill sizes="40px" className="object-contain p-0.5" />
+          </span>
+          <span className="min-w-0 leading-none">
+            <span className="block truncate font-display text-lg font-semibold tracking-tight text-foreground">Helping Tribe</span>
+            <span className="mt-0.5 block truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Academy</span>
           </span>
         </Link>
-        <nav className="flex items-center gap-2">
-          <Link
-            href="/student/login"
-            className="px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Student Login
-          </Link>
-          <Link
-            href="/staff/login"
-            className="px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Staff Login
-          </Link>
-          <Link
-            href="/contact"
-            className="rounded-lg border-2 border-teal-500 px-4 py-2 text-sm font-bold text-teal-600 transition-colors hover:bg-teal-50"
-          >
-            Contact
-          </Link>
+        <nav aria-label="Application navigation" className="flex items-center gap-1 sm:gap-2">
+          <Link href="/apply/resume" className="hidden min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-accent hover:text-foreground md:inline-flex">Resume</Link>
+          <Link href="/student/login" className="hidden min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:inline-flex">Learner login</Link>
+          <Link href="/" className="hidden min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-accent hover:text-foreground lg:inline-flex">Programme</Link>
+          <ThemeToggle />
         </nav>
       </div>
     </header>
   )
 }
-

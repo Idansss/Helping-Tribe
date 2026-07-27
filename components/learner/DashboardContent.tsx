@@ -151,14 +151,15 @@ export function DashboardContent() {
       : Math.min(100, Math.round(((currentWeek - 1) * 100 + moduleProgress) / totalModules))
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="mx-auto max-w-7xl space-y-6">
       {/* Welcome */}
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
-          Welcome, {learnerName}!
+        <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Your learning workspace</p>
+        <h1 className="mt-2 font-display text-3xl font-semibold text-foreground md:text-4xl">
+          Welcome, {learnerName}.
         </h1>
-        <p className="text-slate-600 mt-1">
-          Your counseling training journey continues here. Track your progress, join Peer Circles, and build the skills to support your community.
+        <p className="mt-2 max-w-3xl text-muted-foreground">
+          See your next action, understand your progress, and return to the people and resources supporting your programme.
         </p>
       </div>
 
@@ -167,49 +168,70 @@ export function DashboardContent() {
         description="These two short videos explain the program and show you how to move around the learner portal."
       />
 
-      {/* Quick stats row */}
+      <Card className="overflow-hidden border-primary/25 bg-[linear-gradient(135deg,#0b1320_0%,#0d5e57_70%,#0f766e_100%)] p-5 text-white shadow-[var(--shadow-soft)] sm:p-7">
+        <div className="grid gap-6 md:grid-cols-[1fr_auto] md:items-end">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-teal-200">Continue learning · Week {currentWeek}</p>
+            <h2 className="mt-3 max-w-2xl font-display text-2xl font-semibold leading-tight sm:text-3xl">
+              {MODULE_TITLES[currentWeek] ?? `Module ${currentWeek}`}
+            </h2>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-slate-300">
+              {hasStats ? 'Pick up where you stopped and complete the current module activities.' : 'Start the first module and build your learning rhythm.'}
+            </p>
+            <div className="mt-5 max-w-lg">
+              <div className="mb-2 flex items-center justify-between text-xs text-slate-300"><span>Current module</span><span>{moduleProgress}%</span></div>
+              <Progress value={moduleProgress} className="h-2 bg-white/15" />
+            </div>
+          </div>
+          <Button asChild size="lg" className="min-h-12 w-full rounded-full bg-white px-6 text-[#0d5e57] hover:bg-white/90 md:w-auto">
+            <Link href="/learner/course/modules">{hasStats ? 'Continue course' : 'Start learning'} <ArrowRight className="ml-2 size-4" aria-hidden="true" /></Link>
+          </Button>
+        </div>
+      </Card>
+
+      {/* Supporting summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card className="p-4 border-slate-200 bg-white">
+        <Card className="border-border bg-card p-4">
           <div className="flex items-center gap-2">
             <div className="h-9 w-9 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center">
               <BookOpen className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-xs font-medium text-slate-500">Program progress</p>
-              <p className="text-lg font-bold text-slate-900">{overallPercent}%</p>
+              <p className="text-xs font-medium text-muted-foreground">Programme progress</p>
+              <p className="text-lg font-bold text-foreground">{overallPercent}%</p>
             </div>
           </div>
         </Card>
-        <Card className="p-4 border-slate-200 bg-white">
+        <Card className="border-border bg-card p-4">
           <div className="flex items-center gap-2">
             <div className="h-9 w-9 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center">
               <Target className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-xs font-medium text-slate-500">Current week</p>
-              <p className="text-lg font-bold text-slate-900">Week {currentWeek} of 9</p>
+              <p className="text-xs font-medium text-muted-foreground">Current week</p>
+              <p className="text-lg font-bold text-foreground">Week {currentWeek} of 9</p>
             </div>
           </div>
         </Card>
-        <Card className="p-4 border-slate-200 bg-white">
+        <Card className="border-border bg-card p-4">
           <div className="flex items-center gap-2">
             <div className="h-9 w-9 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center">
               <FileText className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-xs font-medium text-slate-500">Journals</p>
-              <p className="text-lg font-bold text-slate-900">{journalCount}</p>
+              <p className="text-xs font-medium text-muted-foreground">Journals</p>
+              <p className="text-lg font-bold text-foreground">{journalCount}</p>
             </div>
           </div>
         </Card>
-        <Card className="p-4 border-slate-200 bg-white">
+        <Card className="border-border bg-card p-4">
           <div className="flex items-center gap-2">
             <div className="h-9 w-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
               <Award className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-xs font-medium text-slate-500">Graduation</p>
-              <p className="text-sm font-bold text-slate-900">80% + journal + project</p>
+              <p className="text-xs font-medium text-muted-foreground">Completion</p>
+              <p className="text-sm font-bold text-foreground">Modules, journal and project</p>
             </div>
           </div>
         </Card>
@@ -280,7 +302,7 @@ export function DashboardContent() {
               </div>
               <Progress value={moduleProgress} className="h-2" />
             </div>
-            <div className="grid grid-cols-9 gap-1 mt-4">
+            <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-9">
               {Array.from({ length: 9 }).map((_, i) => {
                 const weekNum = i + 1
                 const status =
@@ -289,7 +311,8 @@ export function DashboardContent() {
                   <Link
                     key={weekNum}
                     href="/learner/course/modules"
-                    className={`h-9 rounded-md flex items-center justify-center text-xs font-medium transition-colors ${
+                    aria-label={`Week ${weekNum}: ${status === 'completed' ? 'completed' : status === 'in-progress' ? 'current week' : `locked until Week ${weekNum - 1} is completed`}`}
+                    className={`flex min-h-11 items-center justify-center rounded-lg px-2 text-xs font-semibold transition-colors ${
                       status === 'completed'
                         ? 'bg-green-500 text-white'
                         : status === 'in-progress'
@@ -297,7 +320,7 @@ export function DashboardContent() {
                           : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
                     }`}
                   >
-                    {weekNum}
+                    <span className="sm:hidden">Week&nbsp;</span>{weekNum}
                   </Link>
                 )
               })}
