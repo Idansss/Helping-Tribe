@@ -31,13 +31,17 @@ export function LandingNav() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 border-b transition-colors duration-300 ${
-        isScrolled
-          ? 'border-border/80 bg-background/94 shadow-[0_8px_30px_rgb(11_19_32/0.08)] backdrop-blur-xl'
-          : 'border-transparent bg-background/82 backdrop-blur-md'
-      }`}
+      className="pointer-events-none fixed inset-x-0 top-3 z-50 px-[var(--page-gutter)]"
     >
-      <nav aria-label="Public navigation" data-hydrated={isHydrated} className="mx-auto flex h-[var(--nav-height)] max-w-7xl items-center justify-between gap-3 px-[var(--page-gutter)]">
+      <nav
+        aria-label="Public navigation"
+        data-hydrated={isHydrated}
+        className={`pointer-events-auto mx-auto flex h-[var(--nav-height)] max-w-7xl items-center justify-between gap-3 rounded-[1.4rem] border px-3 transition-[background-color,border-color,box-shadow,transform] duration-300 sm:px-4 ${
+          isScrolled
+            ? 'translate-y-0 border-border/80 bg-background/94 shadow-[0_16px_50px_rgb(11_19_32/0.13)] backdrop-blur-xl'
+            : 'border-white/20 bg-background/88 shadow-[0_8px_30px_rgb(11_19_32/0.08)] backdrop-blur-lg'
+        }`}
+      >
         <Link href="/" className="flex min-w-0 items-center gap-2.5 rounded-lg">
           <span className="relative size-10 shrink-0 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-border">
             <Image src="/logo.png" alt="" fill sizes="40px" className="object-contain p-0.5" priority />
@@ -50,7 +54,7 @@ export function LandingNav() {
 
         <div className="hidden items-center gap-6 lg:flex">
           {SITE_CONFIG.publicNavigation.map((item) => (
-            <Link key={item.href} href={item.href} className="rounded-md py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+            <Link key={item.href} href={item.href} className="rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-[background-color,color,transform] duration-200 hover:-translate-y-px hover:bg-accent hover:text-foreground">
               {item.label}
             </Link>
           ))}

@@ -34,12 +34,12 @@ export function FAQSection() {
   return (
     <section id="faq" className="bg-background">
       <div className="section-shell grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16">
-        <div>
+        <div data-reveal="heading">
           <p className="eyebrow">Frequently asked</p>
           <h2 className="mt-4 font-display text-[clamp(2.55rem,5vw,4.6rem)] font-medium leading-none tracking-[-0.035em] text-foreground">Clear answers before you apply.</h2>
           <p className="mt-5 max-w-lg text-base leading-7 text-muted-foreground">For a question about your own application or account, contact the support team without sharing passwords or payment details.</p>
         </div>
-        <Accordion type="single" collapsible className="border-t border-border">
+        <Accordion type="single" collapsible className="border-t border-border" data-reveal>
           {faqs.map((faq, index) => (
             <AccordionItem key={faq.question} value={`faq-${index}`} className="border-b border-border py-1">
               <AccordionTrigger className="gap-4 py-5 text-left text-base font-bold text-foreground hover:no-underline sm:py-6 sm:text-lg">{faq.question}</AccordionTrigger>

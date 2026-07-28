@@ -12,10 +12,10 @@ const facts = [
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-[#0b1320] pt-[calc(var(--nav-height)+1rem)] text-white md:pt-[calc(var(--nav-height)+1.5rem)]">
+    <section className="relative overflow-hidden bg-[#0b1320] pt-[calc(var(--nav-height)+2rem)] text-white md:pt-[calc(var(--nav-height)+2.5rem)]">
       <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(circle_at_18%_8%,rgb(15_118_110/0.28),transparent_34%),radial-gradient(circle_at_90%_28%,rgb(91_42_134/0.24),transparent_32%)]" />
       <div className="relative mx-auto grid max-w-7xl gap-10 px-[var(--page-gutter)] pb-16 lg:grid-cols-[1.02fr_0.98fr] lg:items-start lg:gap-12 lg:pb-24">
-        <div className="order-1 max-w-3xl py-2 lg:order-none lg:py-4">
+        <div className="order-1 max-w-3xl py-2 lg:order-none lg:py-4" data-reveal="heading">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#9de2d8]">Counselling · positive psychology · supported practice</p>
           <h1 className="mt-4 font-display text-[clamp(3.1rem,7vw,6.5rem)] font-medium leading-[0.95] tracking-[-0.045em] text-balance">
             Learn to help with skill
@@ -36,7 +36,7 @@ export function HeroSection() {
           <Link href="/student/login" className="mt-5 inline-flex min-h-11 items-center text-sm font-semibold text-slate-300 underline-offset-4 hover:text-white hover:underline">
             Already learning with us? Open your portal.
           </Link>
-          <ul className="mt-10 hidden gap-3 border-t border-white/12 pt-6 sm:grid sm:grid-cols-3 lg:grid">
+          <ul className="mt-10 hidden gap-3 border-t border-white/12 pt-6 sm:grid sm:grid-cols-3 lg:grid" data-reveal>
             {facts.map(({ icon: Icon, label }) => (
               <li key={label} className="flex items-center gap-2 text-sm text-slate-300">
                 <Icon className="size-4 shrink-0 text-[#d8bd7a]" aria-hidden="true" />
@@ -45,10 +45,10 @@ export function HeroSection() {
             ))}
           </ul>
         </div>
-        <div className="order-2 lg:order-none">
+        <div className="order-2 lg:order-none" data-reveal="scale">
           <GrowthOrbitVisual />
         </div>
-        <ul className="order-3 mt-2 grid gap-3 border-t border-white/12 pt-6 sm:hidden">
+        <ul className="order-3 mt-2 grid gap-3 border-t border-white/12 pt-6 sm:hidden" data-reveal>
           {facts.map(({ icon: Icon, label }) => (
             <li key={label} className="flex items-center gap-2 text-sm text-slate-300">
               <Icon className="size-4 shrink-0 text-[#d8bd7a]" aria-hidden="true" />

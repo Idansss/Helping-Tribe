@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import {
   BookOpen,
   HeartHandshake,
@@ -230,12 +230,38 @@ export function GrowthOrbitVisual() {
   const shouldAnimate = motionReady && inView && !reduceMotion
   const academyLabel = SITE_CONFIG.organisation.shortName
 
+  const resetPointerDepth = () => {
+    const stage = stageRef.current
+    if (!stage) return
+    stage.style.setProperty('--gov-rotate-x', '0deg')
+    stage.style.setProperty('--gov-rotate-y', '0deg')
+    stage.style.setProperty('--gov-pointer-x', '50%')
+    stage.style.setProperty('--gov-pointer-y', '45%')
+  }
+
+  const handlePointerMove = (event: ReactPointerEvent<HTMLElement>) => {
+    if (reduceMotion || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+
+    const bounds = event.currentTarget.getBoundingClientRect()
+    const x = (event.clientX - bounds.left) / bounds.width
+    const y = (event.clientY - bounds.top) / bounds.height
+    const rotateX = (0.5 - y) * 7
+    const rotateY = (x - 0.5) * 9
+
+    event.currentTarget.style.setProperty('--gov-rotate-x', `${rotateX.toFixed(2)}deg`)
+    event.currentTarget.style.setProperty('--gov-rotate-y', `${rotateY.toFixed(2)}deg`)
+    event.currentTarget.style.setProperty('--gov-pointer-x', `${(x * 100).toFixed(1)}%`)
+    event.currentTarget.style.setProperty('--gov-pointer-y', `${(y * 100).toFixed(1)}%`)
+  }
+
   return (
     <figure
       ref={stageRef}
       className={styles.stage}
       data-animate={shouldAnimate ? 'true' : 'false'}
       data-revealed={revealed ? 'true' : 'false'}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={resetPointerDepth}
       role="img"
       aria-label={`${academyLabel} learning journey: Learn, Reflect, Practise and Connect.`}
     >

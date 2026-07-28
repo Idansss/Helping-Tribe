@@ -12,7 +12,7 @@ export function EnrollmentSection() {
   return (
     <section id="enrollment" className="bg-[var(--surface-muted)]">
       <div className="section-shell">
-        <div className="overflow-hidden rounded-[clamp(1.5rem,4vw,3rem)] border border-white/15 bg-[#0d5e57] text-white shadow-[var(--shadow-soft)]">
+        <div className="overflow-hidden rounded-[clamp(1.5rem,4vw,3rem)] border border-white/15 bg-[#0d5e57] text-white shadow-[var(--shadow-soft)]" data-reveal="scale">
           <div className="grid gap-10 p-6 sm:p-9 lg:grid-cols-[1fr_0.9fr] lg:p-14">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/80">Admissions</p>

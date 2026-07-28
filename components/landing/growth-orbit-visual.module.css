@@ -11,6 +11,10 @@
   --gov-glass: rgb(12 22 38 / 0.55);
   --gov-border: rgb(255 255 255 / 0.16);
   --gov-border-strong: rgb(255 255 255 / 0.28);
+  --gov-rotate-x: 0deg;
+  --gov-rotate-y: 0deg;
+  --gov-pointer-x: 50%;
+  --gov-pointer-y: 45%;
 
   position: relative;
   isolation: isolate;
@@ -28,6 +32,20 @@
     0 24px 60px rgb(3 8 18 / 0.45),
     inset 0 1px 0 rgb(255 255 255 / 0.08);
   color: #fff;
+  perspective: 1100px;
+  transform-style: preserve-3d;
+}
+
+.stage::after {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  border-radius: inherit;
+  background: radial-gradient(circle at var(--gov-pointer-x) var(--gov-pointer-y), rgb(255 255 255 / .09), transparent 28%);
+  content: '';
+  opacity: .7;
+  pointer-events: none;
+  transition: opacity 220ms ease;
 }
 
 :global(.light) .stage,
@@ -102,6 +120,9 @@
   inset: 0;
   z-index: 2;
   opacity: 0.7;
+  transform: rotateX(var(--gov-rotate-x)) rotateY(var(--gov-rotate-y)) translateZ(10px);
+  transform-style: preserve-3d;
+  transition: transform 520ms cubic-bezier(.16, 1, .3, 1);
 }
 
 .spark {
@@ -135,6 +156,10 @@
   z-index: 4;
   width: 100%;
   min-height: clamp(15.5rem, 58vw, 22rem);
+  transform: rotateX(var(--gov-rotate-x)) rotateY(var(--gov-rotate-y));
+  transform-style: preserve-3d;
+  transition: transform 520ms cubic-bezier(.16, 1, .3, 1);
+  will-change: transform;
 }
 
 .orbShell {
@@ -146,7 +171,8 @@
   place-items: center;
   width: min(58%, 15.5rem);
   aspect-ratio: 1;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) translateZ(70px);
+  transform-style: preserve-3d;
 }
 
 .orbStack {
@@ -282,6 +308,10 @@
   inset: 0;
   z-index: 6;
   display: none;
+  transform: rotateX(var(--gov-rotate-x)) rotateY(var(--gov-rotate-y)) translateZ(32px);
+  transform-style: preserve-3d;
+  transition: transform 560ms cubic-bezier(.16, 1, .3, 1);
+  will-change: transform;
 }
 
 .featureCard {
@@ -301,7 +331,7 @@
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   transition:
-    transform 200ms ease,
+    transform 220ms cubic-bezier(.16, 1, .3, 1),
     border-color 200ms ease,
     box-shadow 200ms ease,
     background 200ms ease;
@@ -684,5 +714,16 @@
 
   .featureCard {
     transition: none;
+  }
+
+  .orbStage,
+  .desktopFeatures,
+  .sparkField {
+    transform: none;
+    transition: none;
+  }
+
+  .orbShell {
+    transform: translate(-50%, -50%);
   }
 }
