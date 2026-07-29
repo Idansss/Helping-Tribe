@@ -12,8 +12,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-dm-sans)', 'system-ui', 'sans-serif'],
-        display: ['var(--font-newsreader)', 'Georgia', 'serif'],
+        sans: ['var(--font-body)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'Georgia', 'serif'],
       },
       colors: {
         background: 'hsl(var(--background))',

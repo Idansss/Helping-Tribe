@@ -1,8 +1,12 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PROGRAM_FULL_NAME } from '@/lib/brand/program'
 
-export const metadata = {
+export const metadata: Metadata = {
   title: `Privacy Policy | ${PROGRAM_FULL_NAME}`,
+  alternates: {
+    canonical: '/privacy',
+  },
 }
 
 export default function PrivacyPage() {

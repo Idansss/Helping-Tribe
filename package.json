@@ -16,7 +16,9 @@
     "start": "next start"
   },
   "dependencies": {
+    "@gsap/react": "^2.1.2",
     "@hookform/resolvers": "^3.10.0",
+    "@number-flow/react": "^0.6.2",
     "@radix-ui/react-accordion": "^1.2.2",
     "@radix-ui/react-alert-dialog": "1.1.4",
     "@radix-ui/react-aspect-ratio": "1.1.1",
@@ -56,6 +58,7 @@
     "date-fns": "4.1.0",
     "embla-carousel-react": "8.5.1",
     "framer-motion": "^12.29.2",
+    "gsap": "^3.15.0",
     "html2canvas": "^1.4.1",
     "input-otp": "1.4.1",
     "jspdf": "^4.2.0",
