@@ -1,9 +1,13 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Mail, Phone, Clock, ArrowLeft } from 'lucide-react'
 import { PROGRAM_FULL_NAME } from '@/lib/brand/program'
 
-export const metadata = {
+export const metadata: Metadata = {
   title: `Contact Support | ${PROGRAM_FULL_NAME}`,
+  alternates: {
+    canonical: '/contact',
+  },
 }
 
 export default function ContactPage() {

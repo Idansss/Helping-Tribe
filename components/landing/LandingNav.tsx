@@ -1,5 +1,6 @@
 'use client'
 
+import type React from 'react'
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -23,7 +24,7 @@ export function LandingNav() {
 
   useEffect(() => {
     setIsHydrated(true)
-    const handleScroll = () => setIsScrolled(window.scrollY > 16)
+    const handleScroll = () => setIsScrolled(window.scrollY > 80)
     handleScroll()
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
@@ -36,19 +37,20 @@ export function LandingNav() {
       <nav
         aria-label="Public navigation"
         data-hydrated={isHydrated}
-        className={`pointer-events-auto mx-auto flex h-[var(--nav-height)] max-w-7xl items-center justify-between gap-3 rounded-[1.4rem] border px-3 transition-[background-color,border-color,box-shadow,transform] duration-300 sm:px-4 ${
+        data-scrolled={isScrolled}
+        className={`landing-nav pointer-events-auto mx-auto flex max-w-7xl items-center justify-between gap-3 rounded-[1.4rem] border px-3 sm:px-4 ${
           isScrolled
-            ? 'translate-y-0 border-border/80 bg-background/94 shadow-[0_16px_50px_rgb(11_19_32/0.13)] backdrop-blur-xl'
+            ? 'border-b-border/80 border-border/60 bg-background/94 shadow-[0_16px_50px_rgb(11_19_32/0.13)] backdrop-blur-xl'
             : 'border-white/20 bg-background/88 shadow-[0_8px_30px_rgb(11_19_32/0.08)] backdrop-blur-lg'
         }`}
       >
         <Link href="/" className="flex min-w-0 items-center gap-2.5 rounded-lg">
-          <span className="relative size-10 shrink-0 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-border">
+          <span className="landing-nav-logo relative size-10 shrink-0 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-border">
             <Image src="/logo.png" alt="" fill sizes="40px" className="object-contain p-0.5" priority />
           </span>
           <span className="min-w-0 leading-none">
             <span className="block truncate font-display text-[1.08rem] font-semibold text-foreground sm:text-xl">Helping Tribe</span>
-            <span className="mt-1 block truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Academy</span>
+            <span className="mt-1 block truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/70">Academy</span>
           </span>
         </Link>
 
@@ -80,10 +82,14 @@ export function LandingNav() {
                 <DialogTitle className="font-display text-2xl">Explore Helping Tribe</DialogTitle>
                 <DialogDescription>Programme information and secure access to your learning portal.</DialogDescription>
               </DialogHeader>
-              <div className="flex flex-col gap-2 px-4 py-5">
-                {SITE_CONFIG.publicNavigation.map((item) => (
+              <div className="nav-overlay-links flex flex-col gap-2 px-4 py-5">
+                {SITE_CONFIG.publicNavigation.map((item, index) => (
                   <DialogClose asChild key={item.href}>
-                    <Link href={item.href} className="flex min-h-12 items-center rounded-xl px-4 text-base font-semibold text-foreground hover:bg-accent">
+                    <Link
+                      href={item.href}
+                      style={{ '--i': index } as React.CSSProperties}
+                      className="flex min-h-12 items-center rounded-xl px-4 text-base font-semibold text-foreground hover:bg-accent"
+                    >
                       {item.label}
                     </Link>
                   </DialogClose>

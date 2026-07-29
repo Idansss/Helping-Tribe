@@ -81,7 +81,11 @@
     --shadow-soft: 0 18px 50px rgb(13 94 87 / 0.12);
     --shadow-elevated: 0 24px 70px rgb(11 19 32 / 0.16);
     --page-gutter: clamp(1rem, 3vw, 2rem);
-    --section-space: clamp(4rem, 9vw, 7.5rem);
+    /* Generous section rhythm — whitespace is what makes the page read as
+       considered rather than crowded. Steps on the 8px base scale. */
+    --section-space: clamp(5rem, 11vw, 10rem);
+    /* Comfortable reading measure for body copy. */
+    --measure: 68ch;
     --nav-height: 4.5rem;
     --portal-header-height: var(--nav-height);
     --mobile-bottom-nav-height: 4rem;
@@ -178,10 +182,9 @@
     text-wrap: balance;
   }
 
-  /* Newsreader’s large optical size exaggerates comma tails — keep punctuation compact. */
+  /* Literata carries a real optical-size axis — let it do its job. */
   .font-display {
-    font-optical-sizing: none;
-    font-feature-settings: 'swsh' 0, 'ss01' 0, 'ss02' 0;
+    font-optical-sizing: auto;
   }
 
   :where(p, li) {
@@ -548,6 +551,40 @@ body,
   text-transform: uppercase;
 }
 
+/* Display headlines: tight leading, slightly negative tracking. */
+.display-xl,
+.display-lg,
+.display-md {
+  font-family: var(--font-display), Georgia, serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  text-wrap: balance;
+}
+
+.display-xl {
+  font-size: clamp(3rem, 7vw, 6.25rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.display-lg {
+  font-size: clamp(2.6rem, 5.6vw, 4.75rem);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+.display-md {
+  font-size: clamp(2rem, 3.4vw, 3rem);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+/* Body copy: generous leading, capped measure. */
+.prose-measure {
+  max-width: var(--measure);
+  line-height: 1.65;
+}
+
 /* The page remains fully visible without JavaScript. Motion is enabled only
    after LandingMotion has attached observers. */
 .public-shell[data-motion-ready='true'] [data-reveal] {
@@ -575,6 +612,534 @@ body,
   opacity: 1;
   transform: translate3d(0, 0, 0) scale(1);
   clip-path: inset(0 0 0 0 round .35rem);
+}
+
+/*
+  Native <details> disclosure used by the curriculum and FAQ sections. The panel
+  body is always in the server HTML; only its height is animated.
+*/
+.disclosure > summary {
+  list-style: none;
+}
+
+.disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.disclosure > summary:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 3px;
+}
+
+.disclosure-chevron {
+  transition: transform var(--motion-standard) var(--ease-standard);
+}
+
+.disclosure[open] .disclosure-chevron {
+  transform: rotate(180deg);
+}
+
+/*
+  Height animation where the browser supports interpolating to `auto`
+  (Chrome 129+, Safari 18.2+). Elsewhere the panel simply snaps open, which is
+  the correct graceful degradation — the content is present either way.
+*/
+@supports (interpolate-size: allow-keywords) {
+  :root {
+    interpolate-size: allow-keywords;
+  }
+
+  .disclosure::details-content {
+    block-size: 0;
+    overflow: hidden;
+    transition:
+      block-size var(--motion-panel) var(--ease-standard),
+      content-visibility var(--motion-panel) var(--ease-standard) allow-discrete;
+  }
+
+  .disclosure[open]::details-content {
+    block-size: auto;
+  }
+}
+
+/* ── Navigation ────────────────────────────────────────────────────────── */
+
+.landing-nav {
+  height: var(--nav-height);
+  transition:
+    height var(--motion-panel) var(--ease-standard),
+    background-color var(--motion-panel) ease,
+    border-color var(--motion-panel) ease,
+    box-shadow var(--motion-panel) ease;
+}
+
+.landing-nav[data-scrolled='true'] {
+  height: calc(var(--nav-height) - 0.625rem);
+}
+
+.landing-nav-logo {
+  transition: transform var(--motion-panel) var(--ease-standard);
+  transform-origin: left center;
+}
+
+.landing-nav[data-scrolled='true'] .landing-nav-logo {
+  transform: scale(0.88);
+}
+
+/* Staggered reveal for the full-screen mobile menu. */
+.nav-overlay-links > a {
+  animation: nav-link-in var(--motion-panel) var(--ease-standard) both;
+  animation-delay: calc(60ms + var(--i) * 45ms);
+}
+
+@keyframes nav-link-in {
+  from { opacity: 0; transform: translate3d(0, 0.5rem, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* 200ms enter fade on the public shell. */
+.public-shell {
+  animation: page-fade 200ms var(--ease-standard) both;
+}
+
+@keyframes page-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-nav,
+  .landing-nav-logo {
+    transition: none;
+  }
+
+  .nav-overlay-links > a,
+  .public-shell {
+    animation: none;
+  }
+}
+
+/* ── Hero ──────────────────────────────────────────────────────────────── */
+
+/*
+  Headline word stagger.
+
+  Transform only, and never opacity: this h1 is the LCP element, so it must be
+  painted and opaque on the first frame. Animating opacity here (or hiding it
+  until a script loads) delays LCP by seconds on a throttled connection.
+*/
+.hero-word {
+  display: inline-block;
+  animation: hero-word-in 0.6s var(--ease-standard) both;
+  animation-delay: calc(var(--i) * 60ms);
+  will-change: transform;
+}
+
+@keyframes hero-word-in {
+  from { transform: translate3d(0, 0.32em, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+
+/* The sub-paragraph is not the LCP element, so it may fade. */
+.hero-sub {
+  animation: hero-sub-in 0.5s var(--ease-standard) both;
+  animation-delay: 0.9s;
+}
+
+@keyframes hero-sub-in {
+  from { opacity: 0; transform: translate3d(0, 0.5rem, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+.hero-aurora {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hero-aurora > span {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  filter: blur(72px);
+  will-change: transform;
+}
+
+.hero-aurora > span:nth-child(1) {
+  left: -8%;
+  top: -12%;
+  width: 46%;
+  aspect-ratio: 1;
+  background: radial-gradient(circle, rgb(15 118 110 / 0.55), transparent 70%);
+  animation: hero-drift-a 26s ease-in-out infinite;
+}
+
+.hero-aurora > span:nth-child(2) {
+  right: -10%;
+  top: 4%;
+  width: 42%;
+  aspect-ratio: 1;
+  background: radial-gradient(circle, rgb(91 42 134 / 0.5), transparent 70%);
+  animation: hero-drift-b 31s ease-in-out infinite;
+}
+
+.hero-aurora > span:nth-child(3) {
+  left: 34%;
+  bottom: -22%;
+  width: 38%;
+  aspect-ratio: 1;
+  background: radial-gradient(circle, rgb(104 196 184 / 0.32), transparent 70%);
+  animation: hero-drift-c 23s ease-in-out infinite;
+}
+
+/* Transform-only keyframes so these never trigger layout or paint. */
+@keyframes hero-drift-a {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(6%, 8%, 0) scale(1.12); }
+}
+
+@keyframes hero-drift-b {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.05); }
+  50% { transform: translate3d(-7%, 6%, 0) scale(0.94); }
+}
+
+@keyframes hero-drift-c {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(0.96); }
+  50% { transform: translate3d(4%, -9%, 0) scale(1.1); }
+}
+
+.hero[data-paused='true'] .hero-aurora > span {
+  animation-play-state: paused;
+}
+
+/* Proof row — inline stats separated by hairline dividers. */
+.hero-proof {
+  display: grid;
+  gap: 1rem;
+  border-top: 1px solid rgb(255 255 255 / 0.12);
+  padding-top: 1.5rem;
+}
+
+.hero-proof > li {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.hero-proof-value {
+  color: #fff;
+  font-family: var(--font-display), Georgia, serif;
+  font-optical-sizing: auto;
+  font-size: 1.75rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.hero-proof-label {
+  color: rgb(203 213 225 / 0.85);
+  font-size: 0.8rem;
+}
+
+@media (min-width: 640px) {
+  .hero-proof {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+  }
+
+  .hero-proof > li + li {
+    border-left: 1px solid rgb(255 255 255 / 0.12);
+    padding-left: 1.5rem;
+  }
+
+  .hero-proof > li:not(:last-child) {
+    padding-right: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-aurora > span,
+  .hero-word,
+  .hero-sub {
+    animation: none;
+  }
+}
+
+/* ── Nine-week curriculum ──────────────────────────────────────────────────
+   Default (and server-rendered) presentation is a vertical stepped timeline.
+   The horizontal pinned track is an enhancement applied by JS on desktop only,
+   via [data-mode='horizontal'].
+*/
+.curriculum-inner {
+  margin-inline: auto;
+  width: min(100%, 80rem);
+  padding-inline: var(--page-gutter);
+  padding-block: var(--section-space);
+}
+
+.curriculum-track {
+  position: relative;
+  margin-top: 3.5rem;
+  display: grid;
+  gap: 0;
+}
+
+/* Continuous rail behind the numerals. */
+.curriculum-track::before {
+  content: '';
+  position: absolute;
+  left: 1.5rem;
+  top: 1rem;
+  bottom: 1rem;
+  width: 1px;
+  background: hsl(var(--border));
+}
+
+.curriculum-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 3rem 1fr;
+  gap: 1.25rem;
+  padding-block: 1.5rem;
+}
+
+.curriculum-numeral {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+  color: var(--brand-primary);
+  font-family: var(--font-display), Georgia, serif;
+  font-optical-sizing: auto;
+  font-size: 1.05rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.curriculum-kicker {
+  color: var(--brand-primary);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.curriculum-title {
+  margin-top: 0.5rem;
+  color: hsl(var(--foreground));
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.curriculum-detail {
+  margin-top: 0.5rem;
+  max-width: 46ch;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.curriculum-progress {
+  display: none;
+}
+
+/* ── Pinned horizontal mode (desktop, motion allowed) ── */
+.curriculum[data-mode='horizontal'] {
+  overflow: hidden;
+}
+
+.curriculum[data-mode='horizontal'] .curriculum-inner {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2.5rem;
+  padding-block: clamp(3rem, 6vh, 5rem);
+}
+
+.curriculum[data-mode='horizontal'] .curriculum-heading {
+  flex: none;
+  max-width: 44rem;
+}
+
+.curriculum[data-mode='horizontal'] .curriculum-viewport {
+  flex: none;
+  overflow: visible;
+}
+
+.curriculum[data-mode='horizontal'] .curriculum-track {
+  margin-top: 0;
+  display: flex;
+  gap: 1.5rem;
+  width: max-content;
+  will-change: transform;
+}
+
+.curriculum[data-mode='horizontal'] .curriculum-track::before {
+  display: none;
+}
+
+.curriculum[data-mode='horizontal'] .curriculum-card {
+  display: flex;
+  width: 20rem;
+  flex: none;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.75rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 1.25rem;
+  background: hsl(var(--background));
+  box-shadow: var(--shadow-soft);
+}
+
+.curriculum[data-mode='horizontal'] .curriculum-numeral {
+  width: auto;
+  height: auto;
+  place-items: start;
+  border: 0;
+  background: none;
+  font-size: clamp(3.25rem, 4vw, 4.5rem);
+  line-height: 1;
+}
+
+.curriculum[data-mode='horizontal'] .curriculum-detail {
+  max-width: none;
+}
+
+.curriculum[data-mode='horizontal'] .curriculum-progress {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.curriculum-rail {
+  position: relative;
+  height: 2px;
+  flex: 1;
+  overflow: hidden;
+  border-radius: 999px;
+  background: hsl(var(--border));
+}
+
+.curriculum-rail > span {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+  background: var(--brand-primary);
+  transform-origin: left center;
+  will-change: transform;
+}
+
+.curriculum-counter {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.curriculum-counter-value {
+  color: var(--brand-primary);
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The pinned track is never applied under reduced motion, but guard anyway. */
+@media (prefers-reduced-motion: reduce) {
+  .curriculum[data-mode='horizontal'] .curriculum-track {
+    transform: none !important;
+  }
+}
+
+/*
+  Bento feature tile: nine steps lighting in sequence on a slow loop. Transform
+  and opacity only, so it stays on the compositor.
+*/
+.pathway-loop {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 0.375rem;
+  max-width: 22rem;
+}
+
+.pathway-loop > span {
+  height: 0.375rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.12);
+}
+
+.public-shell[data-motion-ready='true'] .pathway-loop > span {
+  animation: pathway-step 5.4s var(--ease-standard) infinite;
+  animation-delay: calc(var(--step) * 0.18s);
+}
+
+@keyframes pathway-step {
+  0%, 6% { background-color: rgb(255 255 255 / 0.12); transform: scaleY(1); }
+  16% { background-color: #68c4b8; transform: scaleY(1.6); }
+  40%, 100% { background-color: rgb(255 255 255 / 0.12); transform: scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-shell[data-motion-ready='true'] .pathway-loop > span {
+    animation: none;
+  }
+}
+
+/*
+  Admissions connecting line. A straight rail scaled on the Y axis is visually
+  identical to a DrawSVG stroke reveal, without loading GSAP for this section.
+  Visible by default so the line still renders with JavaScript disabled.
+*/
+.admissions-rail {
+  position: absolute;
+  left: 1.25rem;
+  top: 2.5rem;
+  bottom: 2.5rem;
+  width: 1px;
+  background: rgb(255 255 255 / 0.25);
+  transform-origin: top center;
+}
+
+.public-shell[data-motion-ready='true'] .admissions-rail {
+  transform: scaleY(0);
+  transition: transform 900ms var(--ease-standard) 120ms;
+}
+
+.public-shell[data-motion-ready='true'] .admissions-steps[data-visible='true'] .admissions-rail {
+  transform: scaleY(1);
+}
+
+/* Faculty portraits settle into colour on hover. */
+.faculty-portrait {
+  filter: grayscale(1);
+  transition: filter 400ms var(--ease-standard);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .faculty-card:hover .faculty-portrait,
+  .faculty-card:focus-within .faculty-portrait {
+    filter: grayscale(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faculty-portrait {
+    transition: none;
+  }
 }
 
 .landing-interactive {

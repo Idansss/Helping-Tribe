@@ -20,7 +20,7 @@ type Feature = {
   description: string
   icon: LucideIcon
   tone: FeatureTone
-  desktopClass: string
+  positionClass: string
 }
 
 const FEATURES: readonly Feature[] = [
@@ -30,7 +30,7 @@ const FEATURES: readonly Feature[] = [
     description: 'Build knowledge with clarity.',
     icon: BookOpen,
     tone: 'teal',
-    desktopClass: styles.featureLearn,
+    positionClass: styles.featureLearn,
   },
   {
     id: 'reflect',
@@ -38,7 +38,7 @@ const FEATURES: readonly Feature[] = [
     description: 'Pause. Review. Grow deeper.',
     icon: Sparkles,
     tone: 'violet',
-    desktopClass: styles.featureReflect,
+    positionClass: styles.featureReflect,
   },
   {
     id: 'practise',
@@ -46,7 +46,7 @@ const FEATURES: readonly Feature[] = [
     description: 'Apply with purpose. Strengthen skills.',
     icon: HeartHandshake,
     tone: 'teal',
-    desktopClass: styles.featurePractise,
+    positionClass: styles.featurePractise,
   },
   {
     id: 'connect',
@@ -54,7 +54,7 @@ const FEATURES: readonly Feature[] = [
     description: 'Share. Collaborate. Learn together.',
     icon: Users,
     tone: 'violet',
-    desktopClass: styles.featureConnect,
+    positionClass: styles.featureConnect,
   },
 ] as const
 
@@ -159,19 +159,21 @@ function GrowthOrb() {
   )
 }
 
+/**
+ * One card per feature, rendered once. The mobile chip grid and the floating
+ * desktop cards are the same DOM node — only the CSS layout differs, so the
+ * copy is not duplicated for search engines or assistive tech.
+ */
 function FeatureNode({ feature }: { feature: Feature }) {
   const Icon = feature.icon
   return (
-    <div
-      className={`${styles.featureCard} ${toneClass(feature.tone)} ${feature.desktopClass}`}
-      aria-hidden="true"
-    >
+    <div className={`${styles.featureCard} ${toneClass(feature.tone)} ${feature.positionClass}`}>
       <div className={styles.featureTop}>
         <span className={styles.featureIcon}>
           <Icon className="size-3.5" aria-hidden="true" />
         </span>
+        <span className={styles.featureTitle}>{feature.title}</span>
       </div>
-      <span className={styles.featureTitle}>{feature.title}</span>
       <span className={styles.featureDesc}>{feature.description}</span>
     </div>
   )
@@ -286,30 +288,10 @@ export function GrowthOrbitVisual() {
         <GrowthOrb />
       </div>
 
-      <div className={styles.desktopFeatures} aria-hidden="true">
+      <div className={styles.features} aria-hidden="true">
         {FEATURES.map((feature) => (
           <FeatureNode key={feature.id} feature={feature} />
         ))}
-      </div>
-
-      <div className={styles.mobileFeatures} aria-hidden="true">
-        {FEATURES.map((feature) => {
-          const Icon = feature.icon
-          return (
-            <div
-              key={feature.id}
-              className={`${styles.mobileChip} ${toneClass(feature.tone)}`}
-            >
-              <div className={styles.mobileChipHeader}>
-                <span className={styles.mobileChipIcon}>
-                  <Icon className="size-3" aria-hidden="true" />
-                </span>
-                <span className={styles.mobileChipTitle}>{feature.title}</span>
-              </div>
-              <span className={styles.mobileChipDesc}>{feature.description}</span>
-            </div>
-          )
-        })}
       </div>
 
       <JourneyPill />

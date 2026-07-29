@@ -61,8 +61,7 @@
 .sparkField,
 .orbitSvg,
 .orbShell,
-.desktopFeatures,
-.mobileFeatures {
+.features {
   pointer-events: none;
 }
 
@@ -288,7 +287,7 @@
 }
 
 .headline {
-  font-family: var(--font-newsreader), Georgia, serif;
+  font-family: var(--font-display), Georgia, serif;
   font-size: clamp(1.35rem, 3.4vw, 1.95rem);
   font-weight: 600;
   line-height: 1.1;
@@ -303,90 +302,48 @@
   font-weight: 500;
 }
 
-.desktopFeatures {
-  position: absolute;
-  inset: 0;
+/*
+  One feature list, two layouts. Below 768px this is an in-flow chip grid under
+  the orb; from 768px it becomes an absolutely positioned overlay of floating
+  cards. Collapsing the former desktop/mobile trees into one keeps the copy in
+  the HTML exactly once.
+*/
+.features {
+  position: relative;
   z-index: 6;
-  display: none;
-  transform: rotateX(var(--gov-rotate-x)) rotateY(var(--gov-rotate-y)) translateZ(32px);
-  transform-style: preserve-3d;
-  transition: transform 560ms cubic-bezier(.16, 1, .3, 1);
-  will-change: transform;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+  margin-top: 0.15rem;
+  padding: 0 0.85rem 3.35rem;
 }
 
 .featureCard {
-  position: absolute;
   display: flex;
-  width: min(42%, 11.5rem);
+  min-height: 3.5rem;
   flex-direction: column;
-  gap: 0.35rem;
-  pointer-events: auto;
+  gap: 0.15rem;
   border: 1px solid var(--gov-border);
-  border-radius: 1rem;
-  background: linear-gradient(160deg, rgb(18 30 48 / 0.72), rgb(10 18 32 / 0.62));
-  padding: 0.75rem 0.8rem 0.65rem;
-  box-shadow:
-    0 10px 28px rgb(0 0 0 / 0.28),
-    inset 0 1px 0 rgb(255 255 255 / 0.08);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  transition:
-    transform 220ms cubic-bezier(.16, 1, .3, 1),
-    border-color 200ms ease,
-    box-shadow 200ms ease,
-    background 200ms ease;
-  will-change: transform;
+  border-radius: 0.85rem;
+  background: rgb(12 22 38 / 0.62);
+  padding: 0.65rem 0.7rem;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
-
-.featureCard:hover,
-.featureCard:focus-within {
-  border-color: var(--gov-border-strong);
-  background: linear-gradient(160deg, rgb(22 36 56 / 0.82), rgb(12 22 38 / 0.72));
-  box-shadow:
-    0 14px 32px rgb(0 0 0 / 0.35),
-    0 0 24px rgb(104 196 184 / 0.12),
-    inset 0 1px 0 rgb(255 255 255 / 0.12);
-  transform: translateY(-3px);
-}
-
-.featureCard:focus-visible {
-  outline: 2px solid var(--gov-teal-soft);
-  outline-offset: 3px;
-}
-
-.featureTeal {
-  box-shadow:
-    0 10px 28px rgb(0 0 0 / 0.28),
-    0 0 20px rgb(56 189 168 / 0.1),
-    inset 0 1px 0 rgb(255 255 255 / 0.08);
-}
-
-.featureViolet {
-  box-shadow:
-    0 10px 28px rgb(0 0 0 / 0.28),
-    0 0 20px rgb(167 139 250 / 0.12),
-    inset 0 1px 0 rgb(255 255 255 / 0.08);
-}
-
-.featureLearn { left: 3.5%; top: 11%; }
-.featureReflect { right: 3.5%; top: 9%; }
-.featurePractise { left: 4%; bottom: 16%; }
-.featureConnect { right: 3.5%; bottom: 14%; }
 
 .featureTop {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .featureIcon {
   display: grid;
-  width: 1.85rem;
-  height: 1.85rem;
+  width: 1.45rem;
+  height: 1.45rem;
   flex-shrink: 0;
   place-items: center;
-  border-radius: 0.55rem;
+  border-radius: 0.4rem;
 }
 
 .featureTeal .featureIcon {
@@ -400,72 +357,11 @@
 }
 
 .featureTitle {
-  font-size: 0.82rem;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-}
-
-.featureDesc {
-  color: rgb(226 232 240 / 0.78);
-  font-size: 0.68rem;
-  font-weight: 500;
-  line-height: 1.35;
-}
-
-.mobileFeatures {
-  position: relative;
-  z-index: 6;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.55rem;
-  margin-top: 0.15rem;
-  padding: 0 0.85rem 3.35rem;
-}
-
-.mobileChip {
-  display: flex;
-  min-height: 3.5rem;
-  flex-direction: column;
-  gap: 0.15rem;
-  border: 1px solid var(--gov-border);
-  border-radius: 0.85rem;
-  background: rgb(12 22 38 / 0.62);
-  padding: 0.65rem 0.7rem;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.mobileChipHeader {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.mobileChipIcon {
-  display: grid;
-  width: 1.45rem;
-  height: 1.45rem;
-  place-items: center;
-  border-radius: 0.4rem;
-}
-
-.mobileChip.featureTeal .mobileChipIcon {
-  background: rgb(104 196 184 / 0.16);
-  color: var(--gov-teal-soft);
-}
-
-.mobileChip.featureViolet .mobileChipIcon {
-  background: rgb(167 139 250 / 0.16);
-  color: var(--gov-plum);
-}
-
-.mobileChipTitle {
   font-size: 0.75rem;
   font-weight: 700;
 }
 
-.mobileChipDesc {
+.featureDesc {
   color: rgb(226 232 240 / 0.72);
   font-size: 0.62rem;
   line-height: 1.3;
@@ -531,17 +427,6 @@
 .stage[data-animate='true'] .ribbonOuter {
   animation: gov-spin 48s linear infinite;
 }
-
-.stage[data-animate='true'] .featureLearn,
-.stage[data-animate='true'] .featureReflect,
-.stage[data-animate='true'] .featurePractise,
-.stage[data-animate='true'] .featureConnect {
-  animation: gov-float 7s ease-in-out infinite;
-}
-
-.stage[data-animate='true'] .featureReflect { animation-duration: 8s; animation-delay: -1.5s; }
-.stage[data-animate='true'] .featurePractise { animation-duration: 6.5s; animation-delay: -3s; }
-.stage[data-animate='true'] .featureConnect { animation-duration: 7.5s; animation-delay: -2.2s; }
 
 .stage[data-animate='true'] .orbitDrift {
   animation: gov-drift 40s linear infinite;
@@ -615,13 +500,111 @@
     min-height: 0;
   }
 
-  .desktopFeatures {
+  /* The chip grid becomes a floating overlay of cards around the orb. */
+  .features {
+    position: absolute;
+    inset: 0;
     display: block;
+    margin-top: 0;
+    padding: 0;
+    transform: rotateX(var(--gov-rotate-x)) rotateY(var(--gov-rotate-y)) translateZ(32px);
+    transform-style: preserve-3d;
+    transition: transform 560ms cubic-bezier(.16, 1, .3, 1);
+    will-change: transform;
   }
 
-  .mobileFeatures {
-    display: none;
+  .featureCard {
+    position: absolute;
+    width: min(42%, 11.5rem);
+    min-height: 0;
+    gap: 0.35rem;
+    pointer-events: auto;
+    border-radius: 1rem;
+    background: linear-gradient(160deg, rgb(18 30 48 / 0.72), rgb(10 18 32 / 0.62));
+    padding: 0.75rem 0.8rem 0.65rem;
+    box-shadow:
+      0 10px 28px rgb(0 0 0 / 0.28),
+      inset 0 1px 0 rgb(255 255 255 / 0.08);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    transition:
+      transform 220ms cubic-bezier(.16, 1, .3, 1),
+      border-color 200ms ease,
+      box-shadow 200ms ease,
+      background 200ms ease;
+    will-change: transform;
   }
+
+  .featureCard:hover,
+  .featureCard:focus-within {
+    border-color: var(--gov-border-strong);
+    background: linear-gradient(160deg, rgb(22 36 56 / 0.82), rgb(12 22 38 / 0.72));
+    box-shadow:
+      0 14px 32px rgb(0 0 0 / 0.35),
+      0 0 24px rgb(104 196 184 / 0.12),
+      inset 0 1px 0 rgb(255 255 255 / 0.12);
+    transform: translateY(-3px);
+  }
+
+  .featureCard:focus-visible {
+    outline: 2px solid var(--gov-teal-soft);
+    outline-offset: 3px;
+  }
+
+  .featureTeal {
+    box-shadow:
+      0 10px 28px rgb(0 0 0 / 0.28),
+      0 0 20px rgb(56 189 168 / 0.1),
+      inset 0 1px 0 rgb(255 255 255 / 0.08);
+  }
+
+  .featureViolet {
+    box-shadow:
+      0 10px 28px rgb(0 0 0 / 0.28),
+      0 0 20px rgb(167 139 250 / 0.12),
+      inset 0 1px 0 rgb(255 255 255 / 0.08);
+  }
+
+  .featureLearn { left: 3.5%; top: 11%; }
+  .featureReflect { right: 3.5%; top: 9%; }
+  .featurePractise { left: 4%; bottom: 16%; }
+  .featureConnect { right: 3.5%; bottom: 14%; }
+
+  .featureTop {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .featureIcon {
+    width: 1.85rem;
+    height: 1.85rem;
+    border-radius: 0.55rem;
+  }
+
+  .featureTitle {
+    font-size: 0.82rem;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  .featureDesc {
+    color: rgb(226 232 240 / 0.78);
+    font-size: 0.68rem;
+    font-weight: 500;
+    line-height: 1.35;
+  }
+
+  .stage[data-animate='true'] .featureLearn,
+  .stage[data-animate='true'] .featureReflect,
+  .stage[data-animate='true'] .featurePractise,
+  .stage[data-animate='true'] .featureConnect {
+    animation: gov-float 7s ease-in-out infinite;
+  }
+
+  .stage[data-animate='true'] .featureReflect { animation-duration: 8s; animation-delay: -1.5s; }
+  .stage[data-animate='true'] .featurePractise { animation-duration: 6.5s; animation-delay: -3s; }
+  .stage[data-animate='true'] .featureConnect { animation-duration: 7.5s; animation-delay: -2.2s; }
 
   .orbShell {
     width: min(52%, 15.75rem);
@@ -690,7 +673,7 @@
     font-size: 1.15rem;
   }
 
-  .mobileChipDesc {
+  .featureDesc {
     font-size: 0.58rem;
   }
 }
@@ -717,7 +700,7 @@
   }
 
   .orbStage,
-  .desktopFeatures,
+  .features,
   .sparkField {
     transform: none;
     transition: none;

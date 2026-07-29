@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { APPLICATION_REVIEW_DAYS, PROGRAM_FULL_NAME } from '@/lib/brand/program'
 
@@ -5,8 +6,11 @@ type SuccessPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
-export const metadata = {
+export const metadata: Metadata = {
   title: `Application Submitted | ${PROGRAM_FULL_NAME}`,
+  alternates: {
+    canonical: '/apply/success',
+  },
 }
 
 export default async function ApplySuccessPage({ searchParams }: SuccessPageProps) {

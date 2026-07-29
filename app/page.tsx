@@ -9,6 +9,8 @@ import { EnrollmentSection } from '@/components/landing/EnrollmentSection'
 import { FAQSection } from '@/components/landing/FAQSection'
 import { LandingFooter } from '@/components/landing/LandingFooter'
 import { LandingMotion } from '@/components/landing/LandingMotion'
+import { JsonLd } from '@/components/json-ld'
+import { courseJsonLd } from '@/lib/brand/structured-data'
 import { PROGRAM_FULL_NAME, SCHOOL_NAME } from '@/lib/brand/program'
 
 export const metadata: Metadata = {
@@ -23,6 +25,7 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <div className="public-shell min-h-screen">
+      <JsonLd data={courseJsonLd()} />
       <LandingMotion />
       <LandingNav />
       <main id="main-content">
