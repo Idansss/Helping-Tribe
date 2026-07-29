@@ -54,4 +54,28 @@ describe('getSiteUrl', () => {
     setEnv('NODE_ENV', 'development')
     expect(getSiteUrl()).toBe('http://localhost:3000')
   })
+
+  // Shipped to production once: a stale BASE_URL=http://localhost:3000 in the
+  // deployment environment outranked every other source, so the live homepage
+  // advertised a dev-machine canonical.
+  it('ignores a localhost BASE_URL in production and uses the next valid source', () => {
+    setEnv('NODE_ENV', 'production')
+    setEnv('BASE_URL', 'http://localhost:3000')
+    setEnv('NEXT_PUBLIC_SITE_URL', 'https://helpingtribeacademy.com')
+    expect(getSiteUrl()).toBe('https://helpingtribeacademy.com')
+  })
+
+  it('falls back to the production default when every source is localhost', () => {
+    setEnv('NODE_ENV', 'production')
+    setEnv('BASE_URL', 'http://localhost:3000')
+    setEnv('VERCEL_URL', '127.0.0.1:3000')
+    expect(getSiteUrl()).toBe(DEFAULT_SITE_URL)
+    expect(getSiteUrl()).not.toContain('localhost')
+  })
+
+  it('keeps a localhost BASE_URL working in development', () => {
+    setEnv('NODE_ENV', 'development')
+    setEnv('BASE_URL', 'http://localhost:4000')
+    expect(getSiteUrl()).toBe('http://localhost:4000')
+  })
 })
