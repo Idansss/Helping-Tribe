@@ -15,18 +15,33 @@ function normalizeUrl(value: string | undefined): string {
   return `https://${trimmed}`
 }
 
+function isLocalhostUrl(value: string): boolean {
+  return /localhost|127\.0\.0\.1|\[::1\]/i.test(value)
+}
+
 export function getSiteUrl(): string {
-  const envUrl =
-    normalizeUrl(process.env.BASE_URL) ||
-    normalizeUrl(process.env.NEXT_PUBLIC_SITE_URL) ||
-    normalizeUrl(process.env.VERCEL_URL)
+  const isDevelopment = process.env.NODE_ENV === 'development'
 
-  if (envUrl) return envUrl
+  const candidates = [
+    normalizeUrl(process.env.BASE_URL),
+    normalizeUrl(process.env.NEXT_PUBLIC_SITE_URL),
+    normalizeUrl(process.env.VERCEL_URL),
+  ]
 
-  // Only local development may fall back to localhost. A deployed build must
-  // never emit a dev-machine canonical, which would tell search engines the
-  // real homepage lives on http://localhost:3000.
-  if (process.env.NODE_ENV === 'development') return 'http://localhost:3000'
+  for (const candidate of candidates) {
+    if (!candidate) continue
+
+    // A localhost origin is never a valid public canonical outside local
+    // development, no matter which variable supplies it. A stale
+    // BASE_URL=http://localhost:3000 in the deployment environment previously
+    // outranked every other source and shipped that canonical to production.
+    // Mirrors the guard in lib/server/public-site-url.ts.
+    if (!isDevelopment && isLocalhostUrl(candidate)) continue
+
+    return candidate
+  }
+
+  if (isDevelopment) return 'http://localhost:3000'
 
   return DEFAULT_SITE_URL
 }
