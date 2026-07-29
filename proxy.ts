@@ -23,6 +23,10 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|map)$).*)',
+    // Next's generated metadata images (opengraph-image, twitter-image) have no
+    // file extension, so they fell through to the auth gate and were redirected
+    // to "/" — social crawlers got HTML instead of a preview card. They are
+    // public assets and must not run session logic.
+    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|opengraph-image|twitter-image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|map)$).*)',
   ],
 }
